@@ -1,0 +1,44 @@
+name: Import verified initial source
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/import-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.ref == 'refs/heads/main' && github.actor == 'joao01dinis-ctrl'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import the reviewed source snapshot once
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f nexus-source-import.zip ]; then
+            echo 'Source snapshot already imported.'
+            exit 0
+          fi
+          python - <<'PY'
+          import hashlib, pathlib, zipfile
+          archive = pathlib.Path('nexus-source-import.zip')
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == '5f71dd79563d4045b7057c4004d2a0c1c622fb885ad2c1e2891807c91f075b7c'
+          assert not pathlib.Path('src/Nexus.UI/Nexus.UI.csproj').exists(), 'Full source already exists; refusing overwrite'
+          with zipfile.ZipFile(archive) as z:
+              assert len(z.infolist()) == 30
+              for entry in z.infolist():
+                  p = pathlib.PurePosixPath(entry.filename)
+                  assert not p.is_absolute() and '..' not in p.parts and p.parts[0] == 'src'
+                  assert p.suffix in {'.cs', '.csproj', '.xaml', '.manifest'}
+                  destination = pathlib.Path(*p.parts)
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  destination.write_bytes(z.read(entry))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src
+          git rm nexus-source-import.zip
+          git commit -m 'Import verified NEXUS source modules'
+          git push origin HEAD:main
