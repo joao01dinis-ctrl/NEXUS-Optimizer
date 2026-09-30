@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" />
+    <ProjectReference Include="../Nexus.Hardware/Nexus.Hardware.csproj" />
+    <ProjectReference Include="../Nexus.Optimization/Nexus.Optimization.csproj" />
+    <ProjectReference Include="../Nexus.Gaming/Nexus.Gaming.csproj" />
+    <ProjectReference Include="../Nexus.Diagnostics/Nexus.Diagnostics.csproj" />
+    <ProjectReference Include="../Nexus.Benchmark/Nexus.Benchmark.csproj" />
+    <ProjectReference Include="../Nexus.Network/Nexus.Network.csproj" />
+    <ProjectReference Include="../Nexus.Storage/Nexus.Storage.csproj" />
+    <ProjectReference Include="../Nexus.Restore/Nexus.Restore.csproj" />
+    <ProjectReference Include="../Nexus.Service/Nexus.Service.csproj" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260710003" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+  <!-- Include compiled WinUI resources in the portable publication. -->
+  <Target Name="IncludeWinUIResourcesInPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <WinUIResource Include="$(TargetDir)*.xbf;$(TargetDir)$(AssemblyName).pri" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WinUIResource)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
