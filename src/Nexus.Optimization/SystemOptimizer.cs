@@ -109,6 +109,8 @@ public sealed class SystemOptimizer
         using var operation = LockJournal();
         if (ReadHistory().Any(x => x.State == "pending")) throw new InvalidOperationException("Existe uma alteração interrompida. Usa primeiro Desfazer última alteração.");
         var setting = resolve(key); var before = setting.Read();
+        if (key.StartsWith("priority:", StringComparison.Ordinal) && before is not ("Normal" or "AboveNormal" or "ended"))
+            throw new InvalidOperationException("A prioridade da aplicação mudou. Seleciona uma aplicação com prioridade Normal; este valor não pode ser reposto pelo NEXUS.");
         if (before == after) return null;
         using var c = Open(); using var q = c.CreateCommand();
         q.CommandText = "INSERT INTO system_changes(at,key,name,before_value,after_value,state,owner) VALUES($at,$k,$n,$b,$a,'pending',$owner); SELECT last_insert_rowid()";
