@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup></PropertyGroup><ItemGroup><ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" /><PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup></PropertyGroup><ItemGroup><ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" /><PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" /><PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" /></ItemGroup></Project>

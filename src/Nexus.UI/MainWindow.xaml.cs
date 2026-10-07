@@ -10,8 +10,10 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         model = new(root);
+        InitializeOptimizer(root);
         Root.DataContext = model;
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1180, 900));
+        var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
         timer.Interval = TimeSpan.FromSeconds(2);
         timer.Tick += Tick;
         Root.Loaded += Loaded;
@@ -33,6 +35,8 @@ public sealed partial class MainWindow : Window
                 var output = Environment.GetEnvironmentVariable("NEXUS_DATA_DIR") ?? throw new InvalidOperationException("Smoke test requires an isolated NEXUS_DATA_DIR.");
                 await Task.Delay(1500);
                 await model.TickAsync();
+                var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
+                if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
                 var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
                 await bitmap.RenderAsync(Root);
                 var pixels = await bitmap.GetPixelsAsync();
@@ -73,6 +77,7 @@ public sealed partial class MainWindow : Window
         try
         {
             await model.TickAsync();
+            PollSession();
             timer.Interval = TimeSpan.FromSeconds(model.SampleSeconds);
         }
         finally { busy = false; }

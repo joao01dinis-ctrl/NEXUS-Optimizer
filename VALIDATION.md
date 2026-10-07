@@ -1,4 +1,25 @@
-# Validação — 29/09/2026
+# Validação 0.2 — 07/10/2026
+
+## Resultado atual
+
+Solução final Release x64 compilada com 0 avisos e 0 erros. Publicação self-contained gerada em artifacts/app-v0.2, incluindo recursos WinUI. Microsoft.Data.Sqlite 10.0.12 e SQLite nativo 3.50.3; restore final sem o aviso de vulnerabilidade observado na versão antiga.
+
+Validações isoladas, com definições simuladas salvo a reciclagem de um ficheiro descartável de teste:
+
+- 24 testes de diário/sessões passaram: persistência, recuperação, migração, concorrência, ownership, reposição seletiva, abertura de duas instâncias e rejeição de prioridades não reversíveis (configuração Debug).
+- 9 testes de análise/reciclagem passaram, incluindo alterações de candidatos, limites, cancelamento e junctions (Release x64).
+- Teste de integração Windows Shell passou: só um ficheiro criado em artifacts/recycle-validation foi enviado à Lixeira, confirmado pelo callback com destino. A Lixeira não foi esvaziada e os temporários reais do utilizador não foram limpos. Esse teste é opt-in através de NEXUS_TEST_RECYCLE_INTEGRATION=1.
+- 13 testes DNS passaram em Debug, incluindo respostas inválidas, mediana, timeouts e cancelamento.
+
+O conjunto completo final Debug passou: 57 aprovados, 0 falhados e 1 ignorado (integração de reciclagem opt-in, validada separadamente). Resultado em artifacts/tests/tests-v0.2-debug-final.trx. No conjunto final Release, 44 passaram e 13 testes de rede foram impedidos de executar por Controlo de Aplicações ao carregar Nexus.Network.dll (0x800711C7); 1 integração opt-in ignorada. Resultado em artifacts/tests/tests-v0.2-release-final.trx. Este bloqueio não é apresentado como aprovação dos testes Release de rede.
+
+O arranque de artifacts/app-v0.2/Nexus.UI.exe foi recusado pelo Windows antes de criar a janela. Não há captura nem validação visual da interface 0.2. A versão não deve ser anunciada como pronta a usar neste PC. A 0.1 abriu anteriormente em 7/10, mas esse resultado não prova que a 0.2 abre.
+
+Eventos Windows CodeIntegrity 3077 confirmam bloqueios de ficheiros recompilados. Nenhuma proteção, política de assinatura ou serviço de segurança foi alterado. Não foram aplicados ajustes novos de energia/prioridade/interface aos valores reais do PC durante esta validação.
+
+O workflow GitHub está preparado para compilar e executar todos os testes num runner Windows e publicar artefactos sem assinatura. O resultado remoto da 0.2 só pode ser confirmado após envio do código e conclusão da execução. Esse teste não substitui arranque no PC do utilizador nem assinatura de distribuição.
+
+## Histórico da 0.1 — 29/09/2026
 
 ## Concluído
 
