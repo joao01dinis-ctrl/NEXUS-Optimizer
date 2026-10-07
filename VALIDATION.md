@@ -6,12 +6,12 @@ Solução final Release x64 compilada com 0 avisos e 0 erros. Publicação self-
 
 Validações isoladas, com definições simuladas salvo a reciclagem de um ficheiro descartável de teste:
 
-- 19 testes de diário/sessões passaram: persistência, recuperação, migração, concorrência, ownership e reposição seletiva (configuração Debug).
+- 24 testes de diário/sessões passaram: persistência, recuperação, migração, concorrência, ownership, reposição seletiva, abertura de duas instâncias e rejeição de prioridades não reversíveis (configuração Debug).
 - 9 testes de análise/reciclagem passaram, incluindo alterações de candidatos, limites, cancelamento e junctions (Release x64).
 - Teste de integração Windows Shell passou: só um ficheiro criado em artifacts/recycle-validation foi enviado à Lixeira, confirmado pelo callback com destino. A Lixeira não foi esvaziada e os temporários reais do utilizador não foram limpos. Esse teste é opt-in através de NEXUS_TEST_RECYCLE_INTEGRATION=1.
-- 13 testes DNS escritos e compilados; a execução neste PC foi bloqueada antes das verificações ao carregar Nexus.Network.dll. Não são apresentados como aprovados.
+- 13 testes DNS passaram em Debug, incluindo respostas inválidas, mediana, timeouts e cancelamento.
 
-O teste completo da compilação final Release foi bloqueado ao carregar Nexus.Tests.dll por política de Controlo de Aplicações (0x800711C7). Uma execução anterior, com artefacto parcial, registou 11 pass e 24 falhas de carregamento por essa mesma política; esse artefacto não incluía todos os novos testes e não valida a solução final.
+O conjunto completo final Debug passou: 57 aprovados, 0 falhados e 1 ignorado (integração de reciclagem opt-in, validada separadamente). Resultado em artifacts/tests/tests-v0.2-debug-final.trx. No conjunto final Release, 44 passaram e 13 testes de rede foram impedidos de executar por Controlo de Aplicações ao carregar Nexus.Network.dll (0x800711C7); 1 integração opt-in ignorada. Resultado em artifacts/tests/tests-v0.2-release-final.trx. Este bloqueio não é apresentado como aprovação dos testes Release de rede.
 
 O arranque de artifacts/app-v0.2/Nexus.UI.exe foi recusado pelo Windows antes de criar a janela. Não há captura nem validação visual da interface 0.2. A versão não deve ser anunciada como pronta a usar neste PC. A 0.1 abriu anteriormente em 7/10, mas esse resultado não prova que a 0.2 abre.
 

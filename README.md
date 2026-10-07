@@ -2,6 +2,8 @@
 
 Aplicação Windows x64 gratuita, em C# / .NET 10 / WinUI 3, sem conta, subscrição ou telemetria. Licença MIT. Não é uma cópia nem uma versão desbloqueada do TL Optimizer.
 
+Estado da 0.2: compilação concluída e 57 testes aprovados em Debug. Continua experimental e sem assinatura de distribuição; o arranque neste PC foi bloqueado pelo Controlo de Aplicações do Windows. Não está validada como pronta a usar. Resultados e limites em [VALIDATION.md](VALIDATION.md).
+
 ## Versão 0.2 — funções
 
 - Dashboard com CPU/RAM e identificação de CPU, GPU e volumes.
