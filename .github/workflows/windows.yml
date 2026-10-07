@@ -30,7 +30,7 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md artifacts/app
+          Copy-Item LICENSE,README.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,VALIDATION.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -62,7 +62,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $notes = 'Experimental unsigned Windows x64 build. Windows application control may block it. Profiles only change app monitoring intervals. Full GUI validation on the original development PC remains blocked; see README and VALIDATION.md. No Windows security protections are disabled.'
+          $notes = 'Experimental unsigned Windows x64 build. Includes reversible power/interface adjustments, temporary application priority, gaming session recovery, memory inspection, DNS measurements and reviewed temporary-file recycling. Check README and VALIDATION.md for exact validation and limitations. Windows application control may block unsigned code. No Windows security protections are disabled.'
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --clobber
@@ -70,3 +70,4 @@ jobs:
             gh release create $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --verify-tag --prerelease --title "NEXUS Optimizer $env:RELEASE_TAG (experimental, unsigned)" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
+
