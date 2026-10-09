@@ -1,0 +1,982 @@
+[
+  {
+    "Name": "Início, Ajuda, PC Boost, Game Mode, App Tuner, Latência, Memória, Rede, Tweaks, Windows",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Navegação por áreas, cartões de ajuste direto, pesquisa e restauro global. Apresentação e código próprios."
+  },
+  {
+    "Name": "BIOS",
+    "Area": "Navegação e informação geral",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Pesquisa de comandos, páginas e ações",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Gráfico de utilização da CPU",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Gráficos de amostras CPU/RAM, tempo desde o arranque e verificação de valores aplicados. Reaplicar exige revisão; não mede ganhos de FPS."
+  },
+  {
+    "Name": "Gráfico de utilização da RAM e memória total",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Gráficos de amostras CPU/RAM, tempo desde o arranque e verificação de valores aplicados. Reaplicar exige revisão; não mede ganhos de FPS."
+  },
+  {
+    "Name": "Monitorização de GPU",
+    "Area": "Navegação e informação geral",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Estado geral e tempo desde o arranque",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Gráficos de amostras CPU/RAM, tempo desde o arranque e verificação de valores aplicados. Reaplicar exige revisão; não mede ganhos de FPS."
+  },
+  {
+    "Name": "Recomendações e opção de reaplicar um ajuste que voltou ao padrão",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Gráficos de amostras CPU/RAM, tempo desde o arranque e verificação de valores aplicados. Reaplicar exige revisão; não mede ganhos de FPS."
+  },
+  {
+    "Name": "Histórico de otimizações por memória, rede e limpeza",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "history",
+    "Note": "Eventos locais SQLite, alterações e recuperação. Uma ação sem undo não recebe um restauro inventado."
+  },
+  {
+    "Name": "Ajuda, tutorial em vídeo e comunidade",
+    "Area": "Navegação e informação geral",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Análise gratuita PC Boost e aplicação do plano Premium",
+    "Area": "Navegação e informação geral",
+    "State": "Implementação própria com limites",
+    "Page": "optimize",
+    "Note": "Análise de CPU/RAM e preferências existentes; perfis próprios Normal/Gaming/Trabalho, seleção de diferenças e aplicação reversível em conjunto. Gratuito; não é o motor Premium do TL."
+  },
+  {
+    "Name": "Perfis Balanceado, Competitivo, Extremo, Streaming e Personalizado",
+    "Area": "Game Mode",
+    "State": "Implementação própria com limites",
+    "Page": "gaming",
+    "Note": "Perfis próprios, manuais ou automáticos: prioridade Normal/AboveNormal, animações e plano existente opcionais. Sem congelar/fechar apps de fundo; sem ganho medido."
+  },
+  {
+    "Name": "Motor adaptativo",
+    "Area": "Game Mode",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Aumentar prioridade do processo do jogo",
+    "Area": "Game Mode",
+    "State": "Implementação própria com limites",
+    "Page": "gaming",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "TL Optimizer Performance",
+    "Area": "Game Mode",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Otimização específica da GPU",
+    "Area": "Game Mode",
+    "State": "Controlo oficial do Windows",
+    "Page": "gaming",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Reduzir latência de entrada",
+    "Area": "Game Mode",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Mostrar avançadas (11)",
+    "Area": "Game Mode",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Resultado da última sessão",
+    "Area": "Game Mode",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Biblioteca de jogos",
+    "Area": "Game Mode",
+    "State": "Implementação própria com limites",
+    "Page": "gaming",
+    "Note": "Executáveis escolhidos ou adicionados de processos abertos; deteção por caminho/PID/arranque. Automático opt-in com autorização fixa nesta abertura e reposição ao terminar; sem importar todos os launchers."
+  },
+  {
+    "Name": "App Tuner",
+    "Area": "App Tuner e Latência",
+    "State": "Implementação própria com limites",
+    "Page": "tuner",
+    "Note": "Seleciona uma aplicação aberta elegível e aplica prioridade AboveNormal com undo. Não modifica configurações internas específicas de cada produto."
+  },
+  {
+    "Name": "Latência",
+    "Area": "App Tuner e Latência",
+    "State": "Implementação própria com limites",
+    "Page": "latency",
+    "Note": "Mede cinco respostas ICMP ao IP escolhido. Não mede nem promete reduzir latência de entrada."
+  },
+  {
+    "Name": "Uso de RAM, percentagem, memória em cache, standby e livre",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Liberar memória",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Reduzir memória em uso",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Implementação própria com limites",
+    "Page": "memory",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Limpar memória em cache",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Descarregar páginas modificadas",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Quem mais consome RAM",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Implementação própria com limites",
+    "Page": "memory",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Arquivos temporários",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Implementação própria com limites",
+    "Page": "tools",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Cache de shaders DirectX",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Implementação própria com limites",
+    "Page": "tools",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Lixeira",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Cache de launchers",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Implementação própria com limites",
+    "Page": "tools",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Limpar tudo",
+    "Area": "Memória e limpeza de armazenamento",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Analisar DNS",
+    "Area": "Rede",
+    "State": "Implementação própria com limites",
+    "Page": "network",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Escolher servidor DNS",
+    "Area": "Rede",
+    "State": "Implementação própria com limites",
+    "Page": "network",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Restaurar automático",
+    "Area": "Rede",
+    "State": "Implementação própria com limites",
+    "Page": "network",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Limpar DNS após aplicar",
+    "Area": "Rede",
+    "State": "Implementação própria com limites",
+    "Page": "network",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Renovar IP após aplicar",
+    "Area": "Rede",
+    "State": "Implementação própria com limites",
+    "Page": "network",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Reduzir atraso do teclado",
+    "Area": "Tweaks",
+    "State": "Implementação própria com limites",
+    "Page": "tweaks",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Desativar telemetria de entrada do Windows",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Otimizar estabilidade do polling USB",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Otimizar comportamento de paginação",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar SysMain / SuperFetch",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar otimizações de tela cheia",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar gravação em segundo plano da Game Bar",
+    "Area": "Tweaks",
+    "State": "Controlo oficial do Windows",
+    "Page": "gaming",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desativar economia de energia da rede",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar serviços Xbox",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar serviços de telemetria",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar indexação do Windows Search",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar dicas do Windows",
+    "Area": "Tweaks",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Reduzir serviços de inicialização",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Plano de desempenho TL Optimizer",
+    "Area": "Tweaks",
+    "State": "Implementação própria com limites",
+    "Page": "tweaks",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Desativar economia de energia do PCIe",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar atualizações de último acesso do NTFS",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar apps em segundo plano",
+    "Area": "Tweaks",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Reduzir notificações do Windows",
+    "Area": "Tweaks",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Mostrar todos os ícones de notificação",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar Serviço de Relatório de Erros",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar o Assistente de Compatibilidade",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar Serviço de Impressão",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar Serviço de Fax",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Otimizações para jogos em janela",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "gaming",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desativar transparência da interface",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desativar reabertura automática de apps",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar Teclas de Aderência",
+    "Area": "Sistema",
+    "State": "Implementação própria com limites",
+    "Page": "preferences",
+    "Note": "API STICKYKEYS: desliga função, atalho Shift e confirmação; guarda e repõe a configuração anterior, preservando os outros flags."
+  },
+  {
+    "Name": "Desabilitar o SmartScreen",
+    "Area": "Sistema",
+    "State": "Excluída para preservar segurança/recuperação",
+    "Page": null,
+    "Note": "Conflita com o pedido original. Não existe botão para desativar esta proteção."
+  },
+  {
+    "Name": "Usar UTC no relógio de hardware",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar Histórico de Acesso Rápido",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Habilitar Caminhos Longos",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar Serviços de Sensores",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Remover a Transmissão de Miracast",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Habilitar Mixer de Volume Clássico",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar Modo de Espera Moderno",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar o Copilot do Windows",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Alinhar barra de tarefas à esquerda",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Ocultar botão Chat / Teams",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Menu de contexto clássico",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar sugestões de Snap Layout",
+    "Area": "Sistema",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar anúncios do Explorer",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desativar “Recomendado” do Iniciar",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Ocultar pesquisa na barra de tarefas",
+    "Area": "Sistema",
+    "State": "Controlo oficial do Windows",
+    "Page": "tools",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desabilitar tarefas agendadas de Telemetria",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar compartilhamento de mídia",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar Grupo Home",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar protocolo SMBv1",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desabilitar a Assistência da Cortana",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar telemetria de borda",
+    "Area": "Privacidade",
+    "State": "Por implementar: diagnóstico do Edge",
+    "Page": "preferences",
+    "Note": "A preferência implementada limita personalização, não todo o diagnóstico/telemetria. A política antiga MetricsReportingEnabled é obsoleta e não é usada."
+  },
+  {
+    "Name": "Desativar descoberta de borda",
+    "Area": "Privacidade",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar experiências personalizadas",
+    "Area": "Privacidade",
+    "State": "Implementação própria com limites",
+    "Page": "preferences",
+    "Note": "Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido."
+  },
+  {
+    "Name": "Desativar dicas e Spotlight da tela de bloqueio",
+    "Area": "Privacidade",
+    "State": "Políticas Spotlight com compatibilidade limitada",
+    "Page": "preferences",
+    "Note": "Opções de Spotlight estão implementadas para Enterprise/Education. Noutras edições usa as Definições; não se apresenta a gravação de política como prova de efeito."
+  },
+  {
+    "Name": "Desativar ID de publicidade",
+    "Area": "Privacidade",
+    "State": "Controlo oficial do Windows",
+    "Page": "preferences",
+    "Note": "A alteração é feita nas Definições; não entra no undo da NEXUS."
+  },
+  {
+    "Name": "Desabilitar Recuperação do Sistema",
+    "Area": "Discos e Windows Update",
+    "State": "Excluída para preservar segurança/recuperação",
+    "Page": null,
+    "Note": "Conflita com o pedido original. Não existe botão para desativar esta proteção."
+  },
+  {
+    "Name": "Desativar hibernação",
+    "Area": "Discos e Windows Update",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Desativar Atualizações Automáticas",
+    "Area": "Discos e Windows Update",
+    "State": "Excluída para preservar segurança/recuperação",
+    "Page": null,
+    "Note": "Conflita com o pedido original. Não existe botão para desativar esta proteção."
+  },
+  {
+    "Name": "Desativar atualizações da Microsoft Store",
+    "Area": "Discos e Windows Update",
+    "State": "Excluída para preservar segurança/recuperação",
+    "Page": null,
+    "Note": "Conflita com o pedido original. Não existe botão para desativar esta proteção."
+  },
+  {
+    "Name": "Desabilitar Windows Insider Service",
+    "Area": "Discos e Windows Update",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Excluir Drivers de Atualizações",
+    "Area": "Discos e Windows Update",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Escolha visível",
+    "Area": "Auto Limpeza",
+    "State": "Implementação própria com limites",
+    "Page": "autoclean",
+    "Note": "Área própria com intervalo, estado e execução manual. Apenas temporários locais antigos dentro dos limites documentados."
+  },
+  {
+    "Name": "Desligado, 15 min, 30 min, 60 min",
+    "Area": "Auto Limpeza",
+    "State": "Implementação própria com limites",
+    "Page": "autoclean",
+    "Note": "Desligada em cada arranque; ativação revista por intervalo. Suspende durante jogos/sessões identificados."
+  },
+  {
+    "Name": "Executar agora",
+    "Area": "Auto Limpeza",
+    "State": "Implementação própria com limites",
+    "Page": "autoclean",
+    "Note": "Executa a limpeza limitada do Temp do utilizador após confirmação. Não esvazia a Lixeira ou limpa RAM."
+  },
+  {
+    "Name": "Limpar DNS",
+    "Area": "Auto Limpeza",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "%TEMP%",
+    "Area": "Auto Limpeza",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Temp",
+    "Area": "Auto Limpeza",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Recent",
+    "Area": "Auto Limpeza",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "Prefetch",
+    "Area": "Auto Limpeza",
+    "State": "Por implementar / especificação por confirmar",
+    "Page": null,
+    "Note": "O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta."
+  },
+  {
+    "Name": "3D Builder",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Alarms & Clock",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Calculator",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Camera",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Get Office",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Skype",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Get Started / Tips",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Groove Music",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Mail and Calendar",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Maps",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Movies & TV",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "OneNote",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "People",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Photos",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Solitaire",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Weather",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Voice Recorder",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Xbox",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Feedback Hub",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Phone Link",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Xbox Game Bar",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Copilot",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Clipchamp",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Dev Home",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Family",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Power Automate",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Outlook (novo)",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Auto Limpeza: 15 / 30 / 60 minutos",
+    "Area": "Auto Limpeza",
+    "State": "Implementação própria limitada",
+    "Page": "autoclean",
+    "Note": "Só TEMP do utilizador com 30 dias; máximo 100 ficheiros por execução, enviados à Lixeira. Desligada em cada arranque. Sem working-set purge ou Prefetch automático."
+  },
+  {
+    "Name": "Ajustes Premium desfocados",
+    "Area": "Especificação em falta",
+    "State": "Não identificados",
+    "Page": null,
+    "Note": "Precisam de nomes e comportamento para poderem ser comparados. Não serão inventados."
+  },
+  {
+    "Name": "Onze opções avançadas de Game Mode",
+    "Area": "Especificação em falta",
+    "State": "Não identificadas",
+    "Page": null,
+    "Note": "O vídeo não expande a lista."
+  },
+  {
+    "Name": "Três opções Toque",
+    "Area": "Especificação em falta",
+    "State": "Não identificadas",
+    "Page": null,
+    "Note": "Os nomes não aparecem no vídeo."
+  },
+  {
+    "Name": "Aplicações abaixo do enquadramento",
+    "Area": "Especificação em falta",
+    "State": "Não identificadas",
+    "Page": null,
+    "Note": "A grelha continua abaixo do vídeo."
+  },
+  {
+    "Name": "Novidades",
+    "Area": "Aplicações nativas",
+    "State": "Consulta e remoção individual; reinstalação via Store",
+    "Page": "apps",
+    "Note": "Só pacote opcional elegível, para o utilizador atual. A Store pode não ter aplicações antigas; não recupera dados apagados."
+  },
+  {
+    "Name": "Análise de capturas PresentMon e comparação declarada",
+    "Area": "Verificação própria NEXUS",
+    "State": "Implementação própria com limites",
+    "Page": "benchmark",
+    "Note": "Importa CSV MsBetweenPresents escolhido, separa fluxos e preserva pausas. Não captura/gera FPS, certifica dados ou atribui ganho a um ajuste. A execução desta revisão está pendente de validação completa."
+  },
+  {
+    "Name": "CPU por aplicação durante uma amostra curta",
+    "Area": "Verificação própria NEXUS",
+    "State": "Implementação própria com limites",
+    "Page": "memory",
+    "Note": "Consulta passiva em duas amostras, com PID/arranque e capacidade total. Não fecha apps, altera CPU/GPU ou prova impacto nos FPS."
+  }
+]
