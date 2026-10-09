@@ -1,1 +1,5 @@
-<Application x:Class="Nexus.UI.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Application.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls"/></ResourceDictionary.MergedDictionaries></ResourceDictionary></Application.Resources></Application>
+<Application x:Class="Nexus.UI.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><Application.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls"/></ResourceDictionary.MergedDictionaries>
+<Color x:Key="SystemAccentColor">#A5F291</Color>
+<SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#A5F291"/>
+<SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#A5F291"/>
+<SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#142017"/></ResourceDictionary></Application.Resources></Application>

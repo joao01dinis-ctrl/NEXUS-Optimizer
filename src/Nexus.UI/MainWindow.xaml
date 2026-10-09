@@ -1,14 +1,624 @@
-<Window x:Class="Nexus.UI.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="NEXUS Optimizer">
- <Grid x:Name="Root" RequestedTheme="Dark" Background="#0C101B"><Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
- <Border Background="#121827" Padding="24"><StackPanel Spacing="24"><StackPanel><TextBlock Text="NEXUS" FontSize="30" FontWeight="Bold" Foreground="#74D9CF"/><TextBlock Text="OPTIMIZER" CharacterSpacing="300" FontSize="11" Foreground="#99A9C1"/></StackPanel><Border Background="#24364B" CornerRadius="8" Padding="14"><TextBlock Text="◉   Dashboard" FontWeight="SemiBold"/></Border><TextBlock Text="PRIMEIRA VERSÃO" FontSize="11" Foreground="#99A9C1"/><TextBlock Text="Hardware e monitorização" TextWrapping="Wrap"/><TextBlock Text="Perfis e histórico"/><TextBlock Text="Undo de preferências"/><Border Background="#162F30" CornerRadius="8" Padding="12"><TextBlock Text="Sem tweaks de sistema. Segurança do Windows preservada." TextWrapping="Wrap" Foreground="#9BDFCB" FontSize="12"/></Border><TextBlock Text="Gaming · Benchmark · Network
-Extensões em preparação" TextWrapping="Wrap" FontSize="12" Foreground="#99A9C1"/></StackPanel></Border>
- <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled"><StackPanel Padding="32" Spacing="22" MaxWidth="1200" HorizontalAlignment="Stretch">
- <StackPanel Spacing="5"><TextBlock Text="O teu PC, em perspetiva." FontSize="30" FontWeight="SemiBold"/><TextBlock Text="{Binding Status}" Foreground="#99A9C1"/></StackPanel>
- <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
- <Border Background="#172033" CornerRadius="14" Padding="22"><StackPanel Spacing="12"><TextBlock Text="PROCESSADOR" Foreground="#99A9C1"/><TextBlock Text="{Binding CpuText}" FontSize="42" FontWeight="SemiBold"/><ProgressBar Value="{Binding CpuPercent}" Maximum="100" Foreground="#74D9CF"/><TextBlock Text="{Binding CpuName}" TextWrapping="Wrap"/></StackPanel></Border>
- <Border Grid.Column="1" Background="#172033" CornerRadius="14" Padding="22"><StackPanel Spacing="12"><TextBlock Text="MEMÓRIA" Foreground="#99A9C1"/><TextBlock Text="{Binding MemoryText}" FontSize="32" FontWeight="SemiBold"/><ProgressBar Value="{Binding MemoryPercent}" Maximum="100" Foreground="#9C92FF"/><TextBlock Text="{Binding RamText}"/></StackPanel></Border></Grid>
- <Border Background="#172033" CornerRadius="14" Padding="22"><StackPanel Spacing="12"><TextBlock Text="Hardware detetado" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="GRÁFICOS" Foreground="#99A9C1"/><TextBlock Text="{Binding GpuName}" TextWrapping="Wrap"/><TextBlock Text="DISCOS / VOLUMES" Foreground="#99A9C1"/><TextBlock Text="{Binding Disks}" TextWrapping="Wrap"/></StackPanel></Border>
- <Border Background="#172033" CornerRadius="14" Padding="22"><StackPanel Spacing="12"><TextBlock Text="O teu perfil" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Normal: 2s · Gaming: 5s · Trabalho: 3s entre amostras. Altera apenas a monitorização da app." TextWrapping="Wrap" Foreground="#99A9C1"/><StackPanel Orientation="Horizontal" Spacing="12"><ComboBox ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" Width="150" AutomationProperties.Name="Perfil"/><Button Content="Aplicar perfil" Command="{Binding ApplyProfileCommand}" Style="{StaticResource AccentButtonStyle}"/><Button Content="Desfazer última alteração" Command="{Binding UndoCommand}"/></StackPanel><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Ativo:"/><TextBlock Text="{Binding ActiveProfile}" Foreground="#74D9CF" FontWeight="SemiBold"/></StackPanel></StackPanel></Border>
- <Border Background="#172033" CornerRadius="14" Padding="22"><StackPanel Spacing="12"><TextBlock Text="Histórico" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="{Binding History}" TextWrapping="Wrap" Foreground="#B9C7DA"/></StackPanel></Border>
- </StackPanel></ScrollViewer></Grid>
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Nexus.UI.MainWindow" Title="NEXUS Optimizer">
+  <Grid x:Name="Root" RequestedTheme="Dark" Background="#0E1411">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="205" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <Border Background="#121B16" Padding="14">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Spacing="4" Margin="10,8,0,22">
+          <TextBlock Text="NEXUS" FontSize="27" TextWrapping="Wrap" FontWeight="Bold" Foreground="#A5F291" />
+          <TextBlock Text="OPTIMIZER" FontSize="10" TextWrapping="Wrap" CharacterSpacing="240" Foreground="#8FA395" />
+        </StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="5" x:Name="NavigationButtons">
+            <TextBlock Text="GERAL" FontSize="10" TextWrapping="Wrap" Margin="12,0,0,7" Foreground="#819687" CharacterSpacing="140" />
+            <Button Tag="overview" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Início" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="help" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Ajuda" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <TextBlock Text="FERRAMENTAS" FontSize="10" TextWrapping="Wrap" Margin="12,16,0,7" Foreground="#819687" CharacterSpacing="140" />
+            <Button Tag="optimize" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="PC Boost" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="gaming" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Game Mode" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="tuner" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="App Tuner" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="latency" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Latência" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <TextBlock Text="OTIMIZAÇÕES" FontSize="10" TextWrapping="Wrap" Margin="12,16,0,7" Foreground="#819687" CharacterSpacing="140" />
+            <Button Tag="memory" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Memória" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="network" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Rede" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="tweaks" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Tweaks" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="preferences" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Windows" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="autoclean" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Auto Limpeza" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="benchmark" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Testes e FPS" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+            <Button Tag="history" Click="Navigate" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="12,10" BorderThickness="0" Background="Transparent" CornerRadius="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="" FontSize="17" />
+                <TextBlock Text="Histórico" FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Spacing="6" Margin="10,12,0,0">
+          <TextBlock Text="TODAS AS ÁREAS GRATUITAS" FontSize="10" TextWrapping="Wrap" Foreground="#A5F291" />
+          <TextBlock Text="0.6 · versão local" FontSize="11" TextWrapping="Wrap" Foreground="#8FA395" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Grid.Column="1" Padding="26,22,26,18">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <StackPanel Spacing="10" Margin="0,0,0,18">
+        <AutoSuggestBox x:Name="QuickSearch" PlaceholderText="Pesquisar funções e páginas…" TextMemberPath="Title" TextChanged="SearchChanged" QuerySubmitted="SearchSubmitted" AutomationProperties.Name="Pesquisar páginas e funções" />
+        <TextBlock x:Name="PageTitle" Text="Início" FontSize="28" FontWeight="SemiBold" />
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Restaurar alterações" Click="RestoreEverything" />
+          <TextBlock Text="Nenhuma alteração por repor" FontSize="12" TextWrapping="Wrap" Foreground="#8FA395" x:Name="GlobalChangeStatus" />
+        </StackPanel>
+      </StackPanel>
+      <ScrollViewer x:Name="PageScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="18">
+          <StackPanel x:Name="OverviewPanel" Spacing="18">
+            <Border Background="#203827" CornerRadius="16" Padding="24">
+              <StackPanel Spacing="12">
+                <TextBlock Text="O teu PC, pronto para jogar." FontSize="25" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Analisa, aplica o que escolheste e repõe quando quiseres." FontSize="14" TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <Button Content="Analisar PC Boost" Tag="optimize" Click="Navigate" Style="{StaticResource AccentButtonStyle}" />
+              </StackPanel>
+            </Border>
+            <TextBlock x:Name="UptimeText" TextWrapping="Wrap" Foreground="#8FA395" />
+            <Grid ColumnSpacing="16">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+              </Grid.ColumnDefinitions>
+              <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="PROCESSADOR" Foreground="#8FA395" />
+                  <TextBlock Text="{Binding CpuText}" FontSize="42" FontWeight="SemiBold" />
+                  <ProgressBar Value="{Binding CpuPercent}" Foreground="#A5F291" />
+                  <Canvas x:Name="CpuGraph" Height="60" HorizontalAlignment="Stretch">
+                    <Polyline x:Name="CpuLine" Stroke="#A5F291" StrokeThickness="2" />
+                  </Canvas>
+                  <TextBlock Text="{Binding CpuName}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="MEMÓRIA" Foreground="#8FA395" />
+                  <TextBlock Text="{Binding MemoryText}" FontSize="30" FontWeight="SemiBold" />
+                  <ProgressBar Value="{Binding MemoryPercent}" Foreground="#83C2D5" />
+                  <Canvas x:Name="MemoryGraph" Height="60" HorizontalAlignment="Stretch">
+                    <Polyline x:Name="MemoryLine" Stroke="#83C2D5" StrokeThickness="2" />
+                  </Canvas>
+                  <TextBlock Text="{Binding RamText}" />
+                </StackPanel>
+              </Border>
+            </Grid>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="O teu hardware" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding GpuName}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Disks}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <TextBlock Text="{Binding Status}" Foreground="#8FA395" TextWrapping="Wrap" />
+            <Expander Header="Recomendações e ajustes que mudaram" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Conferir ajustes que mudaram" FontSize="20" FontWeight="SemiBold" />
+                    <Button Content="Verificar últimos ajustes aplicados" Click="CheckDrift" />
+                    <TextBlock x:Name="DriftSummary" Text="Compara os últimos valores guardados, sem os reaplicar." TextWrapping="Wrap" />
+                    <ListView x:Name="DriftList" MaxHeight="240" SelectionMode="Single">
+                      <ListView.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding Display}" TextWrapping="Wrap" Margin="0,6" />
+                        </DataTemplate>
+                      </ListView.ItemTemplate>
+                    </ListView>
+                    <Button Content="Rever reaplicação do selecionado" Click="ReapplyDrift" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Expander>
+            <Expander Header="Estado da análise local" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <TextBlock x:Name="AnalysisText" Text="A análise é local e não altera definições." TextWrapping="Wrap" Foreground="#BDD3C3" />
+              </StackPanel>
+            </Expander>
+          </StackPanel>
+          <StackPanel x:Name="OptimizePanel" Visibility="Collapsed" Spacing="16">
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="PC Boost" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Um plano de ajustes para este PC. Podes alterar a seleção antes de aplicar." FontSize="14" TextWrapping="Wrap" />
+                <ComboBox x:Name="OptimizationPresetList" HorizontalAlignment="Stretch" AutomationProperties.Name="Perfil de seleção" Header="Objetivo" SelectionChanged="BoostPresetChanged" />
+                <Button Content="Analisar o PC" Click="AnalyzeBoost" Style="{StaticResource AccentButtonStyle}" />
+                <TextBlock Text="Clica em Analisar para preparar a seleção." FontSize="14" TextWrapping="Wrap" x:Name="BoostStatus" />
+              </StackPanel>
+            </Border>
+            <StackPanel Spacing="10" x:Name="BoostChoices" />
+            <Button Content="Aplicar seleção" Click="ApplyBoost" Style="{StaticResource AccentButtonStyle}" x:Name="ApplyBoostButton" />
+            <Expander Header="Escolher ajustes manualmente" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Preparar uma seleção" FontSize="20" FontWeight="SemiBold" />
+                    <Button Content="Preparar seleção do perfil" Click="ChoosePreset" />
+                    <TextBlock x:Name="PresetDescription" Text="Escolhe Normal, Gaming ou Trabalho. A seleção não aplica alterações automaticamente; revê os ajustes abaixo." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                  </StackPanel>
+                </Border>
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Escolhe antes de aplicar" Message="Estes ajustes não garantem mais FPS. Energia de alto desempenho pode aumentar consumo, temperatura e ruído." />
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <CheckBox x:Name="PowerChoice" Content="Alterar plano de energia" />
+                    <TextBlock x:Name="CurrentPower" Text="A consultar planos disponíveis…" TextWrapping="Wrap" Foreground="#BDD3C3" />
+                    <ComboBox x:Name="PowerPlans" HorizontalAlignment="Stretch" AutomationProperties.Name="Plano de energia" />
+                    <TextBlock Text="Só são usados planos já disponíveis no teu PC. O plano anterior fica guardado para restauro." TextWrapping="Wrap" Foreground="#8FA395" />
+                  </StackPanel>
+                </Border>
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <CheckBox x:Name="AnimationChoice" Content="Reduzir animações do Windows" />
+                    <TextBlock Text="Desativa animações das áreas de conteúdo em aplicações que respeitam esta opção. Pode tornar a navegação mais direta; não aumenta a capacidade da gráfica." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                  </StackPanel>
+                </Border>
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Interface e teclado" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="Preferências opcionais. Cada valor anterior fica guardado para restauro. Estas opções mudam a utilização do Windows; não são medições de desempenho." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                    <StackPanel x:Name="PreferenceChoices" Spacing="14" />
+                  </StackPanel>
+                </Border>
+                <Button x:Name="ApplySystemButton" Content="Rever e aplicar selecionados" Click="ApplySystem" Style="{StaticResource AccentButtonStyle}" />
+              </StackPanel>
+            </Expander>
+          </StackPanel>
+          <StackPanel x:Name="GamingPanel" Visibility="Collapsed" Spacing="16">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Sessão com reposição" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Usa a aplicação selecionada acima. Quando ela terminar, o NEXUS repõe os ajustes desta sessão enquanto estiver aberto. Também podes terminar e repor manualmente." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <ComboBox x:Name="LibraryProfiles" HorizontalAlignment="Stretch" AutomationProperties.Name="Perfil da sessão" />
+                <ComboBox x:Name="GameList" HorizontalAlignment="Stretch" PlaceholderText="Selecionar aplicação aberta" AutomationProperties.Name="Aplicação a priorizar" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Atualizar jogos abertos" Click="RefreshGames" />
+                  <Button Content="Adicionar selecionado à biblioteca" Click="AddRunningLibraryApp" />
+                </StackPanel>
+                <CheckBox x:Name="SessionPriorityChoice" Content="Prioridade acima do normal durante a sessão" IsChecked="True" />
+                <CheckBox x:Name="SessionAnimationsChoice" Content="Reduzir animações durante a sessão" />
+                <CheckBox x:Name="SessionPowerChoice" Content="Usar outro plano de energia durante a sessão" />
+                <ComboBox x:Name="SessionPlans" HorizontalAlignment="Stretch" PlaceholderText="Escolher plano disponível" AutomationProperties.Name="Plano da sessão" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button x:Name="StartSessionButton" Content="Iniciar sessão" Click="StartSession" Style="{StaticResource AccentButtonStyle}" />
+                  <Button x:Name="EndSessionButton" Content="Terminar e repor" Click="EndSession" />
+                </StackPanel>
+                <TextBlock x:Name="SessionStatusText" Text="Sem sessão ativa." TextWrapping="Wrap" />
+                <TextBlock Text="Mantém o NEXUS aberto. Se fechares a app ou houver uma falha, o plano pode continuar aplicado: ao reabrir, usa Terminar e repor. Alterações externas à mesma definição podem impedir a reposição automática." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Game Mode automático" FontSize="22" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Deteta aplicações da biblioteca e repõe os ajustes quando terminam." FontSize="14" TextWrapping="Wrap" />
+                <Button Content="Ativar / pausar automático" Click="ToggleGameAutomation" />
+                <TextBlock Text="Desligado. Escolhe o perfil, os ajustes e a biblioteca antes de ativar." FontSize="14" TextWrapping="Wrap" x:Name="AutomationStatus" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Biblioteca e perfis de sessão" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Adiciona o executável local de um jogo ou programa. A deteção compara o caminho completo; launchers, processos protegidos e apps da Store podem precisar de seleção manual. Nenhum jogo é iniciado pela NEXUS." TextWrapping="Wrap" />
+                <ListView x:Name="LibraryApps" MaxHeight="180" SelectionMode="Single" AutomationProperties.Name="Biblioteca de aplicações">
+                  <ListView.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Display}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                  </ListView.ItemTemplate>
+                </ListView>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Adicionar executável" Click="AddLibraryApp" />
+                  <Button Content="Retirar da biblioteca" Click="RemoveLibraryApp" />
+                </StackPanel>
+                <CheckBox x:Name="DiscoveryChoice" Content="Avisar sobre aplicações da biblioteca" />
+                <Button Content="Detetar aplicações abertas" Click="DetectLibraryApps" />
+                <TextBlock x:Name="LibraryDetectionText" Text="A deteção apenas avisa. Revê o perfil antes de iniciar uma sessão." TextWrapping="Wrap" />
+                <ComboBox x:Name="LibraryDetected" DisplayMemberPath="Display" HorizontalAlignment="Stretch" AutomationProperties.Name="Aplicação detetada" />
+                <Button Content="Rever e iniciar perfil" Click="StartLibrarySession" />
+                <TextBlock Text="Balanceado, Competitivo, Extremo, Streaming e Personalizado usam limites seguros próprios. A NEXUS não conhece os ajustes internos do TL. O perfil pode usar o plano disponível escolhido abaixo. Usa Terminar e repor ao acabar." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Expander Header="Prioridade manual e definições do Windows" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Dar prioridade ao teu jogo" FontSize="22" FontWeight="SemiBold" />
+                    <TextBlock Text="Abre o jogo e atualiza a lista. Escolhe a aplicação certa: o NEXUS dá prioridade de CPU acima do normal até ela fechar. Pode reduzir a fluidez de outras apps; não altera afinidade nem usa prioridade em tempo real." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                      <Button Content="Atualizar lista" Click="RefreshGames" />
+                      <Button x:Name="PriorityButton" Content="Priorizar aplicação" Click="ApplyPriority" Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                    <TextBlock Text="Mostra apps com janela e prioridade normal nesta sessão. Jogos protegidos podem recusar a alteração." TextWrapping="Wrap" Foreground="#8FA395" />
+                  </StackPanel>
+                </Border>
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Definições de jogo do Windows" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="Confere o Modo de Jogo e escolhe a GPU por aplicação nas definições oficiais." TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                      <Button Content="Modo de Jogo" Tag="ms-settings:gaming-gamemode" Click="OpenSetting" />
+                      <Button Content="Preferência de GPU" Tag="ms-settings:display-advancedgraphics" Click="OpenSetting" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Expander>
+          </StackPanel>
+          <StackPanel x:Name="MemoryPanel" Visibility="Collapsed" Spacing="18">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Onde está a tua memória?" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Processos acessíveis da tua sessão, ordenados pela RAM residente. RAM em cache é reutilizada pelo Windows quando necessário. Fechar uma app que não precisas costuma ser mais útil do que esvaziar caches repetidamente." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button Content="Atualizar utilização" Click="RefreshMemory" />
+                  <Button Content="Abrir Gestor de Tarefas" Tag="taskmgr.exe" Click="OpenTool" />
+                </StackPanel>
+                <ComboBox x:Name="MemoryAppChoice" DisplayMemberPath="Display" HorizontalAlignment="Stretch" AutomationProperties.Name="Aplicação para rever memória" />
+                <Button Content="Rever redução de RAM residente" Click="TrimMemory" />
+                <TextBlock Text="Só para uma aplicação em segundo plano. Pode causar mais leituras do disco. A memória privada não é libertada e as páginas podem voltar à RAM. Não limpa standby ou páginas modificadas do sistema." TextWrapping="Wrap" />
+                <TextBlock x:Name="MemoryProcessesText" TextWrapping="Wrap" FontFamily="Consolas" />
+                <TextBlock Text="RAM residente pode incluir páginas partilhadas entre processos. A memória privada é outra medida; a soma das linhas não é a RAM total do PC. O NEXUS não termina processos." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Expander Header="Limpeza de ficheiros e caches" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Rever ficheiros antigos por categoria" FontSize="22" FontWeight="SemiBold" />
+                    <TextBlock Text="Procura ficheiros na categoria escolhida sem escrita ou acesso nos últimos 7 dias. Escolhe os ficheiros antes de os enviar à Lixeira. Não remove pastas nem segue ligações para outros locais." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                    <ComboBox x:Name="CleanupLocationChoice" HorizontalAlignment="Stretch" SelectionChanged="CleanupLocationChanged" AutomationProperties.Name="Categoria de limpeza" />
+                    <TextBlock x:Name="CleanupLocationText" TextWrapping="Wrap" />
+                    <Button x:Name="ScanTemporaryButton" Content="Analisar temporários" Click="ScanTemporary" />
+                    <TextBlock x:Name="TemporarySummaryText" Text="Ainda não há análise." TextWrapping="Wrap" />
+                    <ListView x:Name="TemporaryFiles" MaxHeight="320" SelectionMode="Multiple" AutomationProperties.Name="Temporários a enviar à Lixeira">
+                      <ListView.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding Display}" TextWrapping="Wrap" FontSize="12" Margin="0,5" />
+                        </DataTemplate>
+                      </ListView.ItemTemplate>
+                    </ListView>
+                    <Button x:Name="RecycleTemporaryButton" Content="Enviar selecionados à Lixeira" Click="RecycleTemporary" IsEnabled="False" />
+                    <TextBlock Text="Podes recuperar os ficheiros na Lixeira do Windows. O espaço continua ocupado até a esvaziares por tua decisão. Esta ação não entra no undo das definições do sistema." TextWrapping="Wrap" Foreground="#8FA395" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Expander>
+          </StackPanel>
+          <StackPanel x:Name="NetworkPanel" Visibility="Collapsed" Spacing="18">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Configurar DNS com histórico" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Requer iniciar como administrador. Escolhe uma interface Ethernet/Wi-Fi elegível e um servidor IPv4. Não configura DNS cifrado, VPNs ou políticas de rede. A comparação DNS abaixo não escolhe nem aplica automaticamente." TextWrapping="Wrap" />
+                <ComboBox x:Name="DnsAdapterChoice" HorizontalAlignment="Stretch" AutomationProperties.Name="Adaptador DNS" />
+                <ComboBox x:Name="DnsProviderChoice" HorizontalAlignment="Stretch" AutomationProperties.Name="Fornecedor DNS" />
+                <CheckBox x:Name="FlushAfterDns" Content="Limpar cache DNS após aplicar" />
+                <StackPanel Spacing="10">
+                  <Button Content="Rever e aplicar DNS escolhido" Click="ApplyDns" />
+                  <Button Content="Rever DNS automático da rede" Click="AutomaticDns" />
+                  <Button Content="Limpar cache DNS" Click="FlushDns" />
+                  <Button Content="Rever renovação de IP por DHCP" Click="RenewIp" />
+                </StackPanel>
+                <TextBlock Text="Para repor exatamente o DNS anterior, usa Desfazer no Histórico. Usar DNS automático é uma nova escolha. Limpar cache e renovar IP não têm undo." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="A tua ligação" FontSize="22" FontWeight="SemiBold" />
+                <Button x:Name="NetworkRefreshButton" Content="Atualizar adaptadores e DNS atual" Click="RefreshNetwork" />
+                <TextBlock x:Name="NetworkAdaptersText" Text="Consulta local: não envia dados nem altera a ligação." TextWrapping="Wrap" />
+                <TextBlock Text="A velocidade anunciada pelo adaptador não é a velocidade da Internet. Pode haver várias ligações e VPNs ativas; não assumimos qual transporta cada aplicação." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Compara a resposta dos DNS" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Envia três consultas de example.com a cada fornecedor por UDP/IPv4. Vais contactar serviços externos; pode demorar alguns segundos. Mede a resolução de nomes nesta ligação, não o ping dos jogos. Não altera o DNS do PC." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button x:Name="DnsButton" Content="Medir DNS" Click="MeasureDns" Style="{StaticResource AccentButtonStyle}" />
+                  <Button x:Name="CancelDnsButton" Content="Cancelar" Click="CancelDns" IsEnabled="False" />
+                </StackPanel>
+                <TextBlock x:Name="DnsResultsText" Text="Ainda não há medições." TextWrapping="Wrap" />
+                <Button Content="Configurar DNS nas definições do Windows" Tag="ms-settings:network-status" Click="OpenSetting" />
+                <TextBlock Text="As definições externas não entram no restauro do NEXUS. Uma medição curta pode variar com o tráfego ou ser bloqueada pela rede." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="BenchmarkPanel" Visibility="Collapsed" Spacing="18">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Teste curto de CPU e memória" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="SHA-256 num bloco de 1 MiB e cópia de um buffer de 8 MiB, numa tarefa, durante cerca de 4 segundos mais preparação. Fecha jogos e cargas pesadas. Não mede FPS, ping, latência de entrada ou toda a capacidade do PC." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button x:Name="BenchmarkButton" Content="Rever e iniciar teste" Click="StartBenchmark" Style="{StaticResource AccentButtonStyle}" />
+                  <Button x:Name="CancelBenchmarkButton" Content="Cancelar" Click="CancelBenchmark" IsEnabled="False" />
+                </StackPanel>
+                <TextBlock x:Name="BenchmarkResultText" Text="Nenhum teste executado. Temperatura, energia e tarefas abertas podem alterar os resultados." TextWrapping="Wrap" />
+                <TextBlock Text="Histórico local de testes" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock x:Name="BenchmarkHistoryText" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="ToolsPanel" Visibility="Collapsed" Spacing="18">
+            <TextBlock Text="Atalhos para ferramentas do Windows. As alterações feitas fora do NEXUS são geridas pelo Windows e não entram no nosso undo." TextWrapping="Wrap" Foreground="#BDD3C3" />
+            <Button Content="Limpar ficheiros temporários · Armazenamento" Tag="ms-settings:storagesense" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Reduzir apps que arrancam com o Windows" Tag="ms-settings:startupapps" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Ver utilização e fechar apps · Gestor de Tarefas" Tag="taskmgr.exe" Click="OpenTool" HorizontalAlignment="Stretch" />
+            <Button Content="Otimizar unidades · Ferramenta do Windows" Tag="dfrgui.exe" Click="OpenTool" HorizontalAlignment="Stretch" />
+            <Button Content="Pontos de restauro do Windows" Tag="SystemPropertiesProtection.exe" Click="OpenTool" HorizontalAlignment="Stretch" />
+            <Button Content="Definições de rede" Tag="ms-settings:network-status" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Atualizações e controladores" Tag="ms-settings:windowsupdate" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <TextBlock Text="Jogo e personalização" FontSize="20" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Button Content="Gravação em segundo plano e capturas" Tag="ms-settings:gaming-gamedvr" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Transparência e efeitos visuais" Tag="ms-settings:easeofaccess-visualeffects" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Teclas de aderência e acessibilidade do teclado" Tag="ms-settings:easeofaccess-keyboard" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Notificações e sugestões do Windows" Tag="ms-settings:notifications" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Barra de tarefas" Tag="ms-settings:taskbar" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Aplicações instaladas" Tag="ms-settings:appsfeatures" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <TextBlock Text="Privacidade" FontSize="20" FontWeight="SemiBold" Margin="0,10,0,0" />
+            <Button Content="Diagnóstico, feedback e experiências personalizadas" Tag="ms-settings:privacy-feedback" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Privacidade de pesquisa" Tag="ms-settings:search-permissions" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <Button Content="Permissões e recomendações de privacidade" Tag="ms-settings:privacy-general" Click="OpenSetting" HorizontalAlignment="Stretch" />
+            <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Segurança e compatibilidade" Message="SmartScreen, atualizações, recuperação e serviços essenciais são preservados. Os controlos do Windows acima permitem rever opções suportadas no teu PC." />
+          </StackPanel>
+          <StackPanel x:Name="PreferencesPanel" Visibility="Collapsed" Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button Content="Preferências" Tag="preferences" Click="Navigate" />
+              <Button Content="Aplicações nativas" Tag="apps" Click="Navigate" />
+              <Button Content="Ferramentas" Tag="utilities" Click="Navigate" />
+            </StackPanel>
+            <TextBlock Text="Preferências do utilizador" FontSize="22" TextWrapping="Wrap" FontWeight="SemiBold" />
+            <Grid RowSpacing="12" ColumnSpacing="12" x:Name="WindowsCards" />
+            <Expander Header="Compatibilidade e controlos externos" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+                  <StackPanel Spacing="14">
+                    <TextBlock Text="Windows e privacidade" FontSize="22" FontWeight="SemiBold" />
+                    <TextBlock Text="Políticas documentadas para o utilizador atual. A compatibilidade depende da edição, conta e versão. O valor anterior fica no Histórico; gravar uma política não prova que a funcionalidade já mudou. Opções indisponíveis têm explicação." TextWrapping="Wrap" />
+                    <StackPanel x:Name="PolicyChoices" Spacing="18" />
+                    <Button Content="Rever e aplicar preferências" Click="ApplyPolicies" />
+                    <Button Content="ID de publicidade e outras permissões" Tag="ms-settings:privacy-general" Click="OpenSetting" />
+                    <Button Content="Personalização de escrita e entrada" Tag="ms-settings:privacy-speechtyping" Click="OpenSetting" />
+                    <Button Content="Diagnóstico e experiências personalizadas" Tag="ms-settings:privacy-feedback" Click="OpenSetting" />
+                    <TextBlock Text="Para Office, Firefox, Chrome, NVIDIA e Visual Studio, usa as opções de privacidade do produto. O catálogo identifica estas integrações como pendentes; não escrevemos políticas desconhecidas nem desativamos proteção/atualizações." TextWrapping="Wrap" Foreground="#8FA395" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Expander>
+          </StackPanel>
+          <StackPanel x:Name="AppsPanel" Visibility="Collapsed" Spacing="18">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button Content="Preferências" Tag="preferences" Click="Navigate" />
+              <Button Content="Aplicações nativas" Tag="apps" Click="Navigate" />
+              <Button Content="Ferramentas" Tag="utilities" Click="Navigate" />
+            </StackPanel>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Aplicações nativas opcionais" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Lista limitada de aplicações opcionais. Store, segurança, shell e dependências não são selecionáveis. Desinstalar pode eliminar dados locais e fechar a app; guarda o que precisas. Não há remoção em massa nem undo." TextWrapping="Wrap" />
+                <Button Content="Atualizar aplicações opcionais" Click="RefreshOptionalApps" />
+                <ListView x:Name="OptionalAppList" MaxHeight="420" SelectionMode="Single" AutomationProperties.Name="Aplicações opcionais">
+                  <ListView.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Display}" Margin="0,6" />
+                    </DataTemplate>
+                  </ListView.ItemTemplate>
+                </ListView>
+                <Button Content="Rever remoção da selecionada" Click="RemoveOptionalApp" />
+                <Button Content="Procurar selecionada na Store para reinstalar" Click="RestoreOptionalApp" />
+                <TextBlock Text="A Store pede a instalação e pode exigir conta. Apps retiradas da Store podem não estar disponíveis; dados apagados não são recuperados pela reinstalação. Programas clássicos continuam nas Definições." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="LatencyPanel" Visibility="Collapsed" Spacing="18">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Latência e perda de rede" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Envia cinco pedidos ICMP ao IP que introduzires. O destino recebe os pedidos. Mede resposta de rede, não latência do rato/teclado, FPS ou o percurso real de cada jogo. Falta de resposta pode significar ICMP bloqueado." TextWrapping="Wrap" />
+                <TextBox x:Name="LatencyAddress" PlaceholderText="IP do gateway ou do destino" AutomationProperties.Name="IP a testar" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button x:Name="LatencyButton" Content="Medir este destino" Click="MeasureLatency" />
+                  <Button Content="Cancelar" Click="CancelLatency" />
+                </StackPanel>
+                <TextBlock x:Name="LatencyResultText" Text="Nenhuma medição executada." TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="CatalogPanel" Visibility="Collapsed" Spacing="18">
+            <TextBlock Text="Cobertura e limites" FontSize="22" FontWeight="SemiBold" />
+            <TextBlock Text="Lista de referência e estado de implementação. Não é uma lista de funções executáveis. O arranque da 0.5 foi confirmado; assinatura e paridade integral continuam pendentes." TextWrapping="Wrap" />
+            <TextBox x:Name="FeatureSearch" PlaceholderText="Filtrar funções…" TextChanged="FilterFeatureCatalog" />
+            <ListView x:Name="FeatureList" MaxHeight="550" SelectionMode="Single" AutomationProperties.Name="Catálogo de funções">
+              <ListView.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Display}" TextWrapping="Wrap" Margin="0,8" />
+                </DataTemplate>
+              </ListView.ItemTemplate>
+            </ListView>
+            <Button Content="Abrir área da função selecionada" Click="OpenFeatureArea" />
+          </StackPanel>
+          <StackPanel x:Name="HistoryPanel" Visibility="Collapsed" Spacing="18">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Memória, rede, aplicações e limpeza" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Eventos registados localmente. Limpeza de cache, renovação IP, working sets e desinstalação não têm undo de definições. Os ficheiros reciclados são recuperados na Lixeira." TextWrapping="Wrap" />
+                <TextBlock x:Name="ActivityHistoryText" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Cópia de segurança do histórico" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Guarda uma cópia SQLite completa com perfis, sessões, alterações e testes numa pasta que escolhas. Pode conter nomes de aplicações e valores anteriores. Guarda-a num local privado fora da pasta da app." TextWrapping="Wrap" />
+                <Button Content="Escolher pasta e exportar cópia" Click="ExportBackup" />
+                <TextBlock x:Name="BackupLocationText" TextWrapping="Wrap" />
+                <TextBlock Text="Exportar não repõe ajustes. A importação automática ainda não está disponível. Não apagues a base de dados atual nem desinstales a app enquanto existirem ajustes por repor; usa o Histórico primeiro." TextWrapping="Wrap" Foreground="#8FA395" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Alterações do Windows" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="O estado anterior é guardado antes de cada alteração. Desfaz uma de cada vez, da mais recente para a mais antiga. Se outra app alterar a mesma definição, o NEXUS avisa antes de a substituir." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <Button x:Name="UndoSystemButton" Content="Desfazer última alteração do sistema" Click="UndoSystem" />
+                <TextBlock x:Name="SystemHistory" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Ritmo de monitorização" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Estes perfis controlam só a frequência do dashboard: Normal 2s, Gaming 5s, Trabalho 3s." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <ComboBox ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" Width="170" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button Content="Guardar ritmo" Command="{Binding ApplyProfileCommand}" />
+                  <Button Content="Desfazer ritmo" Command="{Binding UndoCommand}" />
+                </StackPanel>
+                <TextBlock Text="{Binding History}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Sessões de jogo" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock x:Name="SessionHistoryText" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel Spacing="16" x:Name="TweaksPanel" Visibility="Collapsed">
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Tweaks" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Liga para aplicar. Desliga para recuperar o valor guardado pela NEXUS." FontSize="14" TextWrapping="Wrap" />
+                <Button Content="Atualizar estados" Click="RefreshAdjustmentCards" />
+              </StackPanel>
+            </Border>
+            <Grid RowSpacing="12" ColumnSpacing="12" x:Name="TweakCards" />
+          </StackPanel>
+          <StackPanel Spacing="16" x:Name="AutoCleanupPanel" Visibility="Collapsed">
+            <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Limpeza automática opcional" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Desligada em cada arranque. Apenas temporários antigos do utilizador, enviados à Lixeira; não esvazia a Lixeira nem limpa RAM/Prefetch. Suspende durante sessões e jogos/programas da biblioteca detetados. Outros jogos não identificados podem ser afetados pelo trabalho de disco." TextWrapping="Wrap" />
+                <ComboBox x:Name="AutoCleanupInterval" SelectedIndex="1">
+                  <ComboBoxItem Content="15 minutos" Tag="15" />
+                  <ComboBoxItem Content="30 minutos" Tag="30" />
+                  <ComboBoxItem Content="60 minutos" Tag="60" />
+                </ComboBox>
+                <Button Content="Executar agora" Click="ExecuteAutoCleanup" />
+                <Button Content="Rever ativação / desligar" Click="EnableAutoCleanup" />
+                <TextBlock x:Name="AutoCleanupStatus" Text="Desligada." TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel Spacing="16" x:Name="TunerPanel" Visibility="Collapsed">
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="App Tuner" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Prioridade de CPU para um programa aberto. O valor anterior fica no histórico." FontSize="14" TextWrapping="Wrap" />
+                <ComboBox HorizontalAlignment="Stretch" PlaceholderText="Escolher programa aberto" DisplayMemberPath="Name" AutomationProperties.Name="Aplicação para App Tuner" x:Name="TunerProcessChoice" />
+                <Button Content="Detetar programas" Click="RefreshTuner" />
+                <Button Content="Otimizar selecionado" Click="ApplyTuner" Style="{StaticResource AccentButtonStyle}" />
+                <Button Content="Repor ajustes de programas" Click="RestoreTuner" />
+                <TextBlock Text="Nenhuma aplicação selecionada." FontSize="14" TextWrapping="Wrap" x:Name="TunerStatus" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Como funciona" FontSize="18" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="Usa prioridade acima do normal; não modifica ficheiros ou controlos internos do programa. Processos protegidos podem recusar a alteração." FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel Spacing="16" x:Name="HelpPanel" Visibility="Collapsed">
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Começar a usar" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="1. PC Boost: analisa e aplica a seleção.&#10;2. Game Mode: escolhe um perfil e ativa o acompanhamento.&#10;3. Tweaks: aplica opções individualmente.&#10;4. Histórico: repõe os valores anteriores." FontSize="14" TextWrapping="Wrap" />
+                <Button Content="Ver testes e FPS" Tag="benchmark" Click="Navigate" />
+                <Button Content="Ver cobertura da referência" Tag="catalog" Click="Navigate" />
+              </StackPanel>
+            </Border>
+            <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Funções que dependem do Windows" FontSize="18" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="As opções externas são identificadas. Ajustes ocultos no TL e opções que retiram segurança não são apresentados como implementados." FontSize="14" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+      <InfoBar x:Name="OperationInfo" Grid.Row="2" Margin="0,14,0,0" IsOpen="False" IsClosable="True" Severity="Success" />
+    </Grid>
+  </Grid>
 </Window>
