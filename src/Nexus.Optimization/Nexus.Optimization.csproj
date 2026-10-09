@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup></PropertyGroup><ItemGroup><ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" /><ProjectReference Include="../Nexus.Storage/Nexus.Storage.csproj" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" /><ProjectReference Include="../Nexus.Storage/Nexus.Storage.csproj" /><PackageReference Include="System.Management" Version="10.0.0" /></ItemGroup></Project>
