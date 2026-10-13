@@ -2,7 +2,7 @@ name: Validate NEXUS 0.7 Microsoft Store package
 on:
   push:
     branches: [nexus-v0.6-direct-workflow]
-    paths: ['nexus-store-source-07.zip']
+    paths: ['nexus-store-source-07.zip', '.github/workflows/store-validation.yml', 'StorePreparation/Test-StorePackage.ps1']
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,6 +18,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-store-source-07.zip'
+          if (Test-Path -LiteralPath $archive) {
           if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne '995C21774CF403A49BABA8ABC7A07122919DC42415562666E75D903FCEC72697') { throw 'Source snapshot hash mismatch.' }
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = [IO.Compression.ZipFile]::OpenRead($archive)
@@ -41,6 +42,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
           git push origin HEAD:refs/heads/nexus-v0.6-direct-workflow
           if ($LASTEXITCODE -ne 0) { throw 'Review branch changed; refusing to overwrite it.' }
+          }
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -91,8 +93,10 @@ jobs:
             artifacts/store-validation/packaged-validation.json
             artifacts/store-validation/makeappx-test-*.log
             artifacts/store-validation/screenshots
+            artifacts/store-validation/startup-diagnostics
             artifacts/tests
             artifacts/native-preference-validation
             artifacts/smart-boost-validation
           if-no-files-found: error
           retention-days: 14
+
