@@ -14,10 +14,6 @@ public sealed partial class MainWindow : Window
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
-        if (Environment.GetCommandLineArgs().Contains("--smoke-test") &&
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NEXUS_DATA_DIR")) &&
-            Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
-            AppWindow.Resize(new Windows.Graphics.SizeInt32(1400, 850));
         timer.Interval = TimeSpan.FromSeconds(2);
         timer.Tick += Tick;
         Root.Loaded += Loaded;
@@ -40,6 +36,12 @@ public sealed partial class MainWindow : Window
                 if (Environment.GetEnvironmentVariable("NEXUS_TEST_PACKAGED_UNDO") == "1")
                     ValidatePackagedUndo(output);
                 await Task.Delay(1500);
+                if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
+                {
+                    // Resize after activation; Windows constrains an initial window to the runner's desktop.
+                    AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(1400, 850));
+                    await Task.Delay(500);
+                }
                 await model.TickAsync();
                 var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
