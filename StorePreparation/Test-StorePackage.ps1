@@ -45,7 +45,18 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
     [IO.Directory]::CreateDirectory($output) | Out-Null
     $process = Start-Process -FilePath (Join-Path $package.InstallLocation 'Nexus.UI.exe') -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden
     if (-not $process.WaitForExit(45000)) { $process.Kill(); throw "Test-only package startup timed out: $page" }
-    if ($process.ExitCode -ne 0) { throw "Package startup failed: $page ($($process.ExitCode))" }
+    if ($process.ExitCode -ne 0) {
+        $failure = Join-Path $runRoot 'startup-diagnostics'
+        [IO.Directory]::CreateDirectory($failure) | Out-Null
+        Copy-Item -Path (Join-Path $output '*') -Destination $failure -Recurse -ErrorAction SilentlyContinue
+        Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = [DateTime]::Now.AddMinutes(-3) } -ErrorAction SilentlyContinue |
+            Where-Object Message -Match 'Nexus.UI|Microsoft.UI.Xaml|NEXUS' |
+            Select-Object TimeCreated,Id,ProviderName,Message | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath (Join-Path $failure 'application-events.json') -Encoding utf8
+        $startupError = Join-Path $output 'startup-error.txt'
+        if (Test-Path -LiteralPath $startupError) { Write-Output (Get-Content -LiteralPath $startupError -Raw) }
+        throw "Package startup failed: $page ($($process.ExitCode))"
+    }
     $result = Get-Content -LiteralPath (Join-Path $output 'smoke-test.json') -Raw | ConvertFrom-Json
     if ($result.PackageIdentity -ne $package.PackageFullName) { throw 'Process lacks the installed MSIX identity; portable startup is not a packaged test.' }
     if ($result.PrioritySelected -or $result.AnimationsSelected -or $result.PowerSelected) { throw 'Defaults selected a Windows change.' }
