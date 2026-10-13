@@ -28,6 +28,47 @@ $sdk = Get-ChildItem -LiteralPath (Join-Path ${env:ProgramFiles(x86)} 'Windows K
 $makeappx = Join-Path $sdk.FullName 'x64/makeappx.exe'
 $installed = $false
 $checks = [ordered]@{ TestOnly = $true; IsDisposableHostedRunner = $true; Installed = $false; PackageIdentityVerified = $false; PackagedWindowsPreferenceAndUndoVerified = $false; Updated = $false; DatabasePreservedAcrossUpdate = $false; Uninstalled = $false; DatabasePreservedAfterUninstall = $false; Reinstalled = $false; Pages = @(); WindowsSecurityChanged = $false; WindowsAdjustmentsApplied = $false; AllTestAdjustmentsRestored = $false; StoreCertification = 'NOT PERFORMED' }
+# The hosted Hyper-V desktop defaults to 1024x768. Select an advertised larger
+# mode temporarily so the real window can render Store-size images; never scale a PNG.
+Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+public static class NexusHostedDesktop {
+    [StructLayout(LayoutKind.Explicit, Size=220)]
+    public struct Mode {
+        [FieldOffset(68)] public ushort Size;
+        [FieldOffset(70)] public ushort Extra;
+        [FieldOffset(72)] public uint Fields;
+        [FieldOffset(168)] public uint Bits;
+        [FieldOffset(172)] public uint Width;
+        [FieldOffset(176)] public uint Height;
+    }
+    [DllImport("user32.dll", EntryPoint="EnumDisplaySettingsW", CharSet=CharSet.Unicode)]
+    static extern bool Enumerate(string device, int index, ref Mode mode);
+    [DllImport("user32.dll", EntryPoint="ChangeDisplaySettingsExW", CharSet=CharSet.Unicode)]
+    static extern int Change(string device, ref Mode mode, IntPtr window, uint flags, IntPtr parameter);
+    static Mode original;
+    static bool changed;
+    static Mode Current() { var m=new Mode { Size=220 }; if (!Enumerate(null,-1,ref m)) throw new InvalidOperationException("Cannot read hosted display mode."); return m; }
+    public static string Prepare() {
+        original=Current();
+        if (original.Width>=1600 && original.Height>=1000) return original.Width+"x"+original.Height;
+        var candidates=new List<Mode>();
+        for (int i=0;i<1000;i++) { var m=new Mode { Size=220 }; if (!Enumerate(null,i,ref m)) break; if (m.Width>=1600 && m.Height>=1000 && m.Bits==32) candidates.Add(m); }
+        foreach (var candidate in candidates.OrderBy(m=>(long)m.Width*m.Height)) {
+            var mode=candidate; mode.Fields=0x00080000|0x00100000;
+            if (Change(null,ref mode,IntPtr.Zero,2,IntPtr.Zero)!=0) continue;
+            if (Change(null,ref mode,IntPtr.Zero,0,IntPtr.Zero)!=0) continue;
+            changed=true; var actual=Current();
+            if (actual.Width>=1600 && actual.Height>=1000) return actual.Width+"x"+actual.Height;
+        }
+        throw new InvalidOperationException("The hosted display has no usable Store-size mode; real screenshot validation cannot proceed.");
+    }
+    public static void Restore() { if (changed && Change(null,ref original,IntPtr.Zero,0,IntPtr.Zero)!=0) throw new InvalidOperationException("Could not restore the hosted desktop mode."); changed=false; }
+}
+'@
 function New-TestPackage([string]$version) {
     $identity.SetAttribute('Version', $version)
     $manifest.Save((Join-Path $stage 'AppxManifest.xml'))
@@ -81,6 +122,8 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
     }
 }
 try {
+    $checks.HostedDesktopResolution = [NexusHostedDesktop]::Prepare()
+    Write-Host "Hosted desktop: $($checks.HostedDesktopResolution)"
     $first = New-TestPackage '0.7.0.0'
     Add-AppxPackage -Path $first -AllowUnsigned
     $installed = $true; $checks.Installed = $true
@@ -109,6 +152,8 @@ try {
 }
 catch { $checks.Result = 'FAIL'; $checks.Error = $_.Exception.ToString(); throw }
 finally {
+    try { [NexusHostedDesktop]::Restore(); $checks.HostedDesktopRestored = $true }
+    catch { $checks.DesktopCleanupError = $_.Exception.Message }
     if ($installed) {
         try { $ownPackage = Get-AppxPackage -Name $testName; if ($ownPackage) { Remove-AppxPackage -Package $ownPackage.PackageFullName -AllUsers } }
         catch { $checks.CleanupError = $_.Exception.Message }
