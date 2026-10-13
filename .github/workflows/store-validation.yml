@@ -4,6 +4,9 @@ on:
     branches: [nexus-v0.6-direct-workflow]
     paths: ['nexus-store-source-07.zip', '.github/workflows/store-validation.yml', 'StorePreparation/Test-StorePackage.ps1']
   workflow_dispatch:
+concurrency:
+  group: nexus-store-validation
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
