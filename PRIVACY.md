@@ -1,6 +1,6 @@
 # Privacy policy
 
-NEXUS Optimizer 0.6.0 is a local Windows application. It has no own analytics,
+NEXUS Optimizer 0.7.0 is a local Windows application. It has no own analytics,
 advertising, cloud sync or automatic update client. No hardware inventory,
 process list, file paths or diagnostic logs are uploaded.
 
@@ -28,6 +28,17 @@ latency destination IPs and app names. Graph samples remain in memory. Local log
 contain file paths, hardware names and Windows errors; seven daily files are retained.
 History is retained until the data is removed. NEXUS_DATA_DIR isolates testing data.
 Backup export copies all SQLite tables, not logs; keep exported backups private.
+
+The proposed Microsoft Store MSIX targets Windows 11. Its manifest requests
+runFullTrust for normal desktop APIs and narrowly scoped unvirtualizedResources:
+the NexusOptimizer data directory and the user policy keys CloudContent and Edge.
+The data directory is designed to persist after uninstall so reinstalling can recover
+the undo journal for settings changed outside the package. Uninstall does not restore
+those changes automatically. Use History/Restore before uninstalling; after restoring,
+you may delete %LOCALAPPDATA%/NexusOptimizer to remove the retained database and logs.
+These declarations do not grant administrator rights, disable Windows protections,
+or disable file/registry virtualization globally. Store approval and packaged tests
+are separate from portable application tests.
 
 Optional PresentMon CSV import reads only the file chosen by the user. It stores
 the chosen process/stream's aggregate presentation timings, process identity,
@@ -61,3 +72,5 @@ restore active adjustments and sessions before deleting the database or uninstal
 
 GitHub/SignPath/Store websites have their own policies. NEXUS does not contact GitHub
 or SignPath at runtime. Review logs, backups and executable paths before sharing them.
+
+Smart Boost also reads installed graphics driver version and power/battery-saver status. Repeated CPU/RAM observations and rule decisions are processed locally. Diagnostic export writes a JSON report, including hardware/driver and accessible application names, only to the folder the user selects. No report is uploaded. Rule decisions and repeated FPS comparison summaries are stored in the local activity history. FPS captures may be labelled Reference/Optimized; labels are user declarations, not verified game conditions.

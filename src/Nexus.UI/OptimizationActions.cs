@@ -223,9 +223,10 @@ public sealed partial class MainWindow
         PowerPlan? plan = null;
         if (SessionPowerChoice.IsChecked == true) plan = SessionPlans.SelectedItem as PowerPlan ?? throw new InvalidOperationException("Escolhe o plano de energia da sessão.");
         var animations = SessionAnimationsChoice.IsChecked == true;
-        if (!priority && plan is null && !animations) { Notice("Seleciona pelo menos um ajuste para a sessão.", true); return; }
-        var summary = "Aplicação: " + game.Name + ".\n" + (priority ? "Prioridade acima do normal. Pode reduzir a fluidez de outras apps.\n" : "") + (animations ? "Reduz animações durante a sessão.\n" : "") + (plan is not null ? "Plano: " + plan.Name + ". Pode aumentar consumo e temperatura.\n" : "") + "\nMantém o NEXUS aberto para repor automaticamente quando a aplicação terminar. Se fechares o NEXUS, usa Terminar e repor ao voltar a abrir.";
+        RequireSessionPower(plan);
+        var summary = "Aplicação: " + game.Name + ".\n" + (priority ? "Prioridade acima do normal. Pode reduzir a fluidez de outras apps.\n" : "Prioridade original mantida.\n") + (animations ? "Reduz animações durante a sessão.\n" : "") + (plan is not null ? "Plano: " + plan.Name + ". Pode aumentar consumo e temperatura.\n" : "Plano atual mantido.\n") + "\nMantém o NEXUS aberto para repor automaticamente quando a aplicação terminar. Se houver uma falha, usa Terminar e repor ao voltar a abrir.";
         if (!await Confirm("Iniciar esta sessão?", summary) || closed) return;
+        RequireSessionPower(plan);
         var session = sessions.Start(game.Key, game.Name, plan?.Id.ToString(), priority, animations);
         Notice(session.Status == "active" ? "Sessão iniciada: " + game.Name + "." : session.Error ?? "Reposição necessária.", session.Status != "active");
     });
@@ -242,10 +243,12 @@ public sealed partial class MainWindow
         {
             var before = sessions.Active;
             if (before is null || before.Status != "active" || sessions.RecoveryRequired) return;
-            var result = sessions.Poll();
+            var power = HardwareEnvironment.ReadPower();
+            var changedPower = optimizer.History().Any(x => x.Owner == before.Id && x.Key == "power" && x.State is "applied" or "pending");
+            var result = changedPower && !SessionPowerPolicy.CanChangePower(power.OnAcPower, power.BatterySaver) ? sessions.End() : sessions.Poll();
             if (result is not null && result.Status != "active")
             {
-                Notice(result.Status == "ended" ? "O jogo terminou. Os ajustes da sessão foram repostos." : result.Error ?? "Há ajustes da sessão por repor.", result.Status != "ended");
+                Notice(result.Status == "ended" ? "A sessão terminou ou a alimentação mudou. Os ajustes da sessão foram repostos." : result.Error ?? "Há ajustes da sessão por repor.", result.Status != "ended");
                 AutomationStatus.Text = result.Status != "ended" ? "Recuperação necessária · " + result.Error : gameAutomation.Enabled ? "Automático ativo · a aguardar próximo jogo." : "Sessão terminada e reposta.";
                 RefreshSystem();
                 RefreshAdjustmentCards(this, new());

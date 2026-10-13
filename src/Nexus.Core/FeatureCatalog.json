@@ -74,14 +74,14 @@
     "Area": "Navegação e informação geral",
     "State": "Implementação própria com limites",
     "Page": "optimize",
-    "Note": "Análise de CPU/RAM e preferências existentes; perfis próprios Normal/Gaming/Trabalho, seleção de diferenças e aplicação reversível em conjunto. Gratuito; não é o motor Premium do TL."
+    "Note": "Smart Boost: cinco amostras CPU/RAM, hardware/driver/alimentação, decisões condicionadas e perfis Balanceado/Competitivo/Streaming. Só diferenças justificadas de interface são propostas para revisão e aplicação reversível. Gratuito; não é o motor Premium do TL."
   },
   {
     "Name": "Perfis Balanceado, Competitivo, Extremo, Streaming e Personalizado",
     "Area": "Game Mode",
     "State": "Implementação própria com limites",
     "Page": "gaming",
-    "Note": "Perfis próprios, manuais ou automáticos: prioridade Normal/AboveNormal, animações e plano existente opcionais. Sem congelar/fechar apps de fundo; sem ganho medido."
+    "Note": "Balanceado/Competitivo/Streaming/Personalizado próprios, com prioridade original por defeito e energia condicionada à corrente. Extremo retirado por duplicar Competitivo. Sem fechar/congelar apps de fundo, gestão dinâmica de prioridades ou ganho medido."
   },
   {
     "Name": "Motor adaptativo",

@@ -6,8 +6,8 @@ public sealed record OptimizationPreset(string Name, string Description, bool Re
 public static class OptimizationPresets
 {
     public static IReadOnlyList<OptimizationPreset> All { get; } = [
-        new("Normal", "Limpa a seleção para escolheres os teus ajustes. Não repõe alterações já aplicadas: usa o Histórico para isso.", false, []),
-        new("Gaming", "Seleciona animações de conteúdo, menus, dicas, listas de escolha e minimizar. Não altera energia ou o jogo; revê a seleção antes de aplicar.", true, ["menu-animation", "tooltip-animation", "combo-animation", "minimize-animation"]),
-        new("Trabalho", "Seleciona animações de menus e dicas. Mantém o conteúdo ao arrastar janelas e a repetição do teclado. Revê a seleção antes de aplicar.", false, ["menu-animation", "tooltip-animation"])
+        new("Balanceado", "Analisa pressão sustentada antes de recomendar preferências. Mantém prioridade, energia e segurança. Perfil predefinido.", false, []),
+        new("Competitivo", "Ajustes de interface opcionais. Energia e prioridade precisam de escolha manual e comparação em jogo; não há ganho presumido.", true, ["menu-animation", "tooltip-animation", "combo-animation", "minimize-animation"]),
+        new("Streaming", "Mantém prioridade para partilhar CPU com jogo, OBS, Discord e áudio. Não fecha programas; ajustes de interface só após revisão.", false, [])
     ];
 }

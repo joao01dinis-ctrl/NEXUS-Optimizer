@@ -33,7 +33,7 @@ public sealed partial class MainWindow
         InitializeProcessCpu();
         InitializeFiveMHelp();
         OptimizationPresetList.ItemsSource = OptimizationPresets.All;
-        OptimizationPresetList.SelectedIndex = 1;
+        OptimizationPresetList.SelectedIndex = 0;
         Closed += (_, _) => benchmarkCancellation?.Cancel();
         RefreshBenchmarkHistory();
     }

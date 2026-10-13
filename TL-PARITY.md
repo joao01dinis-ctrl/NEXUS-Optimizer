@@ -1,12 +1,12 @@
-# Cobertura TL Optimizer → NEXUS 0.6
+# Cobertura TL Optimizer → NEXUS 0.7
 
 Referência: vídeo do utilizador em VIDEO-FEATURES.md e site/guia https://tloptimizer.com/ consultados em 9/10/2026. A NEXUS tem código, design e perfis próprios, gratuitos. **Não tem paridade integral comprovada.**
 
 140 entradas rastreáveis: 138 da referência e duas ferramentas próprias. Isto não significa 140 executores. Catálogo embebido em Core, disponível na Ajuda.
 
-A 0.6 aproxima a utilização: PC Boost com análise/seleção/aplicação, 14 cartões de preferências, sete políticas e Teclas de Aderência, Game Mode automático opt-in, App Tuner e restauro global. O automático TL também anuncia gestão de apps de fundo; a NEXUS não congela, fecha ou reduz prioridades de apps de fundo. As opções Premium desfocadas, onze avançadas e três Toque não estão identificadas. Benchmark de jogos, FPS ao vivo/overlay, latência de entrada, motor adaptativo e políticas específicas de produtos continuam ausentes.
+A 0.6 aproxima a utilização: PC Boost com análise/seleção/aplicação, 14 cartões de preferências, sete políticas e Teclas de Aderência, Game Mode automático opt-in, App Tuner e restauro global. O automático TL também anuncia gestão de apps de fundo; a NEXUS não congela, fecha ou reduz prioridades de apps de fundo. As opções Premium desfocadas, onze avançadas e três Toque não estão identificadas. Benchmark de jogos, FPS ao vivo/overlay, latência de entrada, aprendizagem adaptativa/regras por modelo de hardware e políticas específicas de produtos continuam ausentes.
 
-Build/testes e efeito real de uma preferência constam de VALIDATION.md. A nova interface ainda precisa de arranque e validação visual; um catálogo ou teste de lógica não comprova todas as ações reais.
+Build/testes e efeito real de uma preferência constam de VALIDATION.md. A 0.6 foi renderizada no GitHub; a 0.7 teve três páginas e análise real validadas localmente em 13/10/2026; um catálogo ou teste de lógica não comprova todas as ações reais.
 
 ## Resumo
 
@@ -37,8 +37,8 @@ Build/testes e efeito real de uma preferência constam de VALIDATION.md. A nova 
 | Navegação e informação geral | Recomendações e opção de reaplicar um ajuste que voltou ao padrão | Implementação própria com limites | overview · Gráficos de amostras CPU/RAM, tempo desde o arranque e verificação de valores aplicados. Reaplicar exige revisão; não mede ganhos de FPS. |
 | Navegação e informação geral | Histórico de otimizações por memória, rede e limpeza | Implementação própria com limites | history · Eventos locais SQLite, alterações e recuperação. Uma ação sem undo não recebe um restauro inventado. |
 | Navegação e informação geral | Ajuda, tutorial em vídeo e comunidade | Por implementar / especificação por confirmar | O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta. |
-| Navegação e informação geral | Análise gratuita PC Boost e aplicação do plano Premium | Implementação própria com limites | optimize · Análise de CPU/RAM e preferências existentes; perfis próprios Normal/Gaming/Trabalho, seleção de diferenças e aplicação reversível em conjunto. Gratuito; não é o motor Premium do TL. |
-| Game Mode | Perfis Balanceado, Competitivo, Extremo, Streaming e Personalizado | Implementação própria com limites | gaming · Perfis próprios, manuais ou automáticos: prioridade Normal/AboveNormal, animações e plano existente opcionais. Sem congelar/fechar apps de fundo; sem ganho medido. |
+| Navegação e informação geral | Análise gratuita PC Boost e aplicação do plano Premium | Implementação própria com limites | optimize · Cinco amostras CPU/RAM, driver/alimentação e regras condicionadas; objetivos Balanceado/Competitivo/Streaming. Gratuito, com limites próprios. |
+| Game Mode | Perfis Balanceado, Competitivo, Extremo, Streaming e Personalizado | Implementação própria com limites | gaming · Balanceado/Competitivo/Streaming/Personalizado próprios, manuais ou automáticos; prioridade original por defeito, AboveNormal opcional e energia condicionada. Extremo foi retirado. Sem congelar/fechar apps de fundo; sem ganho medido. |
 | Game Mode | Motor adaptativo | Por implementar / especificação por confirmar | O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta. |
 | Game Mode | Aumentar prioridade do processo do jogo | Implementação própria com limites | gaming · Revê a descrição e confirmação na área. O comportamento interno do TL não é conhecido. |
 | Game Mode | TL Optimizer Performance | Por implementar / especificação por confirmar | O vídeo não revela APIs, valores, condições ou execução suficientes. Não é anunciada como pronta. |
@@ -185,3 +185,5 @@ SmartScreen, atualizações automáticas, recuperação, drivers/paginação e p
 - Store e Definições: https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-store-app e https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings
 
 Não foi integrado/distribuído PresentMon nesta revisão. É uma possibilidade futura para medições reais, não uma função já implementada: https://github.com/GameTechDev/PresentMon
+
+A 0.7 acrescenta doze decisões próprias Smart Boost (cinco preferências e sete áreas de diagnóstico), não 74 regras TL, e comparação de capturas repetidas. Implementação/limites em STUDY-IMPLEMENTATION.md.

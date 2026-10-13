@@ -18,6 +18,10 @@ public sealed partial class MainWindow
     private readonly TextBlock frameComparison = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox frameBaseline = new() { Header = "Antes — referência", HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly ComboBox frameCurrent = new() { Header = "Depois — nova captura", HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly ComboBox frameCondition = new() { Header = "Condição desta captura", ItemsSource = new[] { "Não classificado", "Referência", "Otimizado" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly ListView frameSeriesBaseline = new() { SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 220 };
+    private readonly ListView frameSeriesCurrent = new() { SelectionMode = ListViewSelectionMode.Multiple, MaxHeight = 220 };
+    private readonly TextBlock frameSeriesResult = new() { TextWrapping = TextWrapping.Wrap };
 
     private void InitializeFrameTimes(string root)
     {
@@ -33,7 +37,7 @@ public sealed partial class MainWindow
             frameDetails.Text = frameStreamChoice.SelectedItem is FrameTimeSummary s ? Describe(s) : "";
             frameMethod.Text = frameStreamChoice.SelectedItem is FrameTimeSummary selected ? DescribeMethod(selected) : "";
         };
-        content.Children.Add(frameDetails); content.Children.Add(frameContext);
+        content.Children.Add(frameDetails); content.Children.Add(frameContext); content.Children.Add(frameCondition);
         var save = new Button { Content = "Guardar análise e condições" }; save.Click += SaveFrameTimes; content.Children.Add(save);
         content.Children.Add(new TextBlock { Text = "Compara o mesmo percurso, com pelo menos 20 segundos e 300 intervalos. Repete cada condição pelo menos três vezes, sem downloads ou outras cargas variáveis. As condições são declaradas por ti; a NEXUS não as confirma a partir do CSV.", TextWrapping = TextWrapping.Wrap, Opacity = .8 });
         content.Children.Add(frameBaseline); content.Children.Add(frameCurrent);
@@ -41,6 +45,15 @@ public sealed partial class MainWindow
         frameCurrent.SelectionChanged += (_, _) => frameComparison.Text = "";
         var compare = new Button { Content = "Comparar capturas guardadas" }; compare.Click += CompareFrameTimes; content.Children.Add(compare);
         content.Children.Add(frameComparison);
+        var series = new StackPanel { Spacing = 12 };
+        series.Children.Add(new TextBlock { Text = "Guarda pelo menos três capturas Referência e três Otimizado. Mantém a mesma descrição de condições; só o ajuste testado deve variar. Alterna A/B quando possível. Não uses fluxos diferentes do mesmo CSV como repetições.", TextWrapping = TextWrapping.Wrap });
+        series.Children.Add(new TextBlock { Text = "Referência — seleciona três ou mais" }); series.Children.Add(frameSeriesBaseline);
+        series.Children.Add(new TextBlock { Text = "Otimizado — seleciona três ou mais" }); series.Children.Add(frameSeriesCurrent);
+        frameSeriesBaseline.SelectionChanged += (_, _) => frameSeriesResult.Text = "";
+        frameSeriesCurrent.SelectionChanged += (_, _) => frameSeriesResult.Text = "";
+        var compareSeries = new Button { Content = "Comparar repetições" }; compareSeries.Click += CompareFrameTimeSeries; series.Children.Add(compareSeries);
+        series.Children.Add(frameSeriesResult);
+        content.Children.Add(new Expander { Header = "Comparação de testes repetidos", Content = series, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
         var details = new StackPanel { Spacing = 10 };
         details.Children.Add(new TextBlock { Text = "Formato: CSV por fotograma com MsBetweenPresents (métricas v1). Cada aplicação/PID/fluxo é analisado separadamente; escolhe o fluxo principal do jogo.", TextWrapping = TextWrapping.Wrap });
         details.Children.Add(frameSource); details.Children.Add(frameMethod);
@@ -59,13 +72,15 @@ public sealed partial class MainWindow
     private static string Describe(FrameTimeSummary s) =>
         $"{s.Application} · PID {s.ProcessId}\n" +
         $"FPS de apresentação: {s.AverageFps:F1} · 1% low: {s.OnePercentLowFps:F1}\n" +
+        (s.ZeroPointOnePercentLowFps is double low ? $"0,1% low: {low:F1} FPS\n" : "0,1% low: indisponível (precisa de 1000 intervalos válidos ou captura anterior).\n") +
+        $"Intervalo médio: {1000 / s.AverageFps:F2} ms\n" +
         $"Intervalo mediano: {s.MedianMs:F2} ms · P99: {s.P99Ms:F2} ms\n" +
         $"{s.Frames} intervalos válidos · {s.Seconds:F2} segundos analisados · {s.Omitted} intervalos omitidos\n" +
         (s.Frames < 300 || s.Seconds < 20 || s.Omitted > 1 ? "Captura curta/incompleta: consulta apenas, sem comparação antes/depois." : "");
     private static string DescribeMethod(FrameTimeSummary s) =>
         $"Fluxo de imagem: {s.SwapChain}. A duração é a soma dos intervalos válidos.\n" +
         (s.Dropped is int dropped ? $"Dropped na origem: {dropped}; mantidos na análise dos Presents.\n" : "A origem não informa Dropped.\n") +
-        "1% low = 1000 / média do 1% de intervalos mais lentos (arredondado para cima). P99/mediana usam nearest rank. Pausas válidas são mantidas; zero/NA são contados como omitidos.";
+        "1%/0,1% low = 1000 / média dos intervalos mais lentos dessa fração (arredondada para cima). P99/mediana usam nearest rank. Pausas válidas são mantidas; zero/NA são contados como omitidos. Estes intervalos não medem a latência entre rato e imagem.";
     private async void ImportFrameTimes(object sender, RoutedEventArgs e) => await Run(async () =>
     {
         var picker = new Microsoft.Windows.Storage.Pickers.FileOpenPicker(AppWindow.Id);
@@ -92,7 +107,7 @@ public sealed partial class MainWindow
     {
         if (frameTimeImport is null || frameStreamChoice.SelectedItem is not FrameTimeSummary selected)
             throw new InvalidOperationException("Importa e escolhe primeiro uma captura.");
-        var capture = new FpsCapture(DateTimeOffset.Now, frameTimeImport.FileName, frameTimeImport.Sha256, frameContext.Text.Trim(), selected);
+        var capture = new FpsCapture(DateTimeOffset.Now, frameTimeImport.FileName, frameTimeImport.Sha256, frameContext.Text.Trim(), selected, frameCondition.SelectedItem as string ?? "Não classificado");
         if (!FrameTimes.Valid(capture)) throw new InvalidOperationException("Preenche as condições do teste numa linha, até 600 caracteres.");
         frameTimeStore.Save(capture); RefreshFrameTimeHistory(); Notice("Análise guardada localmente, com a origem e as condições declaradas.");
         return Task.CompletedTask;
@@ -101,11 +116,26 @@ public sealed partial class MainWindow
     {
         try
         {
-            var captures = frameTimeStore.History(); frameBaseline.ItemsSource = frameCurrent.ItemsSource = captures;
+            var captures = frameTimeStore.History(100); frameBaseline.ItemsSource = frameCurrent.ItemsSource = captures;
+            frameSeriesBaseline.ItemsSource = captures.Where(c => c.Condition == "Referência").ToArray();
+            frameSeriesCurrent.ItemsSource = captures.Where(c => c.Condition == "Otimizado").ToArray();
             if (captures.Count > 0) frameCurrent.SelectedIndex = 0;
             if (captures.Count > 1) frameBaseline.SelectedIndex = 1;
         }
         catch (Exception ex) { frameComparison.Text = "Histórico de capturas indisponível: " + ex.Message; }
+    }
+    private void CompareFrameTimeSeries(object sender, RoutedEventArgs e)
+    {
+        if (operationRunning) return;
+        var result = FrameTimeSeries.Compare(frameSeriesBaseline.SelectedItems.OfType<FpsCapture>().ToArray(), frameSeriesCurrent.SelectedItems.OfType<FpsCapture>().ToArray(), out var reason);
+        if (result is null) { frameSeriesResult.Text = reason; return; }
+        static string Range(FpsRange range) => $"{range.Minimum:F1}–{range.Maximum:F1}";
+        frameSeriesResult.Text = $"{result.Baseline.Runs} referência / {result.Current.Runs} otimizado\n" +
+            $"FPS medianos: {result.Baseline.AverageFps.Median:F1} → {result.Current.AverageFps.Median:F1} ({result.AveragePercent:+0.0;-0.0;0}%)\nFaixas FPS: {Range(result.Baseline.AverageFps)} → {Range(result.Current.AverageFps)}\n" +
+            $"1% low mediano: {result.Baseline.LowFps.Median:F1} → {result.Current.LowFps.Median:F1} ({result.LowPercent:+0.0;-0.0;0}%)\n" +
+            $"P99 mediano: {result.Baseline.P99Ms.Median:F2} → {result.Current.P99Ms.Median:F2} ms ({result.P99Percent:+0.0;-0.0;0}%; menor é melhor)\n" +
+            result.Outcome + "\nSão medianas e faixas entre testes, não intervalos de confiança estatística. As condições são declaradas, sem validação automática de drivers, cena ou temperatura.";
+        SaveActivity("FPS Lab", frameSeriesResult.Text);
     }
     private void CompareFrameTimes(object sender, RoutedEventArgs e)
     {

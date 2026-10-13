@@ -118,6 +118,20 @@ public sealed class GameSessionsTests : IDisposable
         Assert.Single(o.History()); Assert.Equal("ended", Sessions(Optimizer()).End()!.Status);
         Assert.Equal("1", settings["animations"].Value);
     }
+    [Fact] public void BalancedSessionCanTrackGameWithoutAnyWindowsChange()
+    {
+        var optimizer = Optimizer(); var sessions = Sessions(optimizer);
+        Assert.Equal("active", sessions.Start(ProcessKey, "Game", priority: false).Status);
+        Assert.Empty(optimizer.History()); Assert.Equal("ended", sessions.End()!.Status);
+        Assert.All(settings.Values, s => Assert.Equal(0, s.Writes));
+    }
+    [Theory][InlineData(false, false)][InlineData(null, false)][InlineData(true, true)][InlineData(true, null)]
+    public void SessionPowerNeedsKnownAcAndNoBatterySaver(bool? ac, bool? saver)
+    {
+        Assert.False(SessionPowerPolicy.CanChangePower(ac, saver));
+        Assert.Throws<InvalidOperationException>(() => SessionPowerPolicy.RequireAc(ac, saver));
+        Assert.True(SessionPowerPolicy.CanChangePower(true, false));
+    }
     public void Dispose()
     {
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();

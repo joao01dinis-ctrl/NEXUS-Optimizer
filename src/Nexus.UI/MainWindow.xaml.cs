@@ -14,6 +14,10 @@ public sealed partial class MainWindow : Window
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
+        if (Environment.GetCommandLineArgs().Contains("--smoke-test") &&
+            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NEXUS_DATA_DIR")) &&
+            Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
+            AppWindow.Resize(new Windows.Graphics.SizeInt32(1400, 850));
         timer.Interval = TimeSpan.FromSeconds(2);
         timer.Tick += Tick;
         Root.Loaded += Loaded;
@@ -37,6 +41,23 @@ public sealed partial class MainWindow : Window
                 await model.TickAsync();
                 var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_ANALYZE_BOOST") == "1")
+                {
+                    if (page != "optimize") throw new InvalidOperationException("Smart Boost smoke test requires the optimize page.");
+                    await AnalyzeSmartBoost();
+                    if (boostReport is null) throw new InvalidOperationException("Smart Boost did not produce a report.");
+                    if (optimizer.History().Count != 0 || sessions.Active is not null) throw new InvalidOperationException("Read-only smoke test changed the adjustment journal or started a session.");
+                    File.WriteAllText(Path.Combine(output, "smart-boost-report.json"), System.Text.Json.JsonSerializer.Serialize(boostReport));
+                }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_FRAME_CSV") is string csv)
+                {
+                    if (page != "benchmark") throw new InvalidOperationException("Frame smoke test requires the benchmark page.");
+                    frameTimeImport = await Nexus.Benchmark.FrameTimes.ReadFileAsync(csv);
+                    frameSource.Text = "TESTE DA INTERFACE — CSV artificial, não é uma sessão de jogo nem prova de ganho: " + frameTimeImport.FileName;
+                    frameStreamChoice.ItemsSource = frameTimeImport.Streams; frameStreamChoice.SelectedIndex = 0;
+                }
+                if (SessionPriorityChoice.IsChecked == true || SessionAnimationsChoice.IsChecked == true || SessionPowerChoice.IsChecked == true)
+                    throw new InvalidOperationException("Balanced defaults must not preselect session adjustments.");
                 var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
                 await bitmap.RenderAsync(Root);
                 var pixels = await bitmap.GetPixelsAsync();
@@ -54,6 +75,10 @@ public sealed partial class MainWindow : Window
                 }
                 File.WriteAllText(Path.Combine(output, "smoke-test.json"), System.Text.Json.JsonSerializer.Serialize(new
                 {
+                    PackageIdentity = CurrentPackageIdentity(),
+                    DataDirectory = output,
+                    LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    TemporaryDirectory = Path.GetTempPath(),
                     model.CpuName,
                     model.GpuName,
                     model.RamText,
@@ -61,6 +86,13 @@ public sealed partial class MainWindow : Window
                     model.MemoryText,
                     model.Disks,
                     model.Status,
+                    BoostGoal = OptimizationPresetList.SelectedItem?.ToString(),
+                    SessionProfile = LibraryProfiles.SelectedItem?.ToString(),
+                    PrioritySelected = SessionPriorityChoice.IsChecked,
+                    AnimationsSelected = SessionAnimationsChoice.IsChecked,
+                    PowerSelected = SessionPowerChoice.IsChecked,
+                    SmartBoostRules = boostReport?.Rules.Count,
+                    SelectedBoostChanges = boostSelection.Count(x => x.Choice.IsChecked == true),
                     Width = bitmap.PixelWidth,
                     Height = bitmap.PixelHeight
                 }));
@@ -68,6 +100,11 @@ public sealed partial class MainWindow : Window
             catch (Exception error) { Nexus.Diagnostics.AppLog.Error(error, "Smoke test falhou"); Environment.ExitCode = 1; }
             Close();
         }
+    }
+    private static string? CurrentPackageIdentity()
+    {
+        try { return Windows.ApplicationModel.Package.Current.Id.FullName; }
+        catch (InvalidOperationException) { return null; }
     }
     private async void Tick(object? sender, object e)
     {

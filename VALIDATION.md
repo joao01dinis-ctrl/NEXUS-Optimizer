@@ -1,3 +1,18 @@
+# Validação 0.7 — 13/10/2026
+
+- Solução Release x64: **0 erros e 0 avisos**. A compilação final da UI, posterior à inicialização explícita do perfil Balanceado e ao novo catálogo, também passou sem avisos/erros.
+- Suite: **150 aprovados, 0 falhados, 2 integrações opt-in ignoradas, total 152**. Integrações ignoradas: reciclagem Shell e alteração/restauro de preferência Windows; não foram repetidas nesta revisão por não serem necessárias às melhorias de diagnóstico. Os testes simulados não são prova de ganho em jogos.
+- Smart Boost: recolha nativa de cinco amostras reais CPU/RAM espaçadas durante cerca de dez segundos; CPU de processos, driver e alimentação consultados. Preferências originais verificadas no fim, sem chamadas de escrita. Relatório em `artifacts/smart-boost-validation/report.json`.
+- **Arranque final local confirmado, saída 0**, nas páginas PC Boost, Testes e FPS e Game Mode. Capturas/JSON em `artifacts/ui-v0.7-final-2026-10-13/{optimize,benchmark,gaming}`; tamanho 1164×593. Logs examinados sem falhas de binding/recursos XAML ou exceções nessas execuções.
+- Dentro da janela, o Smart Boost produziu 12 decisões com dados reais. Perfil Balanceado, zero preferências propostas/preselecionadas nessa observação e nenhum registo de ajuste/sessão criado. Os defaults de prioridade, animações e energia foram verificados como false. O teste nativo e as duas observações do monitor não diagnosticam eficácia em jogos.
+- FPS Lab renderizou um **CSV artificial identificado como TEST-FIXTURE-NOT-A-GAME**, com 1200 intervalos e pausas preservadas. Apresentou média, 1% low, 0,1% low e frametime. Não é FiveM, não é uma captura autêntica de jogo nem um resultado de otimização. A comparação repetida foi validada com fixtures independentes, incluindo sobreposição/métricas discordantes, dados corrompidos e repetição de origem recusados.
+- A 0.7 abriu localmente sem desativar políticas ou proteções, apesar dos bloqueios registados em revisões anteriores. Não se deduz a causa da diferença nem se promete que outras builds/dispositivos serão aceites. Esta publicação continua sem assinatura de distribuição; execução empacotada MSIX/Store não foi validada.
+- Sem sessão real FiveM, captura ao vivo, GPU Busy, temperaturas, VRAM ou clocks. Sem medição de ganhos. Testes de energia em bateria/mudança de alimentação e restauro de sessão usam valores simulados; nenhum plano/prioridade real foi alterado nesta validação.
+- Revisão 0.7 guardada localmente; esta validação não afirma envio da revisão ao GitHub, release pública ou certificação Store. A tentativa de consultar o GitHub neste turno encontrou falha de transporte do conector.
+
+Evidência: `artifacts/tests/build-v0.7-final.log`, `build-v0.7-ui-final.log`, `tests-v0.7-final.trx`, `publish-v0.7-final.log`, `artifacts/smart-boost-validation/report.json` e as capturas/metadata acima. O iniciador local foi atualizado para abrir a 0.7; preservar a pasta completa.
+
+---
 # Validação 0.6 — 09/10/2026
 
 - Solução Release x64: **0 erros e 0 avisos**. Publicação completa auto contida em `artifacts/app-v0.6-final`, sem assinatura de distribuição.

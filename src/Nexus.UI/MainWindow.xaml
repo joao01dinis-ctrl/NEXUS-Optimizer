@@ -102,7 +102,7 @@
         </ScrollViewer>
         <StackPanel Grid.Row="2" Spacing="6" Margin="10,12,0,0">
           <TextBlock Text="TODAS AS ÁREAS GRATUITAS" FontSize="10" TextWrapping="Wrap" Foreground="#A5F291" />
-          <TextBlock Text="0.6 · versão local" FontSize="11" TextWrapping="Wrap" Foreground="#8FA395" />
+          <TextBlock Text="0.7 · versão local" FontSize="11" TextWrapping="Wrap" Foreground="#8FA395" />
         </StackPanel>
       </Grid>
     </Border>
@@ -198,19 +198,29 @@
                 <TextBlock Text="PC Boost" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
                 <TextBlock Text="Um plano de ajustes para este PC. Podes alterar a seleção antes de aplicar." FontSize="14" TextWrapping="Wrap" />
                 <ComboBox x:Name="OptimizationPresetList" HorizontalAlignment="Stretch" AutomationProperties.Name="Perfil de seleção" Header="Objetivo" SelectionChanged="BoostPresetChanged" />
-                <Button Content="Analisar o PC" Click="AnalyzeBoost" Style="{StaticResource AccentButtonStyle}" />
+                <Button x:Name="AnalyzeBoostButton" Content="Analisar o PC" Click="AnalyzeBoost" Style="{StaticResource AccentButtonStyle}" />
                 <TextBlock Text="Clica em Analisar para preparar a seleção." FontSize="14" TextWrapping="Wrap" x:Name="BoostStatus" />
               </StackPanel>
             </Border>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button x:Name="CancelBoostButton" Content="Cancelar análise" Click="CancelBoost" IsEnabled="False" />
+              <Button Content="Exportar diagnóstico" Click="ExportBoostReport" />
+            </StackPanel>
             <StackPanel Spacing="10" x:Name="BoostChoices" />
-            <Button Content="Aplicar seleção" Click="ApplyBoost" Style="{StaticResource AccentButtonStyle}" x:Name="ApplyBoostButton" />
+            <Expander Header="Diagnóstico e recomendações" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="16">
+                <TextBlock x:Name="BoostHardwareText" Text="Analisa o PC para consultar hardware e amostras." TextWrapping="Wrap" />
+                <StackPanel x:Name="BoostAdvice" Spacing="18" />
+              </StackPanel>
+            </Expander>
+            <Button Content="Aplicar seleção" Click="ApplyBoost" Style="{StaticResource AccentButtonStyle}" x:Name="ApplyBoostButton" IsEnabled="False" />
             <Expander Header="Escolher ajustes manualmente" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
               <StackPanel Spacing="12">
                 <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
                   <StackPanel Spacing="14">
                     <TextBlock Text="Preparar uma seleção" FontSize="20" FontWeight="SemiBold" />
                     <Button Content="Preparar seleção do perfil" Click="ChoosePreset" />
-                    <TextBlock x:Name="PresetDescription" Text="Escolhe Normal, Gaming ou Trabalho. A seleção não aplica alterações automaticamente; revê os ajustes abaixo." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                    <TextBlock x:Name="PresetDescription" Text="Escolhe Balanceado, Competitivo ou Streaming. A seleção não aplica alterações automaticamente; revê os ajustes abaixo." TextWrapping="Wrap" Foreground="#BDD3C3" />
                   </StackPanel>
                 </Border>
                 <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Escolhe antes de aplicar" Message="Estes ajustes não garantem mais FPS. Energia de alto desempenho pode aumentar consumo, temperatura e ruído." />
@@ -243,7 +253,7 @@
             <Border Background="#18201C" CornerRadius="14" Padding="22" BorderBrush="#2B3830" BorderThickness="1">
               <StackPanel Spacing="14">
                 <TextBlock Text="Sessão com reposição" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Text="Usa a aplicação selecionada acima. Quando ela terminar, o NEXUS repõe os ajustes desta sessão enquanto estiver aberto. Também podes terminar e repor manualmente." TextWrapping="Wrap" Foreground="#BDD3C3" />
+                <TextBlock Text="Escolhe a aplicação aberta nesta secção. Quando ela terminar, o NEXUS repõe os ajustes desta sessão enquanto estiver aberto. Também podes terminar e repor manualmente." TextWrapping="Wrap" Foreground="#BDD3C3" />
                 <ComboBox x:Name="LibraryProfiles" HorizontalAlignment="Stretch" AutomationProperties.Name="Perfil da sessão" />
                 <ComboBox x:Name="GameList" HorizontalAlignment="Stretch" PlaceholderText="Selecionar aplicação aberta" AutomationProperties.Name="Aplicação a priorizar" />
                 <StackPanel Orientation="Horizontal" Spacing="10">
@@ -259,7 +269,7 @@
                   <Button x:Name="EndSessionButton" Content="Terminar e repor" Click="EndSession" />
                 </StackPanel>
                 <TextBlock x:Name="SessionStatusText" Text="Sem sessão ativa." TextWrapping="Wrap" />
-                <TextBlock Text="Mantém o NEXUS aberto. Se fechares a app ou houver uma falha, o plano pode continuar aplicado: ao reabrir, usa Terminar e repor. Alterações externas à mesma definição podem impedir a reposição automática." TextWrapping="Wrap" Foreground="#8FA395" />
+                <TextBlock Text="Mantém o NEXUS aberto. Fechar normalmente tenta repor a sessão. Após uma falha ou reinício, usa Terminar e repor ao voltar a abrir. Energia por sessão exige alimentação à corrente; se mudar, a sessão é terminada e reposta. Alterações externas podem impedir a reposição." TextWrapping="Wrap" Foreground="#8FA395" />
               </StackPanel>
             </Border>
             <Border Background="#18201C" BorderBrush="#2B3830" BorderThickness="1" CornerRadius="14" Padding="20">
@@ -290,7 +300,7 @@
                 <TextBlock x:Name="LibraryDetectionText" Text="A deteção apenas avisa. Revê o perfil antes de iniciar uma sessão." TextWrapping="Wrap" />
                 <ComboBox x:Name="LibraryDetected" DisplayMemberPath="Display" HorizontalAlignment="Stretch" AutomationProperties.Name="Aplicação detetada" />
                 <Button Content="Rever e iniciar perfil" Click="StartLibrarySession" />
-                <TextBlock Text="Balanceado, Competitivo, Extremo, Streaming e Personalizado usam limites seguros próprios. A NEXUS não conhece os ajustes internos do TL. O perfil pode usar o plano disponível escolhido abaixo. Usa Terminar e repor ao acabar." TextWrapping="Wrap" Foreground="#8FA395" />
+                <TextBlock Text="Balanceado, Competitivo, Streaming e Personalizado usam limites seguros próprios. A NEXUS não conhece os ajustes internos do TL. O perfil pode usar o plano disponível escolhido abaixo. Usa Terminar e repor ao acabar." TextWrapping="Wrap" Foreground="#8FA395" />
               </StackPanel>
             </Border>
             <Expander Header="Prioridade manual e definições do Windows" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">

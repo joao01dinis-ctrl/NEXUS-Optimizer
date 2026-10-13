@@ -1,5 +1,7 @@
 @echo off
-if exist "%~dp0artifacts\app-v0.5-final\Nexus.UI.exe" (
+if exist "%~dp0artifacts\app-v0.7-study\Nexus.UI.exe" (
+    start "NEXUS Optimizer" "%~dp0artifacts\app-v0.7-study\Nexus.UI.exe"
+) else if exist "%~dp0artifacts\app-v0.5-final\Nexus.UI.exe" (
     start "NEXUS Optimizer" "%~dp0artifacts\app-v0.5-final\Nexus.UI.exe"
 ) else if exist "%~dp0artifacts\app-v0.5\Nexus.UI.exe" (
     start "NEXUS Optimizer" "%~dp0artifacts\app-v0.5\Nexus.UI.exe"

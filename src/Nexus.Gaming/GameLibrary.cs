@@ -22,10 +22,9 @@ public sealed class GameLibrary
     private readonly string connectionString;
     public static IReadOnlyList<GameProfile> Profiles { get; } = Array.AsReadOnly(new GameProfile[] {
         new("Balanceado", false, false, "Só acompanha a sessão; os ajustes são opcionais."),
-        new("Competitivo", true, true, "Prioridade acima do normal e menos animações, com reposição. Não mede ganhos de FPS."),
-        new("Extremo", true, true, "Usa os mesmos limites seguros do Competitivo. Não desativa proteções, core parking ou serviços."),
+        new("Competitivo", false, true, "Reduz animações da interface com reposição. Prioridade original por defeito; acima do normal é opcional e precisa de medição."),
         new("Streaming", false, true, "Mantém prioridade normal para partilhar CPU com a transmissão; reduz animações durante a sessão."),
-        new("Personalizado", true, false, "Revê prioridade, animações e plano disponível para esta sessão.")
+        new("Personalizado", false, false, "Revê prioridade, animações e plano disponível para esta sessão.")
     });
     public GameLibrary(string database)
     {

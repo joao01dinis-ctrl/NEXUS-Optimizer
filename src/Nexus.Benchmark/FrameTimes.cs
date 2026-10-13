@@ -6,15 +6,15 @@ namespace Nexus.Benchmark;
 
 public sealed record FrameTimeSummary(string Application, int ProcessId, string SwapChain, string Metric,
     int Frames, int Omitted, int? Dropped, double Seconds, double AverageFps, double OnePercentLowFps,
-    double MedianMs, double P99Ms)
+    double MedianMs, double P99Ms, double? ZeroPointOnePercentLowFps = null)
 {
     public override string ToString() => $"{Application} · PID {ProcessId} · {SwapChain} · {Frames} intervalos";
 }
 public sealed record FrameTimeImport(string FileName, string Sha256, IReadOnlyList<FrameTimeSummary> Streams);
 public sealed record FpsCapture(DateTimeOffset ImportedAt, string FileName, string Sha256, string Context,
-    FrameTimeSummary Summary)
+    FrameTimeSummary Summary, string? Condition = "Não classificado")
 {
-    public override string ToString() => $"{ImportedAt:dd/MM HH:mm} · {Summary.Application} · {Summary.AverageFps:F1} FPS · {Context}";
+    public override string ToString() => $"{ImportedAt:dd/MM HH:mm} · {Condition ?? "Não classificado"} · {Summary.Application} · {Summary.AverageFps:F1} FPS · {Context}";
 }
 public sealed record FpsComparison(double AveragePercent, double LowPercent, double P99Percent);
 
@@ -97,7 +97,8 @@ public static class FrameTimes
             var lowMean = times.Skip(times.Count - slowest).Average();
             var result = new FrameTimeSummary(key.App, key.Pid, key.Chain, Metric, times.Count, data.Omitted,
                 hasDropped ? data.Dropped : null, total / 1000, times.Count * 1000d / total, 1000 / lowMean,
-                Percentile(times, .5), Percentile(times, .99));
+                Percentile(times, .5), Percentile(times, .99), times.Count >= 1000 ?
+                    1000 / times.Skip(times.Count - (int)Math.Ceiling(times.Count * .001)).Average() : null);
             if (!Valid(result)) throw new InvalidDataException("Os intervalos não produzem estatísticas finitas válidas.");
             results.Add(result);
         }
@@ -146,13 +147,17 @@ public static class FrameTimes
         !string.IsNullOrWhiteSpace(s.SwapChain) && s.SwapChain.Length <= 128 && !s.SwapChain.Any(char.IsControl) &&
         (s.Dropped is null || s.Dropped >= 0 && s.Dropped <= s.Frames + s.Omitted) &&
         new[] { s.Seconds, s.AverageFps, s.OnePercentLowFps, s.MedianMs, s.P99Ms }.All(x => double.IsFinite(x) && x > 0) &&
+        (s.ZeroPointOnePercentLowFps is null || s.Frames >= 1000 && double.IsFinite(s.ZeroPointOnePercentLowFps.Value) &&
+            s.ZeroPointOnePercentLowFps > 0 && s.ZeroPointOnePercentLowFps <= s.OnePercentLowFps * 1.000001 &&
+            s.ZeroPointOnePercentLowFps >= s.AverageFps * Math.Ceiling(s.Frames * .001) / s.Frames * .999999) &&
         s.OnePercentLowFps <= s.AverageFps * 1.000001 &&
         s.OnePercentLowFps >= s.AverageFps * Math.Ceiling(s.Frames * .01) / s.Frames * .999999 &&
         s.P99Ms >= s.MedianMs && s.P99Ms / 1000 <= s.Seconds &&
         Math.Abs(s.AverageFps - s.Frames / s.Seconds) <= Math.Max(double.Epsilon, s.AverageFps * .000001);
     public static bool Valid(FpsCapture? c) => c is not null && Valid(c.Summary) && c.Sha256 is { Length: 64 } hash && hash.All(Uri.IsHexDigit) &&
         !string.IsNullOrWhiteSpace(c.FileName) && c.FileName.Length <= 260 && !c.FileName.Any(char.IsControl) &&
-        !string.IsNullOrWhiteSpace(c.Context) && c.Context.Length <= 600 && !c.Context.Any(char.IsControl);
+        !string.IsNullOrWhiteSpace(c.Context) && c.Context.Length <= 600 && !c.Context.Any(char.IsControl) &&
+        c.Condition is null or "Não classificado" or "Referência" or "Otimizado";
 
     public static FpsComparison? Compare(FpsCapture current, FpsCapture baseline, out string reason)
     {

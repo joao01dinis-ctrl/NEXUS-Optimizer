@@ -8,10 +8,31 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        UnhandledException += (_, e) => AppLog.Error(e.Exception, "Erro não tratado: " + e.Message);
+        // Do not call another NEXUS assembly here: Windows may have blocked that assembly.
+        // Logging through it again used to re-enter this event until the process exhausted its stack.
+        UnhandledException += (_, e) =>
+        {
+            e.Handled = true;
+            EmergencyStartupError(e.Exception);
+            Environment.Exit(1);
+        };
         DebugSettings.XamlResourceReferenceFailed += (_, e) => AppLog.Info("Recurso XAML: " + e.Message);
         DebugSettings.BindingFailed += (_, e) => AppLog.Info("Binding: " + e.Message);
     }
+    private static void EmergencyStartupError(Exception error)
+    {
+        try
+        {
+            var root = Environment.GetEnvironmentVariable("NEXUS_DATA_DIR") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NexusOptimizer");
+            Directory.CreateDirectory(root);
+            File.WriteAllText(Path.Combine(root, "startup-error.txt"), error.ToString());
+        }
+        catch (Exception) { /* A startup failure must not recursively fail while recording its cause. */ }
+        if (!Environment.GetCommandLineArgs().Contains("--smoke-test"))
+            NativeMessageBox(0, "Não foi possível iniciar a NEXUS. O Windows pode ter bloqueado um componente sem assinatura. Consulta startup-error.txt na pasta de dados da NEXUS.\n\n" + error.Message, "NEXUS · problema no arranque", 0x10);
+    }
+    [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "MessageBoxW", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int NativeMessageBox(nint window, string text, string caption, uint type);
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var root = Environment.GetEnvironmentVariable("NEXUS_DATA_DIR") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NexusOptimizer");

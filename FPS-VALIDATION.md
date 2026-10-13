@@ -1,9 +1,9 @@
 # Conferir resultados com capturas de jogo
 
-A NEXUS 0.5 importa CSVs por fotograma do [PresentMon oficial](https://github.com/GameTechDev/PresentMon/blob/main/README-ConsoleApplication.md).
+A NEXUS 0.7 importa CSVs por fotograma do [PresentMon oficial](https://github.com/GameTechDev/PresentMon/blob/main/README-ConsoleApplication.md).
 Não inclui capturador, overlay, injeção no jogo, driver ou serviço PresentMon.
 Não instala nem executa automaticamente outro programa. O utilizador obtém a captura
-separadamente e escolhe o ficheiro em Benchmark > Escolher CSV do PresentMon.
+separadamente e escolhe o ficheiro em Testes e FPS > Escolher CSV do PresentMon.
 
 O formato suportado exige Application, ProcessID, SwapChainAddress e
 **MsBetweenPresents**, o intervalo entre apresentações da aplicação, em milissegundos.
@@ -55,3 +55,9 @@ amostra não está automaticamente provada como causa de uma quebra de FPS.
 Os testes de lógica usam dados artificiais identificados como fixtures; não são
 resultados de jogos nem prova de melhoria no PC. Consulte VALIDATION.md para o
 estado real da execução dos testes e do arranque.
+
+## Repetições na 0.7
+
+Classificar as capturas como Referência ou Otimizado ao guardar. Selecionar três a vinte por grupo no painel Comparação de testes repetidos. O conjunto inteiro exige hashes independentes, mesma aplicação/condições, 20 segundos/300 intervalos, até um omitido e duração máxima/mínima até 1,2. Faixas mínimas/máximas e medianas são calculadas entre testes, não misturando frames de durações diferentes. Faixas sobrepostas ou métricas discordantes produzem resultado inconclusivo/misto. Não são intervalos de confiança estatística e nem faixas separadas provam causalidade. Alternar condições A/B e repetir o mesmo percurso, sem limpar shaders/caches entre testes.
+
+0,1% low usa a média dos 0,1% intervalos mais lentos, arredondada para cima, apenas com pelo menos mil intervalos válidos. Capturas antigas sem esse campo continuam disponíveis, sem valor inventado. Frametime médio é a média dos intervalos; não é latência de entrada. GPU Busy, utilização/temperaturas/frequências GPU/CPU, VRAM e captura ao vivo ainda não são recolhidos pelo FPS Lab.

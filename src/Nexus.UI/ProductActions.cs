@@ -32,7 +32,12 @@ public sealed partial class MainWindow
             SessionPriorityChoice.IsChecked = profile.Priority;
             SessionAnimationsChoice.IsChecked = profile.Animations;
         };
-        LibraryProfiles.SelectedIndex = 1;
+        LibraryProfiles.SelectedIndex = 0;
+        // Expanded initialization already selected item zero, so SelectionChanged
+        // may not fire here. Explicitly initialise the controls from that profile.
+        SessionPriorityChoice.IsChecked = GameLibrary.Profiles[0].Priority;
+        SessionAnimationsChoice.IsChecked = GameLibrary.Profiles[0].Animations;
+        SessionPowerChoice.IsChecked = false;
         AppWindow.Closing += (_, args) =>
         {
             if (operationRunning || autoCleanupBusy || benchmarkCancellation is not null || temporaryCancellation is not null)
@@ -121,35 +126,20 @@ public sealed partial class MainWindow
     }
     private void BoostPresetChanged(object sender, SelectionChangedEventArgs e)
     {
+        boostReport = null;
         boostSelection.Clear(); BoostChoices.Children.Clear();
+        if (ApplyBoostButton is not null) ApplyBoostButton.IsEnabled = false;
         if (BoostStatus is not null) BoostStatus.Text = "Objetivo alterado. Volta a analisar para preparar a seleção.";
     }
-    private async void AnalyzeBoost(object sender, RoutedEventArgs e) => await Run(async () =>
-    {
-        await model.TickAsync(); if (closed) return;
-        boostSelection.Clear(); BoostChoices.Children.Clear();
-        if (OptimizationPresetList.SelectedItem is not OptimizationPreset preset) return;
-        var items = UserPreferences.All.Where(x => preset.PreferenceKeys.Contains(x.Key)).Select(x => new DirectAdjustment(x.Key, x.Name, x.Description, x.Value)).ToList();
-        if (preset.ReduceContentAnimations) items.Insert(0, new("animations", "Reduzir animações de conteúdo", "Menos transições na interface.", "0"));
-        foreach (var item in items)
-        {
-            var state = AdjustmentStates.Read(optimizer, item.Key, item.Desired);
-            var choice = new CheckBox { Content = item.Name, IsChecked = !state.IsOn && state.Error is null, IsEnabled = !state.IsOn && state.Error is null };
-            boostSelection.Add((choice, item, state));
-            var line = new StackPanel { Spacing = 6 }; line.Children.Add(choice);
-            line.Children.Add(new TextBlock { Text = state.Error ?? (state.IsOn ? "Já configurado" : item.Description), FontSize = 13, TextWrapping = TextWrapping.Wrap, Opacity = .75 });
-            BoostChoices.Children.Add(new Border { Child = line, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = Color("#18201C"), BorderBrush = Color("#2B3830"), BorderThickness = new Thickness(1) });
-        }
-        var available = boostSelection.Count(x => x.Choice.IsEnabled);
-        BoostStatus.Text = $"{preset.Name} · {available} ajustes disponíveis nesta análise. CPU {model.CpuText} · RAM {model.MemoryText}.\n" +
-            (available == 0 ? "Os ajustes deste perfil já estão configurados. Podes escolher outro objetivo ou usar Tweaks." : "A seleção aplica preferências reais do Windows; mede o efeito no teu jogo em Testes e FPS.");
-    });
+    private async void AnalyzeBoost(object sender, RoutedEventArgs e) => await AnalyzeSmartBoost();
     private async void ApplyBoost(object sender, RoutedEventArgs e) => await Run(async () =>
     {
         if (sessions.Active is not null) throw new InvalidOperationException("Termina e repõe a sessão antes de aplicar PC Boost.");
+        if (!SmartBoost.IsFresh(boostReport, DateTimeOffset.Now)) throw new InvalidOperationException("A análise tem mais de cinco minutos ou foi invalidada. Volta a analisar antes de aplicar.");
         var selected = boostSelection.Where(x => x.Choice.IsChecked == true && x.Choice.IsEnabled).ToArray();
         if (selected.Length == 0) { Notice("Analisa o PC e escolhe pelo menos um ajuste disponível.", true); return; }
-        if (!await Confirm("Aplicar PC Boost?", string.Join("\n", selected.Select(x => x.Item.Name)) + "\n\nOs valores anteriores ficam guardados. Restaurar alterações repõe o que a NEXUS mudou.")) return;
+        if (!await Confirm("Aplicar PC Boost?", string.Join("\n\n", selected.Select(x => x.Item.Name + ": " + x.Item.Description)) + "\n\nPreferências de interface, sem ganho de FPS confirmado. Os valores anteriores ficam guardados. Restaurar alterações repõe o que a NEXUS mudou.")) return;
+        if (!SmartBoost.IsFresh(boostReport, DateTimeOffset.Now)) throw new InvalidOperationException("A análise expirou durante a confirmação. Volta a analisar.");
         var applied = optimizer.ApplyBatch(selected.Select(x => new PreparedAdjustment(x.Item.Key, x.Item.Desired, x.State.Current!)).ToArray());
         BoostStatus.Text = $"PC Boost aplicado · {applied} ajustes. Os valores anteriores estão no Histórico. Ganhos de FPS ainda por medir.";
         foreach (var x in selected) x.Choice.IsEnabled = false;
@@ -164,7 +154,7 @@ public sealed partial class MainWindow
         var errors = result.Errors.ToList();
         if (ended is { Status: not "ended" }) errors.Add(ended.Error ?? "Há ajustes da sessão por repor.");
         Notice($"{result.Restored} alterações repostas." + (errors.Count == 0 ? "" : "\n" + string.Join("\n", errors)), errors.Count > 0);
-        boostSelection.Clear(); BoostChoices.Children.Clear(); BoostStatus.Text = "Volta a analisar para preparar uma nova seleção.";
+        boostReport = null; boostSelection.Clear(); BoostChoices.Children.Clear(); BoostStatus.Text = "Volta a analisar para preparar uma nova seleção.";
     });
     private async void ToggleGameAutomation(object sender, RoutedEventArgs e) => await Run(async () =>
     {
@@ -173,6 +163,7 @@ public sealed partial class MainWindow
         var apps = library.Read(); if (apps.Count == 0) throw new InvalidOperationException("Adiciona os executáveis dos jogos à biblioteca primeiro.");
         if (LibraryProfiles.SelectedItem is not GameProfile profile) return;
         var plan = SessionPowerChoice.IsChecked == true ? SessionPlans.SelectedItem as PowerPlan ?? throw new InvalidOperationException("Escolhe um plano disponível.") : null;
+        RequireSessionPower(plan);
         var configuration = new AutomationConfiguration(apps, profile.Name, SessionPriorityChoice.IsChecked == true, SessionAnimationsChoice.IsChecked == true, plan?.Id.ToString());
         if (!await Confirm("Ativar Game Mode automático?", $"Perfil: {profile.Name}\nPrioridade acima do normal: {configuration.Priority}\nReduzir animações: {configuration.Animations}\nPlano: {plan?.Name ?? "mantido"}\n\nAplicações:\n" + string.Join("\n", apps.Select(x => x.Name)) + "\n\nSó enquanto a NEXUS estiver aberta. Esta seleção fica fixa até pausares e ativares novamente. Ao fechar o jogo, repõe os valores anteriores. Cada processo é iniciado uma única vez; falhas pedem recuperação no Histórico.")) return;
         gameAutomation.Enable(configuration);

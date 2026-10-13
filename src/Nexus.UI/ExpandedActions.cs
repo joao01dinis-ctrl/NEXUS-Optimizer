@@ -121,11 +121,12 @@ public sealed partial class MainWindow
     private async void StartLibrarySession(object sender, RoutedEventArgs e) => await Run(async () =>
     {
         if (LibraryDetected.SelectedItem is not DetectedApp app || LibraryProfiles.SelectedItem is not GameProfile profile) { Notice("Deteta e seleciona uma aplicação aberta e o perfil.", true); return; }
-        var priority = profile.Name == "Personalizado" ? SessionPriorityChoice.IsChecked == true : profile.Priority;
-        var animations = profile.Name == "Personalizado" ? SessionAnimationsChoice.IsChecked == true : profile.Animations;
+        var priority = SessionPriorityChoice.IsChecked == true;
+        var animations = SessionAnimationsChoice.IsChecked == true;
         var plan = SessionPowerChoice.IsChecked == true ? SessionPlans.SelectedItem as PowerPlan ?? throw new InvalidOperationException("Escolhe um plano disponível.") : null;
-        var summary = profile.Description + "\n\n" + app.Display + "\nPrioridade: " + (priority ? "acima do normal" : "mantida") + "\nAnimações: " + (animations ? "reduzidas" : "mantidas") + "\nPlano: " + (plan?.Name ?? "mantido") + "\n\nMantém o NEXUS aberto para repor ao terminar. Não há promessa de mais FPS. Extremo mantém os mesmos limites seguros do Competitivo.";
+        var summary = profile.Description + "\n\n" + app.Display + "\nPrioridade: " + (priority ? "acima do normal" : "mantida") + "\nAnimações: " + (animations ? "reduzidas" : "mantidas") + "\nPlano: " + (plan?.Name ?? "mantido") + "\n\nMantém o NEXUS aberto para repor ao terminar. Não há promessa de mais FPS.";
         if (!await Confirm("Iniciar " + profile.Name + "?", summary)) return;
+        RequireSessionPower(plan);
         var result = sessions.Start(app.ProcessKey, app.App.Name, plan?.Id.ToString(), priority, animations);
         Notice(result.Status == "active" ? "Sessão iniciada. Usa Terminar e repor para recuperar os valores anteriores." : result.Error ?? "Reposição necessária.", result.Status != "active");
     });
@@ -143,8 +144,10 @@ public sealed partial class MainWindow
             if (target is not null && gameAutomation.Configuration is { } configuration)
             {
                 gameAutomation.MarkAttempt(target);
-                var result = sessions.Start(target.ProcessKey, target.App.Name, configuration.PowerPlan, configuration.Priority, configuration.Animations);
-                AutomationStatus.Text = result.Status == "active" ? "A acompanhar · " + target.App.Name + " · " + configuration.ProfileName : "Recuperação necessária · " + result.Error;
+                var power = HardwareEnvironment.ReadPower();
+                var plan = SessionPowerPolicy.CanChangePower(power.OnAcPower, power.BatterySaver) ? configuration.PowerPlan : null;
+                var result = sessions.Start(target.ProcessKey, target.App.Name, plan, configuration.Priority, configuration.Animations);
+                AutomationStatus.Text = result.Status == "active" ? "A acompanhar · " + target.App.Name + " · " + configuration.ProfileName + (configuration.PowerPlan is not null && plan is null ? " · plano mantido: alimentação não elegível" : "") : "Recuperação necessária · " + result.Error;
                 RefreshSystem(); RefreshAdjustmentCards(this, new());
             }
             var first = found.FirstOrDefault();
