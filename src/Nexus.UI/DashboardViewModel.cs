@@ -16,6 +16,7 @@ public partial class DashboardViewModel : ObservableObject
     private readonly ProfileManager profiles;
     private readonly UndoManager undo;
     private readonly MonitoringService monitor;
+    private readonly SemaphoreSlim sampleGate = new(1, 1);
     public string CpuName { get; set => SetProperty(ref field, value); } = "A detetar…";
     public string GpuName { get; set => SetProperty(ref field, value); } = "A detetar…";
     public string RamText { get; set => SetProperty(ref field, value); } = "—";
@@ -23,6 +24,8 @@ public partial class DashboardViewModel : ObservableObject
     public string MemoryText { get; set => SetProperty(ref field, value); } = "—";
     public double CpuPercent { get; set => SetProperty(ref field, value); }
     public double MemoryPercent { get; set => SetProperty(ref field, value); }
+    public double? LastCpuSample { get; private set; }
+    public DateTimeOffset? LastSampleAt { get; private set; }
     public string Disks { get; set => SetProperty(ref field, value); } = "A detetar…";
     public string ActiveProfile { get; set => SetProperty(ref field, value); } = "Normal";
     public string SelectedProfile { get; set => SetProperty(ref field, value); } = "Normal";
@@ -59,9 +62,12 @@ public partial class DashboardViewModel : ObservableObject
     }
     public async Task TickAsync()
     {
+        await sampleGate.WaitAsync();
         try
         {
             var s = await monitor.SampleAsync();
+            LastCpuSample = s.CpuPercent;
+            LastSampleAt = s.At;
             CpuPercent = s.CpuPercent ?? 0;
             CpuText = s.CpuPercent is double p ? $"{p:F0}%" : "A recolher…";
             MemoryPercent = s.MemoryPercent;
@@ -69,6 +75,7 @@ public partial class DashboardViewModel : ObservableObject
             Status = $"Atualizado às {s.At:HH:mm:ss} · intervalo {SampleSeconds}s";
         }
         catch (Exception e) { Status = "Monitorização indisponível; consultar logs."; AppLog.Error(e, "Monitorização"); }
+        finally { sampleGate.Release(); }
     }
     private void ApplyProfile()
     {

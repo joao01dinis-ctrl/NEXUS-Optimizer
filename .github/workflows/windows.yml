@@ -21,7 +21,16 @@ jobs:
       - name: Build
         run: dotnet build NexusOptimizer.sln -c Release --no-restore
       - name: Test
-        run: dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory artifacts/tests
+        shell: pwsh
+        run: |
+          dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory artifacts/tests
+          if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
+          [xml]$result = Get-Content artifacts/tests/tests.trx -Raw
+          if ([int]$result.TestRun.ResultSummary.Counters.executed -eq 0) { throw 'No tests executed.' }
+      - name: Verify native preference and restore on the disposable runner
+        env:
+          NEXUS_TEST_NATIVE_PREFERENCE: '1'
+        run: dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release --no-build --filter FullyQualifiedName~NativePreferenceTests --logger "trx;LogFileName=native-preference.trx" --results-directory artifacts/tests
       - name: Publish unsigned portable app
         run: dotnet publish src/Nexus.UI/Nexus.UI.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/app
       - name: Verify resources and prepare distribution
@@ -30,8 +39,25 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md artifacts/app
+          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
+      - name: Check startup and render the new pages without applying tweaks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($page in @('overview', 'tweaks', 'gaming')) {
+            $env:NEXUS_DATA_DIR = Join-Path $env:GITHUB_WORKSPACE "artifacts/startup/$page"
+            $env:NEXUS_SCREENSHOT_PAGE = $page
+            New-Item -ItemType Directory -Path $env:NEXUS_DATA_DIR -Force | Out-Null
+            $process = Start-Process -FilePath (Join-Path $env:GITHUB_WORKSPACE 'artifacts/app/Nexus.UI.exe') -ArgumentList '--smoke-test' -WindowStyle Hidden -PassThru
+            if (!$process.WaitForExit(45000)) { $process.Kill(); throw "Startup timed out: $page" }
+            if ($process.ExitCode -ne 0) { throw "Startup failed: $page, exit $($process.ExitCode). See startup artifacts." }
+            foreach ($file in @('dashboard.png', 'smoke-test.json')) {
+              if (!(Test-Path (Join-Path $env:NEXUS_DATA_DIR $file))) { throw "Startup evidence missing: $page/$file" }
+            }
+            $result = Get-Content (Join-Path $env:NEXUS_DATA_DIR 'smoke-test.json') -Raw | ConvertFrom-Json
+            if ($result.Width -lt 480 -or $result.Height -lt 400) { throw "Rendered window too small: $page" }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: NEXUS-Optimizer-win-x64-unsigned
@@ -43,6 +69,14 @@ jobs:
         with:
           name: test-results
           path: artifacts/tests
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: startup-and-native-validation
+          path: |
+            artifacts/startup
+            artifacts/native-preference-validation
           if-no-files-found: warn
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -62,7 +96,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $notes = 'Experimental unsigned Windows x64 build. Windows application control may block it. Profiles only change app monitoring intervals. Full GUI validation on the original development PC remains blocked; see README and VALIDATION.md. No Windows security protections are disabled.'
+          $notes = 'Experimental unsigned Windows x64 build. Includes reversible power/interface adjustments, temporary application priority, gaming session recovery, memory inspection, DNS measurements and reviewed temporary-file recycling. Check README and VALIDATION.md for exact validation and limitations. Windows application control may block unsigned code. No Windows security protections are disabled.'
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --clobber
@@ -70,3 +104,4 @@ jobs:
             gh release create $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --verify-tag --prerelease --title "NEXUS Optimizer $env:RELEASE_TAG (experimental, unsigned)" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
+

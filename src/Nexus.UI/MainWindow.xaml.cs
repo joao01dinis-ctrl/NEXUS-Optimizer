@@ -10,8 +10,10 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         model = new(root);
+        InitializeOptimizer(root);
         Root.DataContext = model;
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1180, 900));
+        var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
         timer.Interval = TimeSpan.FromSeconds(2);
         timer.Tick += Tick;
         Root.Loaded += Loaded;
@@ -31,10 +33,43 @@ public sealed partial class MainWindow : Window
             try
             {
                 var output = Environment.GetEnvironmentVariable("NEXUS_DATA_DIR") ?? throw new InvalidOperationException("Smoke test requires an isolated NEXUS_DATA_DIR.");
+                if (Environment.GetEnvironmentVariable("NEXUS_TEST_PACKAGED_UNDO") == "1")
+                    ValidatePackagedUndo(output);
                 await Task.Delay(1500);
+                if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
+                {
+                    // Resize after activation; Windows constrains an initial window to the runner's desktop.
+                    AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(1400, 850));
+                    await Task.Delay(500);
+                }
                 await model.TickAsync();
+                var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
+                if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_ANALYZE_BOOST") == "1")
+                {
+                    if (page != "optimize") throw new InvalidOperationException("Smart Boost smoke test requires the optimize page.");
+                    await AnalyzeSmartBoost();
+                    if (boostReport is null) throw new InvalidOperationException("Smart Boost did not produce a report.");
+                    if (optimizer.History().Count != 0 || sessions.Active is not null) throw new InvalidOperationException("Read-only smoke test changed the adjustment journal or started a session.");
+                    File.WriteAllText(Path.Combine(output, "smart-boost-report.json"), System.Text.Json.JsonSerializer.Serialize(boostReport));
+                }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_FRAME_CSV") is string csv)
+                {
+                    if (page != "benchmark") throw new InvalidOperationException("Frame smoke test requires the benchmark page.");
+                    frameTimeImport = await Nexus.Benchmark.FrameTimes.ReadFileAsync(csv);
+                    frameSource.Text = "TESTE DA INTERFACE — CSV artificial, não é uma sessão de jogo nem prova de ganho: " + frameTimeImport.FileName;
+                    frameStreamChoice.ItemsSource = frameTimeImport.Streams; frameStreamChoice.SelectedIndex = 0;
+                }
+                if (SessionPriorityChoice.IsChecked == true || SessionAnimationsChoice.IsChecked == true || SessionPowerChoice.IsChecked == true)
+                    throw new InvalidOperationException("Balanced defaults must not preselect session adjustments.");
                 var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
-                await bitmap.RenderAsync(Root);
+                if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
+                {
+                    // Capture the rendered window at its native pixel density, not DIP dimensions.
+                    var scale = Root.XamlRoot.RasterizationScale;
+                    await bitmap.RenderAsync(Root, (int)Math.Round(Root.ActualWidth * scale), (int)Math.Round(Root.ActualHeight * scale));
+                }
+                else await bitmap.RenderAsync(Root);
                 var pixels = await bitmap.GetPixelsAsync();
                 var path = Path.Combine(output, "dashboard.png");
                 File.WriteAllBytes(path, []);
@@ -50,6 +85,10 @@ public sealed partial class MainWindow : Window
                 }
                 File.WriteAllText(Path.Combine(output, "smoke-test.json"), System.Text.Json.JsonSerializer.Serialize(new
                 {
+                    PackageIdentity = CurrentPackageIdentity(),
+                    DataDirectory = output,
+                    LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    TemporaryDirectory = Path.GetTempPath(),
                     model.CpuName,
                     model.GpuName,
                     model.RamText,
@@ -57,12 +96,57 @@ public sealed partial class MainWindow : Window
                     model.MemoryText,
                     model.Disks,
                     model.Status,
+                    BoostGoal = OptimizationPresetList.SelectedItem?.ToString(),
+                    SessionProfile = LibraryProfiles.SelectedItem?.ToString(),
+                    PrioritySelected = SessionPriorityChoice.IsChecked,
+                    AnimationsSelected = SessionAnimationsChoice.IsChecked,
+                    PowerSelected = SessionPowerChoice.IsChecked,
+                    SmartBoostRules = boostReport?.Rules.Count,
+                    SelectedBoostChanges = boostSelection.Count(x => x.Choice.IsChecked == true),
                     Width = bitmap.PixelWidth,
-                    Height = bitmap.PixelHeight
+                    Height = bitmap.PixelHeight,
+                    RasterizationScale = Root.XamlRoot.RasterizationScale
                 }));
             }
             catch (Exception error) { Nexus.Diagnostics.AppLog.Error(error, "Smoke test falhou"); Environment.ExitCode = 1; }
             Close();
+        }
+    }
+    private static string? CurrentPackageIdentity()
+    {
+        try { return Windows.ApplicationModel.Package.Current.Id.FullName; }
+        catch (InvalidOperationException) { return null; }
+    }
+    private static void ValidatePackagedUndo(string output)
+    {
+        // This opt-in integration check is confined to the disposable installed test identity.
+        if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
+            Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted" ||
+            CurrentPackageIdentity()?.StartsWith("NexusOptimizer.StoreValidation.07_", StringComparison.Ordinal) != true)
+            throw new InvalidOperationException("Packaged Undo validation requires the disposable hosted runner and test package.");
+        const string key = "menu-animation";
+        var original = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+        if (original is not ("0" or "1")) throw new InvalidOperationException("Could not capture the actual Windows preference.");
+        var target = original == "0" ? "1" : "0";
+        var testOptimizer = new Nexus.Optimization.SystemOptimizer(Path.Combine(output, "native-validation", "nexus.db"), Nexus.Optimization.WindowsSettings.Resolve);
+        try
+        {
+            Nexus.Optimization.AdjustmentStates.Set(testOptimizer, Nexus.Optimization.AdjustmentStates.Read(testOptimizer, key, target), true);
+            var applied = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+            if (applied != target) throw new InvalidOperationException("The packaged application did not change the actual Windows preference.");
+            Nexus.Optimization.AdjustmentStates.Set(testOptimizer, Nexus.Optimization.AdjustmentStates.Read(testOptimizer, key, target), false);
+            var restored = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+            var history = testOptimizer.History();
+            if (restored != original || history.Count == 0 || history.Any(x => x.State != "reverted"))
+                throw new InvalidOperationException("Packaged Undo did not restore the captured original value and journal.");
+            File.WriteAllText(Path.Combine(output, "packaged-undo.json"), System.Text.Json.JsonSerializer.Serialize(new
+            { Result = "PASS", Key = key, Original = original, Applied = applied, Restored = restored, JournalState = history[0].State, PackageIdentity = CurrentPackageIdentity() }));
+        }
+        finally
+        {
+            var recovery = testOptimizer.RestoreAll();
+            if (!recovery.Complete || Nexus.Optimization.WindowsSettings.Resolve(key).Read() != original)
+                throw new InvalidOperationException("Packaged preference test could not restore the original Windows preference.");
         }
     }
     private async void Tick(object? sender, object e)
@@ -73,8 +157,13 @@ public sealed partial class MainWindow : Window
         try
         {
             await model.TickAsync();
+            UpdateGraphs();
+            PollSession();
+            await PollDiscoveryAsync();
+            if (!closed) await PollAutoCleanupAsync();
             timer.Interval = TimeSpan.FromSeconds(model.SampleSeconds);
         }
+        catch (Exception ex) { Nexus.Diagnostics.AppLog.Error(ex, "Atualizar monitor e tarefas opcionais"); }
         finally { busy = false; }
     }
 }

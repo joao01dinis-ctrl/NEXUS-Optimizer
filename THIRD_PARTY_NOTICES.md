@@ -8,7 +8,8 @@ direct dependencies; it does not replace their full licence texts.
 |---|---|
 | Windows App SDK and WinUI | https://www.nuget.org/packages/Microsoft.WindowsAppSDK/1.8.260710003 |
 | CommunityToolkit.Mvvm | https://www.nuget.org/packages/CommunityToolkit.Mvvm/8.4.0 |
-| Microsoft.Data.Sqlite | https://www.nuget.org/packages/Microsoft.Data.Sqlite/10.0.0 |
+| Microsoft.Data.Sqlite | https://www.nuget.org/packages/Microsoft.Data.Sqlite/10.0.12 |
+| SQLite native library security override | https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3/3.50.3 |
 | System.Management | https://www.nuget.org/packages/System.Management/10.0.0 |
 | Serilog | https://www.nuget.org/packages/Serilog/4.3.0 |
 | Serilog.Sinks.File | https://www.nuget.org/packages/Serilog.Sinks.File/7.0.0 |
