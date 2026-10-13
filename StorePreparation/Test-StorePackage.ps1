@@ -31,6 +31,7 @@ $checks = [ordered]@{ TestOnly = $true; IsDisposableHostedRunner = $true; Instal
 function New-TestPackage([string]$version) {
     $identity.SetAttribute('Version', $version)
     $manifest.Save((Join-Path $stage 'AppxManifest.xml'))
+    & (Join-Path $PSScriptRoot 'New-NexusPackageResources.ps1') -ContentDirectory $stage -IdentityName $testName -SdkBin (Split-Path $makeappx -Parent)
     $path = Join-Path $runRoot "TEST-ONLY-DO-NOT-SUBMIT-$version.msix"
     & $makeappx pack /d $stage /p $path /no *> (Join-Path $runRoot "makeappx-test-$version.log")
     if ($LASTEXITCODE -ne 0) { throw 'Test package validation failed.' }

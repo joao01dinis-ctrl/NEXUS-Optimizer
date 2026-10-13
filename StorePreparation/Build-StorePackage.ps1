@@ -100,6 +100,7 @@ $manifest.SelectSingleNode('/m:Package/m:Properties/m:DisplayName', $namespace).
 $manifest.SelectSingleNode('/m:Package/m:Properties/m:PublisherDisplayName', $namespace).InnerText = $PublisherDisplayName
 $manifest.SelectSingleNode('/m:Package/m:Applications/m:Application/uap:VisualElements', $namespace).SetAttribute('DisplayName', $AppDisplayName)
 $manifest.Save((Join-Path $stage 'AppxManifest.xml'))
+& (Join-Path $preparationRoot 'New-NexusPackageResources.ps1') -ContentDirectory $stage -IdentityName $IdentityName -SdkBin $SdkBin
 $inputManifest | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $runRoot 'input-files.json') -Encoding utf8
 $packageName = if ($SchemaValidationTest) { 'TEST-ONLY-DO-NOT-INSTALL-OR-SUBMIT.msix' } else { "NEXUS-$PackageVersion-x64-UNSIGNED-STORE-DRAFT.msix" }
 $packagePath = Join-Path $runRoot $packageName
