@@ -26,4 +26,4 @@ if (-not $resources.SelectSingleNode("//NamedResource[@name='App.xbf']") -or
     -not $resources.SelectSingleNode("//ResourceMapSubtree[@name='Themes']")) {
     throw 'The packaged resource index lacks application or WinUI theme resources.'
 }
-Write-Output "Packaged WinUI resources verified for $IdentityName."
+Write-Host "Packaged WinUI resources verified for $IdentityName."
