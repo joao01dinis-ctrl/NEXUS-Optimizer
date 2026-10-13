@@ -27,7 +27,7 @@ if (Test-Path -LiteralPath $dataRoot) { throw 'An existing data directory is pre
 $sdk = Get-ChildItem -LiteralPath (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin') -Directory | Where-Object Name -Match '^\d+\.\d+\.\d+\.\d+$' | Sort-Object { [version]$_.Name } -Descending | Where-Object { Test-Path (Join-Path $_.FullName 'x64/makeappx.exe') } | Select-Object -First 1
 $makeappx = Join-Path $sdk.FullName 'x64/makeappx.exe'
 $installed = $false
-$checks = [ordered]@{ TestOnly = $true; IsDisposableHostedRunner = $true; Installed = $false; PackageIdentityVerified = $false; Updated = $false; DatabasePreservedAcrossUpdate = $false; Uninstalled = $false; DatabasePreservedAfterUninstall = $false; Reinstalled = $false; Pages = @(); WindowsSecurityChanged = $false; WindowsAdjustmentsApplied = $false; StoreCertification = 'NOT PERFORMED' }
+$checks = [ordered]@{ TestOnly = $true; IsDisposableHostedRunner = $true; Installed = $false; PackageIdentityVerified = $false; PackagedWindowsPreferenceAndUndoVerified = $false; Updated = $false; DatabasePreservedAcrossUpdate = $false; Uninstalled = $false; DatabasePreservedAfterUninstall = $false; Reinstalled = $false; Pages = @(); WindowsSecurityChanged = $false; WindowsAdjustmentsApplied = $false; AllTestAdjustmentsRestored = $false; StoreCertification = 'NOT PERFORMED' }
 function New-TestPackage([string]$version) {
     $identity.SetAttribute('Version', $version)
     $manifest.Save((Join-Path $stage 'AppxManifest.xml'))
@@ -61,18 +61,32 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
     $result = Get-Content -LiteralPath (Join-Path $output 'smoke-test.json') -Raw | ConvertFrom-Json
     if ($result.PackageIdentity -ne $package.PackageFullName) { throw 'Process lacks the installed MSIX identity; portable startup is not a packaged test.' }
     if ($result.PrioritySelected -or $result.AnimationsSelected -or $result.PowerSelected) { throw 'Defaults selected a Windows change.' }
-    if ($result.Width -lt 1366 -or $result.Height -lt 768) { throw 'Screenshot is too small for the Store.' }
+    Write-Host "Rendered packaged $page at $($result.Width)x$($result.Height) pixels."
+    if ($result.Width -lt 1366 -or $result.Height -lt 768) { throw "Screenshot is too small for the Store: $($result.Width)x$($result.Height)." }
     $checks.PackageIdentityVerified = $true
     $checks.Pages += [pscustomobject]@{ Page = $page; PackageIdentity = $result.PackageIdentity; Width = $result.Width; Height = $result.Height; DataDirectory = $result.DataDirectory; TemporaryDirectory = $result.TemporaryDirectory }
     $evidence = Join-Path $runRoot "screenshots/$page"
     [IO.Directory]::CreateDirectory($evidence) | Out-Null
     Copy-Item -LiteralPath (Join-Path $output 'dashboard.png'),(Join-Path $output 'smoke-test.json') -Destination $evidence
+    if ($env:NEXUS_TEST_PACKAGED_UNDO -eq '1') {
+        $undo = Get-Content -LiteralPath (Join-Path $output 'packaged-undo.json') -Raw | ConvertFrom-Json
+        if ($undo.Result -ne 'PASS' -or $undo.Original -ne $undo.Restored -or $undo.Original -eq $undo.Applied -or $undo.JournalState -ne 'reverted' -or $undo.PackageIdentity -ne $package.PackageFullName) {
+            throw 'Actual packaged Windows preference and Undo validation failed.'
+        }
+        Copy-Item -LiteralPath (Join-Path $output 'packaged-undo.json') -Destination $evidence
+        $checks.PackagedWindowsPreferenceAndUndoVerified = $true
+        $checks.WindowsAdjustmentsApplied = $true
+        $checks.AllTestAdjustmentsRestored = $true
+    }
 }
 try {
     $first = New-TestPackage '0.7.0.0'
     Add-AppxPackage -Path $first -AllowUnsigned
     $installed = $true; $checks.Installed = $true
-    foreach ($page in @('overview','optimize','gaming','tweaks','history')) { Invoke-PackageSmoke $page (Join-Path $dataRoot $page) }
+    $env:NEXUS_TEST_PACKAGED_UNDO = '1'
+    Invoke-PackageSmoke 'overview' (Join-Path $dataRoot 'overview')
+    Remove-Item Env:/NEXUS_TEST_PACKAGED_UNDO
+    foreach ($page in @('optimize','gaming','tweaks','history')) { Invoke-PackageSmoke $page (Join-Path $dataRoot $page) }
     $database = Join-Path $dataRoot 'history/nexus.db'
     $databaseHash = (Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash
     $update = New-TestPackage '0.7.1.0'
@@ -99,5 +113,5 @@ finally {
         catch { $checks.CleanupError = $_.Exception.Message }
     }
     $checks | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $runRoot 'packaged-validation.json') -Encoding utf8
-    Remove-Item Env:/NEXUS_DATA_DIR,Env:/NEXUS_SCREENSHOT_PAGE,Env:/NEXUS_STORE_SCREENSHOT -ErrorAction SilentlyContinue
+    Remove-Item Env:/NEXUS_DATA_DIR,Env:/NEXUS_SCREENSHOT_PAGE,Env:/NEXUS_STORE_SCREENSHOT,Env:/NEXUS_TEST_PACKAGED_UNDO -ErrorAction SilentlyContinue
 }
