@@ -2,7 +2,7 @@ name: Validate NEXUS 0.7 Microsoft Store package
 on:
   push:
     branches: [nexus-v0.6-direct-workflow]
-    paths: ['nexus-store-source-07.zip', '.github/workflows/store-validation.yml', 'StorePreparation/Test-StorePackage.ps1']
+    paths: ['nexus-store-source-07.zip', '.github/workflows/store-validation.yml', 'StorePreparation/**', 'src/**']
   workflow_dispatch:
 concurrency:
   group: nexus-store-validation
@@ -93,6 +93,7 @@ jobs:
             StorePreparation/builds/**/NEXUS-*-UNSIGNED-STORE-DRAFT.msix
             StorePreparation/builds/**/packaging-report.json
             StorePreparation/builds/**/makeappx-validation.log
+            StorePreparation/builds/**/makepri-package.log
             artifacts/store-validation/packaged-validation.json
             artifacts/store-validation/makeappx-test-*.log
             artifacts/store-validation/screenshots
