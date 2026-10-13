@@ -59,15 +59,16 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
         throw "Package startup failed: $page ($($process.ExitCode))"
     }
     $result = Get-Content -LiteralPath (Join-Path $output 'smoke-test.json') -Raw | ConvertFrom-Json
+    $evidence = Join-Path $runRoot "screenshots/$page"
+    [IO.Directory]::CreateDirectory($evidence) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $output 'dashboard.png'),(Join-Path $output 'smoke-test.json') -Destination $evidence
+    if (Test-Path -LiteralPath (Join-Path $output 'packaged-undo.json')) { Copy-Item -LiteralPath (Join-Path $output 'packaged-undo.json') -Destination $evidence }
     if ($result.PackageIdentity -ne $package.PackageFullName) { throw 'Process lacks the installed MSIX identity; portable startup is not a packaged test.' }
     if ($result.PrioritySelected -or $result.AnimationsSelected -or $result.PowerSelected) { throw 'Defaults selected a Windows change.' }
     Write-Host "Rendered packaged $page at $($result.Width)x$($result.Height) pixels."
     if ($result.Width -lt 1366 -or $result.Height -lt 768) { throw "Screenshot is too small for the Store: $($result.Width)x$($result.Height)." }
     $checks.PackageIdentityVerified = $true
     $checks.Pages += [pscustomobject]@{ Page = $page; PackageIdentity = $result.PackageIdentity; Width = $result.Width; Height = $result.Height; DataDirectory = $result.DataDirectory; TemporaryDirectory = $result.TemporaryDirectory }
-    $evidence = Join-Path $runRoot "screenshots/$page"
-    [IO.Directory]::CreateDirectory($evidence) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $output 'dashboard.png'),(Join-Path $output 'smoke-test.json') -Destination $evidence
     if ($env:NEXUS_TEST_PACKAGED_UNDO -eq '1') {
         $undo = Get-Content -LiteralPath (Join-Path $output 'packaged-undo.json') -Raw | ConvertFrom-Json
         if ($undo.Result -ne 'PASS' -or $undo.Original -ne $undo.Restored -or $undo.Original -eq $undo.Applied -or $undo.JournalState -ne 'reverted' -or $undo.PackageIdentity -ne $package.PackageFullName) {
