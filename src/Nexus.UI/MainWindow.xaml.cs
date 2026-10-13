@@ -37,6 +37,8 @@ public sealed partial class MainWindow : Window
             try
             {
                 var output = Environment.GetEnvironmentVariable("NEXUS_DATA_DIR") ?? throw new InvalidOperationException("Smoke test requires an isolated NEXUS_DATA_DIR.");
+                if (Environment.GetEnvironmentVariable("NEXUS_TEST_PACKAGED_UNDO") == "1")
+                    ValidatePackagedUndo(output);
                 await Task.Delay(1500);
                 await model.TickAsync();
                 var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
@@ -59,7 +61,13 @@ public sealed partial class MainWindow : Window
                 if (SessionPriorityChoice.IsChecked == true || SessionAnimationsChoice.IsChecked == true || SessionPowerChoice.IsChecked == true)
                     throw new InvalidOperationException("Balanced defaults must not preselect session adjustments.");
                 var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
-                await bitmap.RenderAsync(Root);
+                if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
+                {
+                    // Capture the rendered window at its native pixel density, not DIP dimensions.
+                    var scale = Root.XamlRoot.RasterizationScale;
+                    await bitmap.RenderAsync(Root, (int)Math.Round(Root.ActualWidth * scale), (int)Math.Round(Root.ActualHeight * scale));
+                }
+                else await bitmap.RenderAsync(Root);
                 var pixels = await bitmap.GetPixelsAsync();
                 var path = Path.Combine(output, "dashboard.png");
                 File.WriteAllBytes(path, []);
@@ -94,7 +102,8 @@ public sealed partial class MainWindow : Window
                     SmartBoostRules = boostReport?.Rules.Count,
                     SelectedBoostChanges = boostSelection.Count(x => x.Choice.IsChecked == true),
                     Width = bitmap.PixelWidth,
-                    Height = bitmap.PixelHeight
+                    Height = bitmap.PixelHeight,
+                    RasterizationScale = Root.XamlRoot.RasterizationScale
                 }));
             }
             catch (Exception error) { Nexus.Diagnostics.AppLog.Error(error, "Smoke test falhou"); Environment.ExitCode = 1; }
@@ -105,6 +114,38 @@ public sealed partial class MainWindow : Window
     {
         try { return Windows.ApplicationModel.Package.Current.Id.FullName; }
         catch (InvalidOperationException) { return null; }
+    }
+    private static void ValidatePackagedUndo(string output)
+    {
+        // This opt-in integration check is confined to the disposable installed test identity.
+        if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
+            Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted" ||
+            CurrentPackageIdentity()?.StartsWith("NexusOptimizer.StoreValidation.07_", StringComparison.Ordinal) != true)
+            throw new InvalidOperationException("Packaged Undo validation requires the disposable hosted runner and test package.");
+        const string key = "menu-animation";
+        var original = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+        if (original is not ("0" or "1")) throw new InvalidOperationException("Could not capture the actual Windows preference.");
+        var target = original == "0" ? "1" : "0";
+        var testOptimizer = new Nexus.Optimization.SystemOptimizer(Path.Combine(output, "native-validation", "nexus.db"), Nexus.Optimization.WindowsSettings.Resolve);
+        try
+        {
+            Nexus.Optimization.AdjustmentStates.Set(testOptimizer, Nexus.Optimization.AdjustmentStates.Read(testOptimizer, key, target), true);
+            var applied = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+            if (applied != target) throw new InvalidOperationException("The packaged application did not change the actual Windows preference.");
+            Nexus.Optimization.AdjustmentStates.Set(testOptimizer, Nexus.Optimization.AdjustmentStates.Read(testOptimizer, key, target), false);
+            var restored = Nexus.Optimization.WindowsSettings.Resolve(key).Read();
+            var history = testOptimizer.History();
+            if (restored != original || history.Count == 0 || history.Any(x => x.State != "reverted"))
+                throw new InvalidOperationException("Packaged Undo did not restore the captured original value and journal.");
+            File.WriteAllText(Path.Combine(output, "packaged-undo.json"), System.Text.Json.JsonSerializer.Serialize(new
+            { Result = "PASS", Key = key, Original = original, Applied = applied, Restored = restored, JournalState = history[0].State, PackageIdentity = CurrentPackageIdentity() }));
+        }
+        finally
+        {
+            var recovery = testOptimizer.RestoreAll();
+            if (!recovery.Complete || Nexus.Optimization.WindowsSettings.Resolve(key).Read() != original)
+                throw new InvalidOperationException("Packaged preference test could not restore the original Windows preference.");
+        }
     }
     private async void Tick(object? sender, object e)
     {
