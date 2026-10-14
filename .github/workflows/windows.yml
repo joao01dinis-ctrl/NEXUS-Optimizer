@@ -30,7 +30,7 @@ jobs:
       - name: Verify native preference and restore on the disposable runner
         env:
           NEXUS_TEST_NATIVE_PREFERENCE: '1'
-        run: dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release --no-build --filter FullyQualifiedName~NativePreferenceTests --logger "trx;LogFileName=native-preference.trx" --results-directory artifacts/tests
+        run: dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release --no-build --filter "FullyQualifiedName~NativePreferenceTests|FullyQualifiedName~MousePrecisionNativeTests" --logger "trx;LogFileName=native-preference.trx" --results-directory artifacts/tests
       - name: Publish unsigned portable app
         run: dotnet publish src/Nexus.UI/Nexus.UI.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/app
       - name: Verify resources and prepare distribution
@@ -39,14 +39,26 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md artifacts/app
+          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
       - name: Check startup and render the new pages without applying tweaks
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          foreach ($page in @('overview', 'tweaks', 'gaming')) {
-            $env:NEXUS_DATA_DIR = Join-Path $env:GITHUB_WORKSPACE "artifacts/startup/$page"
+          foreach ($scenario in @(
+            @{ Page = 'overview'; Light = '0'; Analyze = '1' },
+            @{ Page = 'overview'; Light = '1'; Analyze = '0' },
+            @{ Page = 'precision'; Light = '0'; Analyze = '0' },
+            @{ Page = 'settings'; Light = '0'; Analyze = '0' },
+            @{ Page = 'optimize'; Light = '0'; Analyze = '0' },
+            @{ Page = 'gaming'; Light = '0'; Analyze = '0' },
+            @{ Page = 'tweaks'; Light = '0'; Analyze = '0' }
+          )) {
+            $page = $scenario.Page
+            $label = $page + $(if ($scenario.Light -eq '1') { '-light' } else { '' })
+            $env:NEXUS_SMOKE_LIGHT = $scenario.Light
+            $env:NEXUS_SMOKE_ASSISTANT_READONLY = $scenario.Analyze
+            $env:NEXUS_DATA_DIR = Join-Path $env:GITHUB_WORKSPACE "artifacts/startup/$label"
             $env:NEXUS_SCREENSHOT_PAGE = $page
             New-Item -ItemType Directory -Path $env:NEXUS_DATA_DIR -Force | Out-Null
             $process = Start-Process -FilePath (Join-Path $env:GITHUB_WORKSPACE 'artifacts/app/Nexus.UI.exe') -ArgumentList '--smoke-test' -WindowStyle Hidden -PassThru
@@ -55,6 +67,8 @@ jobs:
             foreach ($file in @('dashboard.png', 'smoke-test.json')) {
               if (!(Test-Path (Join-Path $env:NEXUS_DATA_DIR $file))) { throw "Startup evidence missing: $page/$file" }
             }
+            if ($scenario.Analyze -eq '1' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'assistant-analysis.json'))) { throw 'Assistant evidence missing.' }
+            if ($page -eq 'precision' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'precision-readonly.json'))) { throw 'Precision evidence missing.' }
             $result = Get-Content (Join-Path $env:NEXUS_DATA_DIR 'smoke-test.json') -Raw | ConvertFrom-Json
             if ($result.Width -lt 480 -or $result.Height -lt 400) { throw "Rendered window too small: $page" }
           }
@@ -77,6 +91,8 @@ jobs:
           path: |
             artifacts/startup
             artifacts/native-preference-validation
+            artifacts/native-mouse-validation
+            artifacts/smart-boost-validation
           if-no-files-found: warn
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -104,4 +120,3 @@ jobs:
             gh release create $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --verify-tag --prerelease --title "NEXUS Optimizer $env:RELEASE_TAG (experimental, unsigned)" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
-
