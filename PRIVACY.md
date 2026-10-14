@@ -1,8 +1,27 @@
 # Privacy policy
 
-NEXUS Optimizer 0.7.0 is a local Windows application. It has no own analytics,
+NEXUS Optimizer 0.8.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
 advertising, cloud sync or automatic update client. No hardware inventory,
 process list, file paths or diagnostic logs are uploaded.
+
+Optional OpenAI advice is off by default and requires a separately configured API
+key and explicit activation in Preferences before a manually initiated analysis.
+It sends CPU/RAM percentages, total RAM, battery/power state, the count of low-space
+volumes and permitted visual-setting identifiers to https://api.openai.com/v1/responses.
+It does not send CPU/GPU names, process names, drive names, paths, IP addresses,
+logs, CSV captures or the SQLite database. The request uses store:false; this does
+not exclude provider abuse-monitoring retention. OpenAI's policy and API charges
+apply. The model cannot authorize additional Windows settings or execute commands.
+No developer key is included in builds. Unavailable advice does not prevent local
+analysis. Periodic analysis never calls OpenAI.
+
+The optional periodic optimizer is disabled on each launch. While enabled and the
+app is open, it can reduce five visual effects under sustained CPU/RAM pressure,
+using the local undo journal. It skips active game automation/sessions and does not
+reapply undone or externally changed settings. Mouse acceleration is a separate,
+manual preference, with captured thresholds retained for undo. appearance.json
+retains light/dark appearance and low-resource mode without credentials or consent
+for future cloud requests.
 
 Optional DNS measurement sends three example.com A queries to each of Cloudflare,
 Google, Quad9 and AdGuard over IPv4/UDP port 53 after the user presses Measure.

@@ -1,5 +1,54 @@
 [
   {
+    "Name": "Analisar e otimizar em uma ação",
+    "Area": "NEXUS Intelligence",
+    "State": "Implementação própria com limites",
+    "Page": "overview",
+    "Note": "Cinco amostras reais. Só cinco efeitos visuais podem ser aplicados sob pressão sustentada. Journal e verificação antes/depois; não representa ganho de FPS."
+  },
+  {
+    "Name": "Otimização periódica local",
+    "Area": "NEXUS Intelligence",
+    "State": "Implementação própria com limites",
+    "Page": "settings",
+    "Note": "Opcional e desligada em cada arranque. A cada quinze minutos, enquanto a app está aberta. Respeita undo e mudanças externas; não faz chamadas OpenAI."
+  },
+  {
+    "Name": "Consultor OpenAI",
+    "Area": "NEXUS Intelligence",
+    "State": "Integração implementada; ligação real por validar",
+    "Page": "settings",
+    "Note": "Sem chave disponível. Só explicações e chaves de ajustes já aprovados pelas regras locais. Resumo limitado mediante ativação; API pode ter custos."
+  },
+  {
+    "Name": "Aceleração do rato e restauro",
+    "Area": "Referência PrecisionFix",
+    "State": "Implementação própria com limites",
+    "Page": "precision",
+    "Note": "Preferência manual do ponteiro Windows por API suportada; guarda os três valores anteriores. Não altera o sensor nem jogos com Raw Input."
+  },
+  {
+    "Name": "DPI e sensibilidade equivalente",
+    "Area": "Referência PrecisionFix",
+    "State": "Implementação própria com limites",
+    "Page": "precision",
+    "Note": "Cálculo local na mesma escala linear; não lê ou altera o jogo. Não representa correção de tracking/flick do sensor."
+  },
+  {
+    "Name": "Tema claro/escuro e modo leve",
+    "Area": "Referência PrecisionFix",
+    "State": "Implementação própria com limites",
+    "Page": "settings",
+    "Note": "Preferências da NEXUS. O modo leve reduz a frequência da própria monitorização."
+  },
+  {
+    "Name": "Antivírus próprio, scanner e bloqueio de processos suspeitos",
+    "Area": "Referência PrecisionFix",
+    "State": "Fora do âmbito do otimizador",
+    "Page": "settings",
+    "Note": "A NEXUS encaminha para Segurança do Windows. Não se apresenta como antivírus nem bloqueia processos por adivinhação."
+  },
+  {
     "Name": "Início, Ajuda, PC Boost, Game Mode, App Tuner, Latência, Memória, Rede, Tweaks, Windows",
     "Area": "Navegação e informação geral",
     "State": "Implementação própria com limites",

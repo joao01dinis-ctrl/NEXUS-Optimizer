@@ -8,3 +8,6 @@ artifacts/
 *.log
 .sdk/
 .nuget/
+.env
+.env.*
+!.env.example

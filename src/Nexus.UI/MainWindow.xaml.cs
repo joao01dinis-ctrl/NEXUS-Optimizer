@@ -11,6 +11,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         model = new(root);
         InitializeOptimizer(root);
+        InitializeAssistant(root);
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
@@ -45,6 +46,24 @@ public sealed partial class MainWindow : Window
                 await model.TickAsync();
                 var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_LIGHT") == "1")
+                { LightThemeToggle.IsOn = true; await Task.Delay(300); ApplyAppearance(); }
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_ASSISTANT_READONLY") == "1")
+                {
+                    await RunIntelligentAsync(false);
+                    if (boostReport is null || optimizer.History().Count != 0 || sessions.Active is not null || AiUseToggle.IsOn || AutoSafeToggle.IsOn)
+                        throw new InvalidOperationException("Assistant read-only validation failed or changed settings.");
+                    File.WriteAllText(Path.Combine(output, "assistant-analysis.json"), System.Text.Json.JsonSerializer.Serialize(new
+                    { Result = "PASS", SampleCount = boostReport.Input.Samples.Count, Changes = optimizer.History().Count, CloudEnabled = AiUseToggle.IsOn, Summary = AssistantSummary.Text }));
+                }
+                if (page == "precision")
+                {
+                    CalculateSensitivity(this, new());
+                    if (optimizer.History().Count != 0 || Nexus.Optimization.MousePrecision.EquivalentSensitivity(OriginalDpiBox.Value, OriginalSensitivityBox.Value, NewDpiBox.Value) != .5)
+                        throw new InvalidOperationException("Precision page validation failed.");
+                    File.WriteAllText(Path.Combine(output, "precision-readonly.json"), System.Text.Json.JsonSerializer.Serialize(new
+                    { Result = "PASS", ActualMouse = Nexus.Optimization.MousePrecision.Resolve().Read(), EquivalentSensitivity = .5, Changes = optimizer.History().Count }));
+                }
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_ANALYZE_BOOST") == "1")
                 {
                     if (page != "optimize") throw new InvalidOperationException("Smart Boost smoke test requires the optimize page.");
@@ -161,7 +180,8 @@ public sealed partial class MainWindow : Window
             PollSession();
             await PollDiscoveryAsync();
             if (!closed) await PollAutoCleanupAsync();
-            timer.Interval = TimeSpan.FromSeconds(model.SampleSeconds);
+            if (!closed) await PollSafeAnalysisAsync();
+            timer.Interval = TimeSpan.FromSeconds(resourceSaving ? 10 : model.SampleSeconds);
         }
         catch (Exception ex) { Nexus.Diagnostics.AppLog.Error(ex, "Atualizar monitor e tarefas opcionais"); }
         finally { busy = false; }
