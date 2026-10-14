@@ -97,7 +97,6 @@ public sealed partial class MainWindow
                     boostReport = null; ApplyBoostButton.IsEnabled = false;
                 }
                 SaveActivity(periodic ? "Automático local" : "NEXUS Intelligence", result);
-                if (!periodic) Notice(result);
             });
         }
         finally
@@ -208,6 +207,8 @@ public sealed partial class MainWindow
     }
     private void Recolor(DependencyObject element, bool light)
     {
+        // The hero deliberately keeps a dark surface in both app appearances.
+        if (element is FrameworkElement fixedTheme && !ReferenceEquals(element, Root) && fixedTheme.RequestedTheme == ElementTheme.Dark) return;
         if (element is Panel) AdaptAppearanceProperty(element, Panel.BackgroundProperty, light);
         if (element is Border) { AdaptAppearanceProperty(element, Border.BackgroundProperty, light); AdaptAppearanceProperty(element, Border.BorderBrushProperty, light); }
         if (element is TextBlock) AdaptAppearanceProperty(element, TextBlock.ForegroundProperty, light);
