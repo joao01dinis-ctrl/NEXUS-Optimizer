@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Nexus.Optimization;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Nexus.UI;
@@ -179,24 +180,38 @@ public sealed partial class MainWindow
         ["#0C0F1A"] = "#F4F5FA", ["#111525"] = "#EAEDF6", ["#171D2F"] = "#FFFFFF", ["#2A3350"] = "#D5DCEA",
         ["#302C50"] = "#E6DFFF", ["#95A1BF"] = "#53617F", ["#8390AE"] = "#53617F", ["#C3CBE0"] = "#43516D", ["#B5A4FF"] = "#6851AF"
     };
+    private readonly ConditionalWeakTable<DependencyObject, Dictionary<DependencyProperty, object>> originalAppearance = new();
     private void ApplyAppearance()
     {
         Root.RequestedTheme = LightThemeToggle.IsOn ? ElementTheme.Light : ElementTheme.Dark;
         Recolor(Root, LightThemeToggle.IsOn);
     }
-    private static Brush? AdaptBrush(Brush? brush, bool light)
+    private void AdaptAppearanceProperty(DependencyObject element, DependencyProperty property, bool light)
     {
-        if (brush is not SolidColorBrush solid || solid.Color.A != 255) return brush;
+        var originals = originalAppearance.GetOrCreateValue(element);
+        if (!light)
+        {
+            if (originals.Remove(property, out var original))
+            {
+                if (ReferenceEquals(original, DependencyProperty.UnsetValue)) element.ClearValue(property);
+                else element.SetValue(property, original);
+            }
+            return;
+        }
+        if (originals.ContainsKey(property) || element.GetValue(property) is not SolidColorBrush solid || solid.Color.A != 255) return;
         var value = $"#{solid.Color.R:X2}{solid.Color.G:X2}{solid.Color.B:X2}";
-        var target = light ? LightPalette.GetValueOrDefault(value) : LightPalette.FirstOrDefault(p => p.Value == value).Key;
-        return target is null ? brush : Color(target);
+        if (!LightPalette.TryGetValue(value, out var target)) return;
+        // Preserve local values/absence instead of freezing theme-provided text
+        // colours. Dark appearance restores the original XAML/style inheritance.
+        originals.Add(property, element.ReadLocalValue(property));
+        element.SetValue(property, Color(target));
     }
-    private static void Recolor(DependencyObject element, bool light)
+    private void Recolor(DependencyObject element, bool light)
     {
-        if (element is Panel panel) panel.Background = AdaptBrush(panel.Background, light);
-        if (element is Border border) { border.Background = AdaptBrush(border.Background, light); border.BorderBrush = AdaptBrush(border.BorderBrush, light); }
-        if (element is TextBlock text) text.Foreground = AdaptBrush(text.Foreground, light);
-        if (element is Control control) { control.Background = AdaptBrush(control.Background, light); control.Foreground = AdaptBrush(control.Foreground, light); control.BorderBrush = AdaptBrush(control.BorderBrush, light); }
+        if (element is Panel) AdaptAppearanceProperty(element, Panel.BackgroundProperty, light);
+        if (element is Border) { AdaptAppearanceProperty(element, Border.BackgroundProperty, light); AdaptAppearanceProperty(element, Border.BorderBrushProperty, light); }
+        if (element is TextBlock) AdaptAppearanceProperty(element, TextBlock.ForegroundProperty, light);
+        if (element is Control) { AdaptAppearanceProperty(element, Control.BackgroundProperty, light); AdaptAppearanceProperty(element, Control.ForegroundProperty, light); AdaptAppearanceProperty(element, Control.BorderBrushProperty, light); }
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++) Recolor(VisualTreeHelper.GetChild(element, i), light);
     }
 }
