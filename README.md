@@ -1,5 +1,7 @@
 # NEXUS Optimizer
 
+**Revisão 0.8 em desenvolvimento:** interface com cinco áreas principais, ação Analisar e otimizar, automático periódico opcional, rato com restauro, calculadora de sensibilidade, tema claro/escuro e modo leve. [Âmbito e correspondência PrecisionFix](DESIGN-08.md). A integração OpenAI está no código, mas não tem chave disponível nem validação real. A análise local funciona sem API. Esta revisão não altera a submissão 0.7 em certificação. [Validação 0.8](VALIDATION-08.md).
+
 Aplicação Windows x64 gratuita, em C# / .NET 10 / WinUI 3 / Windows App SDK. Sem conta NEXUS, subscrição ou telemetria própria. Código e apresentação próprios, licença MIT.
 
 **0.7 experimental:** Smart Boost com observações repetidas, regras condicionadas, perfis conservadores e comparação de capturas de jogo repetidas. Arranque local e três páginas confirmados em 13/10/2026; 150 testes aprovados. Melhorias e pendências em [STUDY-IMPLEMENTATION.md](STUDY-IMPLEMENTATION.md), evidência em [VALIDATION.md](VALIDATION.md) e utilização em [USAGE.md](USAGE.md). Continua sem assinatura de distribuição, validação FiveM ou paridade integral TL.

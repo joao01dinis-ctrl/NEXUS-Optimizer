@@ -77,15 +77,22 @@ public sealed partial class MainWindow
         AutoCleanupPanel.Visibility = page == "autoclean" ? Visibility.Visible : Visibility.Collapsed;
         TunerPanel.Visibility = page == "tuner" ? Visibility.Visible : Visibility.Collapsed;
         HelpPanel.Visibility = page == "help" ? Visibility.Visible : Visibility.Collapsed;
+        PrecisionPanel.Visibility = page == "precision" ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPanel.Visibility = page == "settings" ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = page switch { "optimize" => "PC Boost", "gaming" => "Game Mode", "tuner" => "App Tuner", "memory" => "Memória", "network" => "Rede", "benchmark" => "Testes e FPS", "tools" or "utilities" => "Ferramentas do Windows", "history" => "Histórico e restauro", "preferences" or "apps" => "Windows", "latency" => "Latência", "tweaks" => "Tweaks", "autoclean" => "Auto Limpeza", "help" => "Ajuda", "catalog" => "Cobertura da referência", _ => "Início" };
-        foreach (var button in NavigationButtons.Children.OfType<Button>())
-            button.Background = Color((string)button.Tag == page ? "#294530" : "#121B16");
+        if (page == "precision") { PageTitle.Text = "Rato e precisão"; RefreshMousePrecision(this, new()); }
+        if (page == "settings") PageTitle.Text = "Preferências e IA";
+        if (page == "overview") PageTitle.Text = "O meu PC";
+        if (page == "optimize") PageTitle.Text = "Otimizar";
+        foreach (var button in NavigationButtons.Children.OfType<Button>().Concat(AdvancedNavigationButtons.Children.OfType<Button>()))
+            button.Background = Color((string)button.Tag == page ? "#302C50" : "#111525");
         if (page is "optimize" or "history") RefreshSystem();
         if (page == "gaming") RefreshGames(this, new());
         if (page == "memory") RefreshMemory(this, new());
         if (page == "benchmark") RefreshBenchmarkHistory();
         if (page == "tuner") RefreshTuner(this, new());
         if (page is "tweaks" or "preferences" or "overview" or "history") RefreshAdjustmentCards(this, new());
+        if (assistantInitialized && LightThemeToggle.IsOn) ApplyAppearance();
         PageScroll.ChangeView(null, 0, null, disableAnimation: true);
     }
     private void Notice(string message, bool error = false)
@@ -106,7 +113,7 @@ public sealed partial class MainWindow
         operationRunning = true; ApplySystemButton.IsEnabled = PriorityButton.IsEnabled = UndoSystemButton.IsEnabled = StartSessionButton.IsEnabled = EndSessionButton.IsEnabled = false;
         try { await action(); }
         catch (Exception e) { AppLog.Error(e, "Otimização do sistema"); if (!closed) Notice(e.Message, true); }
-        finally { operationRunning = false; if (!closed) { ApplySystemButton.IsEnabled = PriorityButton.IsEnabled = UndoSystemButton.IsEnabled = StartSessionButton.IsEnabled = EndSessionButton.IsEnabled = true; RefreshSystem(); RefreshAdjustmentCards(this, new()); } }
+        finally { operationRunning = false; if (!closed) { ApplySystemButton.IsEnabled = PriorityButton.IsEnabled = UndoSystemButton.IsEnabled = StartSessionButton.IsEnabled = EndSessionButton.IsEnabled = true; RefreshSystem(); RefreshAdjustmentCards(this, new()); if (assistantInitialized && LightThemeToggle.IsOn) ApplyAppearance(); } }
     }
     private async void ApplySystem(object sender, RoutedEventArgs e) => await Run(async () =>
     {

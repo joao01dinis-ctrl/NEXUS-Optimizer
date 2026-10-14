@@ -34,7 +34,8 @@ public partial class DashboardViewModel : ObservableObject
     public IRelayCommand ApplyProfileCommand { get; }
     public IRelayCommand UndoCommand { get; }
     public string[] ProfileNames { get; } = Profiles.All.Select(p => p.Name).ToArray();
-    public int SampleSeconds => profiles.Current.SampleSeconds;
+    public int? SamplingOverrideSeconds { get; set; }
+    public int SampleSeconds => SamplingOverrideSeconds ?? profiles.Current.SampleSeconds;
     public DashboardViewModel(string root)
     {
         ApplyProfileCommand = new RelayCommand(ApplyProfile);

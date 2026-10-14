@@ -16,6 +16,7 @@ public static class WindowsSettings
     public static ISystemSetting Resolve(string key) => key switch
     {
         "power" => new PowerSetting(), "animations" => new AnimationSetting(),
+        MousePrecision.AccelerationKey => MousePrecision.Resolve(),
         UserAccessibility.StickyKeysKey => UserAccessibility.Resolve(),
         _ when UserPreferences.Contains(key) => UserPreferences.Resolve(key),
         _ when UserPolicies.Contains(key) => UserPolicies.Resolve(key),

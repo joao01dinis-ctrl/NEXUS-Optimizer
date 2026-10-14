@@ -14,7 +14,8 @@ public sealed partial class MainWindow
 {
     private CancellationTokenSource? boostCancellation;
     private BoostReport? boostReport;
-    private async Task AnalyzeSmartBoost() => await Run(async () =>
+    private Task AnalyzeSmartBoost() => Run(AnalyzeSmartBoostCore);
+    private async Task AnalyzeSmartBoostCore()
     {
         if (sessions.Active is not null) throw new InvalidOperationException("Termina e repõe a sessão antes de analisar PC Boost.");
         if (OptimizationPresetList.SelectedItem is not OptimizationPreset preset) return;
@@ -73,8 +74,8 @@ public sealed partial class MainWindow
                 var choice = new CheckBox { Content = item.Name, IsEnabled = eligible, IsChecked = eligible && rule.Decision == BoostDecision.Apply };
                 boostSelection.Add((choice, item, state));
                 var line = new StackPanel { Spacing = 6 }; line.Children.Add(choice);
-                line.Children.Add(new TextBlock { Text = SmartBoost.DecisionName(rule.Decision) + " · " + rule.Reason, TextWrapping = TextWrapping.Wrap, Foreground = Color("#BDD3C3") });
-                BoostChoices.Children.Add(new Border { Child = line, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = Color("#18201C"), BorderBrush = Color("#2B3830"), BorderThickness = new Thickness(1) });
+                line.Children.Add(new TextBlock { Text = SmartBoost.DecisionName(rule.Decision) + " · " + rule.Reason, TextWrapping = TextWrapping.Wrap, Foreground = Color("#C3CBE0") });
+                BoostChoices.Children.Add(new Border { Child = line, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = Color("#171D2F"), BorderBrush = Color("#2A3350"), BorderThickness = new Thickness(1) });
             }
             foreach (var rule in boostReport.Rules.Where(r => r.SettingKey is null))
             {
@@ -107,7 +108,7 @@ public sealed partial class MainWindow
             boostCancellation = null;
             if (!closed) { OptimizationPresetList.IsEnabled = true; CancelBoostButton.IsEnabled = false; AnalyzeBoostButton.IsEnabled = true; ApplyBoostButton.IsEnabled = boostReport is not null; }
         }
-    });
+    }
     private void CancelBoost(object sender, RoutedEventArgs e) => boostCancellation?.Cancel();
     private static void RequireSessionPower(PowerPlan? plan)
     {

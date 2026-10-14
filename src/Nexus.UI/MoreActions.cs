@@ -14,6 +14,8 @@ public sealed partial class MainWindow
     private CancellationTokenSource? benchmarkCancellation;
     private sealed record SearchTarget(string Title, string Page);
     private static readonly SearchTarget[] SearchTargets = [
+        new("Análise inteligente e otimização automática", "overview"), new("Aceleração do rato e precisão", "precision"),
+        new("Calculadora de DPI e sensibilidade", "precision"), new("OpenAI e modo leve", "settings"), new("Tema claro e escuro", "settings"),
         new("Dashboard e hardware", "overview"), new("Analisar CPU e RAM", "overview"),
         new("Plano de energia", "optimize"), new("Animações do Windows", "optimize"), new("Perfis de otimização", "optimize"),
         new("Prioridade da aplicação", "gaming"), new("Sessão de jogo", "gaming"), new("Verificar FPS e ping no FiveM", "gaming"),

@@ -24,6 +24,6 @@ public sealed partial class MainWindow
         };
         panel.Children.Add(help);
         panel.Children.Add(new TextBlock { Text = "Ainda não há um resultado de desempenho deste PC no FiveM. Não altera ficheiros do jogo, recursos do servidor, anti-cheat ou definições gráficas; não aplica um perfil automaticamente.", TextWrapping = TextWrapping.Wrap, Opacity = .8 });
-        HelpPanel.Children.Insert(1, new Border { Background = Color("#18201C"), BorderBrush = Color("#2B3830"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(22), Child = panel });
+        HelpPanel.Children.Insert(1, new Border { Background = Color("#171D2F"), BorderBrush = Color("#2A3350"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(22), Child = panel });
     }
 }
