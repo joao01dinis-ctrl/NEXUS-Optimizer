@@ -14,6 +14,9 @@ public sealed partial class MainWindow
     private CancellationTokenSource? benchmarkCancellation;
     private sealed record SearchTarget(string Title, string Page);
     private static readonly SearchTarget[] SearchTargets = [
+        new("Os meus jogos — deteção automática", "library"), new("Game Boost por jogo e perfis", "library"),
+        new("VPN opcional — estado e requisitos", "vpn"), new("GPU, NVIDIA e drivers", "hardware"),
+        new("Velocidade do ponteiro", "precision"), new("Favoritos e primeiros passos", "help"),
         new("Análise inteligente e otimização automática", "overview"), new("Aceleração do rato e precisão", "precision"),
         new("Calculadora de DPI e sensibilidade", "precision"), new("OpenAI e modo leve", "settings"), new("Tema claro e escuro", "settings"),
         new("Dashboard e hardware", "overview"), new("Analisar CPU e RAM", "overview"),

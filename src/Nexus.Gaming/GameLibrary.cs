@@ -6,12 +6,14 @@ namespace Nexus.Gaming;
 
 public sealed record LibraryApp(string Path, string Name)
 {
+    public string? RuntimeRoot { get; init; }
     public string Display => Name + "\n" + Path;
 }
 public sealed record DetectedApp(LibraryApp App, int Id, long Started)
 {
     public string ProcessKey => $"priority:{Id}:{Started}";
     public string Display => $"{App.Name} · PID {Id}";
+    public string? ActualPath { get; init; }
 }
 public sealed record GameProfile(string Name, bool Priority, bool Animations, string Description)
 {
@@ -20,14 +22,16 @@ public sealed record GameProfile(string Name, bool Priority, bool Animations, st
 public sealed class GameLibrary
 {
     private readonly string connectionString;
+    private readonly GameDiscoveryStore discovered;
     public static IReadOnlyList<GameProfile> Profiles { get; } = Array.AsReadOnly(new GameProfile[] {
-        new("Balanceado", false, false, "Só acompanha a sessão; os ajustes são opcionais."),
+        new("Padrão", false, false, "Só acompanha a sessão; os ajustes são opcionais."),
         new("Competitivo", false, true, "Reduz animações da interface com reposição. Prioridade original por defeito; acima do normal é opcional e precisa de medição."),
         new("Streaming", false, true, "Mantém prioridade normal para partilhar CPU com a transmissão; reduz animações durante a sessão."),
         new("Personalizado", false, false, "Revê prioridade, animações e plano disponível para esta sessão.")
     });
     public GameLibrary(string database)
     {
+        discovered = new(database);
         connectionString = new SqliteConnectionStringBuilder { DataSource = database }.ToString();
         using var c = Open(); using var q = c.CreateCommand();
         q.CommandText = "CREATE TABLE IF NOT EXISTS app_library(path TEXT PRIMARY KEY COLLATE NOCASE, name TEXT NOT NULL)"; q.ExecuteNonQuery();
@@ -48,10 +52,20 @@ public sealed class GameLibrary
         if (!string.Equals(System.IO.Path.GetExtension(full), ".exe", StringComparison.OrdinalIgnoreCase) || !File.Exists(full)) throw new ArgumentException("O executável escolhido não existe.");
         return full;
     }
-    public IReadOnlyList<LibraryApp> Read()
+    public IReadOnlyList<LibraryApp> ReadManual()
     {
         using var c = Open(); using var q = c.CreateCommand(); q.CommandText = "SELECT path,name FROM app_library ORDER BY name";
-        using var r = q.ExecuteReader(); var apps = new List<LibraryApp>(); while (r.Read()) apps.Add(new(r.GetString(0), r.GetString(1))); return apps;
+        using var r = q.ExecuteReader(); var apps = new List<LibraryApp>(); while (r.Read()) apps.Add(new(r.GetString(0), r.GetString(1)));
+        return apps;
+    }
+    public IReadOnlyList<LibraryApp> Read()
+    {
+        var apps = ReadManual().ToList();
+        foreach (var game in discovered.Read())
+            foreach (var path in game.Executables)
+                if (!apps.Any(a => a.Path.Equals(path, StringComparison.OrdinalIgnoreCase)))
+                    apps.Add(new(path, game.Name) { RuntimeRoot = game.Name.Equals("FiveM", StringComparison.OrdinalIgnoreCase) ? game.Directory : null });
+        return apps;
     }
     public void Remove(string path)
     {
@@ -66,11 +80,20 @@ public sealed class GameLibrary
             {
                 if (p.Id == self.Id || p.SessionId != self.SessionId || p.HasExited) continue;
                 var path = p.MainModule?.FileName;
-                var app = apps.FirstOrDefault(x => string.Equals(x.Path, path, StringComparison.OrdinalIgnoreCase));
-                if (app is not null) result.Add(new(app, p.Id, p.StartTime.ToUniversalTime().Ticks));
+                var app = apps.FirstOrDefault(x => MatchesRuntime(x, path));
+                if (app is not null) result.Add(new(app, p.Id, p.StartTime.ToUniversalTime().Ticks) { ActualPath = path });
             }
             catch (Exception e) when (e is Win32Exception or InvalidOperationException or NotSupportedException) { }
         }
         return result;
+    }
+    public static bool MatchesRuntime(LibraryApp app, string? processPath)
+    {
+        if (string.Equals(app.Path, processPath, StringComparison.OrdinalIgnoreCase)) return true;
+        if (app.RuntimeRoot is null || processPath is null || !Path.IsPathFullyQualified(processPath)) return false;
+        var name = System.IO.Path.GetFileNameWithoutExtension(processPath);
+        if (!System.Text.RegularExpressions.Regex.IsMatch(name, @"^FiveM(?:_b\d+)?_GTAProcess$", System.Text.RegularExpressions.RegexOptions.CultureInvariant)) return false;
+        return GameDiscovery.ResolveInside(app.RuntimeRoot, System.IO.Path.GetRelativePath(app.RuntimeRoot, processPath)) is string resolved &&
+            resolved.Equals(processPath, StringComparison.OrdinalIgnoreCase);
     }
 }

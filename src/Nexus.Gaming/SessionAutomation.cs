@@ -1,7 +1,7 @@
 namespace Nexus.Gaming;
 
 public sealed record AutomationConfiguration(IReadOnlyList<LibraryApp> Apps, string ProfileName,
-    bool Priority, bool Animations, string? PowerPlan);
+    bool Priority, bool Animations, string? PowerPlan, IReadOnlyDictionary<string, GameSessionOptions>? PerApp = null);
 
 // Permission is a frozen per-opening snapshot. Changing controls cannot expand
 // it. PID plus start time allows each process instance only one automatic start.
@@ -16,7 +16,9 @@ public sealed class SessionAutomation
         ArgumentNullException.ThrowIfNull(configuration.Apps);
         if (configuration.Apps.Count == 0 || configuration.Apps.Count > 128) throw new ArgumentException("Adiciona entre 1 e 128 aplicações à biblioteca.");
         if (string.IsNullOrWhiteSpace(configuration.ProfileName)) throw new ArgumentException("Perfil inválido.");
-        Configuration = configuration with { Apps = Array.AsReadOnly(configuration.Apps.ToArray()) };
+        Configuration = configuration with { Apps = Array.AsReadOnly(configuration.Apps.ToArray()),
+            PerApp = configuration.PerApp is null ? null : new System.Collections.ObjectModel.ReadOnlyDictionary<string, GameSessionOptions>(
+                configuration.PerApp.ToDictionary(x => x.Key, x => x.Value.Freeze(), StringComparer.OrdinalIgnoreCase)) };
         attempted.Clear();
     }
     public void Disable() { Configuration = null; attempted.Clear(); }

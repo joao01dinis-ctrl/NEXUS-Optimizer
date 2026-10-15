@@ -29,6 +29,8 @@ public sealed partial class MainWindow : Window
         await model.TickAsync();
         if (!closed)
             timer.Start();
+        await ScanInstalledGamesAsync();
+        if (closed) return;
         if (Environment.GetCommandLineArgs().Contains("--smoke-test"))
         {
             try
@@ -45,7 +47,19 @@ public sealed partial class MainWindow : Window
                 }
                 await model.TickAsync();
                 var page = Environment.GetEnvironmentVariable("NEXUS_SCREENSHOT_PAGE");
+                if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_GAME_FIXTURES") == "1")
+                    SeedGameCatalogSmokeFixtures(output);
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (page == "hardware")
+                    for (var i = 0; extendedHardwareBusy && i < 100; i++) await Task.Delay(100);
+                if (page is "library" or "vpn")
+                {
+                    if (optimizer.History().Count != 0 || sessions.Active is not null || gameAutomation.Enabled || AiUseToggle.IsOn)
+                        throw new InvalidOperationException("Library/VPN read-only validation changed settings or enabled automation.");
+                    File.WriteAllText(Path.Combine(output, "library-vpn-readonly.json"), System.Text.Json.JsonSerializer.Serialize(new
+                    { Result = "PASS", Games = gameCatalog.Read().Count, FixtureData = Environment.GetEnvironmentVariable("NEXUS_SMOKE_GAME_FIXTURES") == "1",
+                        WindowsChanges = 0, CloudEnabled = false, VpnCanConnect = Nexus.Network.VpnReadiness.Evaluate(0, false, false).CanConnect }));
+                }
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_LIGHT") == "1")
                 { LightThemeToggle.IsOn = true; await Task.Delay(300); ApplyAppearance(); }
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_ASSISTANT_READONLY") == "1")
@@ -178,7 +192,9 @@ public sealed partial class MainWindow : Window
             await model.TickAsync();
             UpdateGraphs();
             PollSession();
+            RefreshCatalogSessionState();
             await PollDiscoveryAsync();
+            if (!closed) await PollInstalledGamesAsync();
             if (!closed) await PollAutoCleanupAsync();
             if (!closed) await PollSafeAnalysisAsync();
             timer.Interval = TimeSpan.FromSeconds(resourceSaving ? 10 : model.SampleSeconds);

@@ -61,6 +61,7 @@ public sealed partial class MainWindow
     private void Navigate(object sender, RoutedEventArgs e) => ShowPage((string)((Button)sender).Tag);
     private void ShowPage(string page)
     {
+        currentPage = page;
         OverviewPanel.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
         OptimizePanel.Visibility = page == "optimize" ? Visibility.Visible : Visibility.Collapsed;
         GamingPanel.Visibility = page == "gaming" ? Visibility.Visible : Visibility.Collapsed;
@@ -79,11 +80,18 @@ public sealed partial class MainWindow
         HelpPanel.Visibility = page == "help" ? Visibility.Visible : Visibility.Collapsed;
         PrecisionPanel.Visibility = page == "precision" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPanel.Visibility = page == "settings" ? Visibility.Visible : Visibility.Collapsed;
+        InstalledGamesPanel.Visibility = page == "library" ? Visibility.Visible : Visibility.Collapsed;
+        VpnPanel.Visibility = page == "vpn" ? Visibility.Visible : Visibility.Collapsed;
+        HardwarePanel.Visibility = page == "hardware" ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = page switch { "optimize" => "PC Boost", "gaming" => "Game Mode", "tuner" => "App Tuner", "memory" => "Memória", "network" => "Rede", "benchmark" => "Testes e FPS", "tools" or "utilities" => "Ferramentas do Windows", "history" => "Histórico e restauro", "preferences" or "apps" => "Windows", "latency" => "Latência", "tweaks" => "Tweaks", "autoclean" => "Auto Limpeza", "help" => "Ajuda", "catalog" => "Cobertura da referência", _ => "Início" };
         if (page == "precision") { PageTitle.Text = "Rato e precisão"; RefreshMousePrecision(this, new()); }
         if (page == "settings") PageTitle.Text = "Preferências e IA";
         if (page == "overview") PageTitle.Text = "O meu PC";
         if (page == "optimize") PageTitle.Text = "Otimizar";
+        if (page == "library") { PageTitle.Text = "Os meus jogos"; RenderInstalledGames(); }
+        if (page == "gaming") PageTitle.Text = "Game Boost";
+        if (page == "vpn") PageTitle.Text = "Nexos VPN";
+        if (page == "hardware") { PageTitle.Text = "Hardware e GPU"; RefreshExtendedHardware(this, new()); }
         foreach (var button in NavigationButtons.Children.OfType<Button>().Concat(AdvancedNavigationButtons.Children.OfType<Button>()))
             button.Background = Color((string)button.Tag == page ? "#302C50" : "#111525");
         if (page is "optimize" or "history") RefreshSystem();
@@ -93,6 +101,7 @@ public sealed partial class MainWindow
         if (page == "tuner") RefreshTuner(this, new());
         if (page is "tweaks" or "preferences" or "overview" or "history") RefreshAdjustmentCards(this, new());
         if (assistantInitialized && LightThemeToggle.IsOn) ApplyAppearance();
+        UpdateFavoriteNavigation();
         PageScroll.ChangeView(null, 0, null, disableAnimation: true);
     }
     private void Notice(string message, bool error = false)

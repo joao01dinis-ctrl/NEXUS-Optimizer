@@ -17,6 +17,7 @@ public static class WindowsSettings
     {
         "power" => new PowerSetting(), "animations" => new AnimationSetting(),
         MousePrecision.AccelerationKey => MousePrecision.Resolve(),
+        MousePrecision.SpeedKey => MousePrecision.ResolveSpeed(),
         UserAccessibility.StickyKeysKey => UserAccessibility.Resolve(),
         _ when UserPreferences.Contains(key) => UserPreferences.Resolve(key),
         _ when UserPolicies.Contains(key) => UserPolicies.Resolve(key),

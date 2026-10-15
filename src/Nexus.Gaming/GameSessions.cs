@@ -54,7 +54,7 @@ public sealed class GameSessions
         q.Parameters.AddWithValue("$ended", ended ? DateTimeOffset.Now.ToString("O") : DBNull.Value);
         q.ExecuteNonQuery();
     }
-    public GameSessionRecord Start(string processKey, string name, string? powerPlan = null, bool priority = true, bool animations = false) => optimizer.ExecuteExclusive(() =>
+    public GameSessionRecord Start(string processKey, string name, string? powerPlan = null, bool priority = true, bool animations = false, IReadOnlyList<string>? visualKeys = null) => optimizer.ExecuteExclusive(() =>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (!processKey.StartsWith("priority:", StringComparison.Ordinal)) throw new ArgumentException("Identidade de processo inválida.", nameof(processKey));
@@ -62,6 +62,10 @@ public sealed class GameSessions
         var currentPriority = resolve(processKey).Read();
         if (currentPriority == "ended") throw new InvalidOperationException("A aplicação já terminou.");
         if (priority && currentPriority is not ("Normal" or "AboveNormal")) throw new InvalidOperationException("A aplicação já tem uma prioridade diferente. Seleciona uma aplicação com prioridade Normal.");
+        var visuals = (visualKeys ?? []).Concat(animations ? new[] { "animations" } : []).Distinct(StringComparer.Ordinal).ToArray();
+        new GameSessionOptions("Sessão", visuals).Freeze();
+        foreach (var key in visuals)
+            if (resolve(key).Read() is not ("0" or "1")) throw new InvalidOperationException("Preferência visual indisponível: " + key);
         var id = Guid.NewGuid().ToString("N");
         using (var c = Open())
         using (var q = c.CreateCommand())
@@ -76,7 +80,7 @@ public sealed class GameSessions
         {
             if (powerPlan is not null) optimizer.ApplyOwned(id, "power", powerPlan);
             if (priority) optimizer.ApplyOwned(id, processKey, "AboveNormal");
-            if (animations) optimizer.ApplyOwned(id, "animations", "0");
+            foreach (var key in visuals) optimizer.ApplyOwned(id, key, "0");
             SetStatus(id, "active");
         }
         catch (Exception e)

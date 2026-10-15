@@ -30,6 +30,24 @@ public sealed class GameSessionsTests : IDisposable
     private ISystemSetting Resolve(string key) => settings[key];
     private SystemOptimizer Optimizer() => new(PathName, Resolve);
     private GameSessions Sessions(SystemOptimizer optimizer) => new(PathName, optimizer, Resolve);
+    [Fact] public void PerGameVisualProfileRestoresEveryCapturedSettingWithoutChangingPriority()
+    {
+        settings["menu-animation"] = new("menu-animation", "1");
+        var o = Optimizer(); var s = Sessions(o);
+        var session = s.Start(ProcessKey, "Game", priority: false, visualKeys: ["animations", "menu-animation"]);
+        Assert.Equal("active", session.Status); Assert.Equal("Normal", settings[ProcessKey].Value);
+        Assert.Equal("0", settings["animations"].Value); Assert.Equal("0", settings["menu-animation"].Value);
+        settings[ProcessKey].Value = "ended";
+        Assert.Equal("ended", s.Poll()!.Status);
+        Assert.Equal("1", settings["animations"].Value); Assert.Equal("1", settings["menu-animation"].Value);
+        Assert.All(o.History(), r => Assert.Equal("reverted", r.State));
+    }
+    [Fact] public void PerGameProfileRejectsAnUnapprovedSettingBeforeOpeningASession()
+    {
+        var o = Optimizer(); var s = Sessions(o);
+        Assert.Throws<ArgumentException>(() => s.Start(ProcessKey, "Game", priority: false, visualKeys: ["disable-defender"]));
+        Assert.Null(s.Active); Assert.Empty(o.History());
+    }
     [Fact] public void ProcessExitRestoresPowerAndEndsOnlyOwnedSession()
     {
         var o = Optimizer(); var sessions = Sessions(o);

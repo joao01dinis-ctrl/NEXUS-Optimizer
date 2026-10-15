@@ -1,0 +1,45 @@
+name: Import reviewed NEXUS 0.9 source
+on:
+  push:
+    branches: [nexus-v0.9-games-vpn]
+    paths: ['nexus-review-source-09.zip', '.github/workflows/import-source-09.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.ref == 'refs/heads/nexus-v0.9-games-vpn' && github.actor == 'joao01dinis-ctrl'
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and import the reviewed source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-review-source-09.zip'
+          if (!(Test-Path -LiteralPath $archive)) { Write-Host 'Source already imported.'; exit 0 }
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'F3CB97516CFF358B1692574318FF9E91002029DDC7E0EBFE331FB5BFBFDF72C9') { throw 'Source hash mismatch.' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($archive)
+          $paths = [Collections.Generic.List[string]]::new()
+          try {
+            if ($zip.Entries.Count -ne 34) { throw 'Unexpected source inventory.' }
+            foreach ($entry in $zip.Entries) {
+              $parts = $entry.FullName.Replace('\','/').Split('/')
+              if ($parts -contains '..' -or $parts -contains '.git' -or $parts -contains '.github' -or $parts -contains 'artifacts' -or $parts -contains 'bin' -or $parts -contains 'obj') { throw 'Unsafe source path.' }
+              if ($entry.FullName -match '(^[\/]|:|(?i)\.(pfx|p12|pem|key|dll|exe|db|sqlite|zip)$)' -or $entry.FullName -match '(?i)(^|/)\.env' -or $entry.Length -gt 2097152) { throw 'Unexpected source content.' }
+              $target = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE $entry.FullName))
+              if (!$target.StartsWith($env:GITHUB_WORKSPACE + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Source escapes checkout.' }
+              [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
+              [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
+              $paths.Add($entry.FullName)
+            }
+          } finally { $zip.Dispose() }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- $paths
+          git rm -- nexus-review-source-09.zip
+          git commit -m 'NEXUS 0.9: game discovery, per-game visual profiles and reversible pointer speed'
+          if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
+          git push origin HEAD:refs/heads/nexus-v0.9-games-vpn
+          if ($LASTEXITCODE -ne 0) { throw 'Review branch changed; refusing to overwrite it.' }

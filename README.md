@@ -1,6 +1,8 @@
 # NEXUS Optimizer
 
-**Revisão 0.8 em desenvolvimento:** interface com cinco áreas principais, ação Analisar e otimizar, automático periódico opcional, rato com restauro, calculadora de sensibilidade, tema claro/escuro e modo leve. [Âmbito e correspondência PrecisionFix](DESIGN-08.md). A integração OpenAI está no código, mas não tem chave disponível nem validação real. A análise local funciona sem API. Esta revisão não altera a submissão 0.7 em certificação. [Validação 0.8](VALIDATION-08.md).
+**Revisão 0.9 experimental:** descoberta de instalações de jogos, perfis guardados por jogo, Game Boost com autorização fixa e restauro, revisão antes de otimizar, velocidade do ponteiro reversível, favoritos e guia opcional. Build local sem erros, 201 testes aprovados e 5 ignorados; arranque e cinco páginas confirmados neste portátil com a proteção do Windows ativa, sem aplicar ajustes. [Auditoria e limites](AUDIT-09.md), [utilização e validação](VALIDATION-09.md). Nexos VPN tem estudo e página de indisponibilidade: por decisão do utilizador não são contratados serviços nesta fase. [Proposta técnica](NEXOS-VPN-STUDY.md). Esta revisão não altera a submissão Store 0.7.
+
+**Revisão anterior 0.8:** temas e modo leve, análise local e integração opcional OpenAI. Não são incluídas credenciais em código ou executáveis. A configuração local de desenvolvimento é independente da distribuição pública; uma consulta de autenticação não valida uma análise dentro da app. [Âmbito PrecisionFix](DESIGN-08.md), [validação histórica 0.8](VALIDATION-08.md).
 
 Aplicação Windows x64 gratuita, em C# / .NET 10 / WinUI 3 / Windows App SDK. Sem conta NEXUS, subscrição ou telemetria própria. Código e apresentação próprios, licença MIT.
 
@@ -37,7 +39,7 @@ Smart Boost recolhe cinco amostras de CPU/RAM espaçadas, identifica o hardware/
 
 ## Executar e desenvolver
 
-Usar a publicação completa, não apenas o EXE. `Nexus.UI.exe` está em `artifacts/app-v0.7-study` para esta revisão. `Start-Nexus.cmd` e `Start-Nexus-0.7.cmd` abrem esta publicação local; a pasta inclui um iniciador próprio. O arranque desta publicação foi confirmado neste ambiente. Permanece sem assinatura de distribuição ou certificação Store; a validação local não garante aceitação por políticas de outros dispositivos.
+Usar a publicação completa, não apenas o EXE. Nesta entrega local, `Start-Nexus-0.9.cmd` abre `artifacts/app-v0.9-gaming-vpn/Nexus.UI.exe`; `Start-Nexus.cmd` dá preferência à 0.9 quando a pasta existe. Um novo build com `build.ps1 -Publish` grava em `artifacts/app`, onde se pode abrir `Nexus.UI.exe` diretamente. O arranque da 0.9 foi confirmado neste portátil. Permanece sem assinatura de distribuição ou certificação Store; a validação local não garante aceitação por políticas de outros dispositivos.
 
 ```powershell
 ./build.ps1
@@ -60,6 +62,6 @@ Antes de cada alteração reversível, o journal grava a intenção e o valor an
 
 [FEATURES.md](FEATURES.md) e [TL-PARITY.md](TL-PARITY.md) distinguem código implementado, atalhos, pendências e exclusões. O catálogo completo é embebido em Core e consumido pela UI, para manter uma fonte de estado para trabalho futuro. Cada pendência necessita especificação, compatibilidade, efeito, reversão, executor e validação; uma entrada não é uma função executável.
 
-Continuam ausentes captura automática/overlay de FPS, benchmark integrado de jogos, latência de entrada, aprendizagem adaptativa e regras validadas por modelo de hardware, importação de bibliotecas de launchers, App Tuner específico por produto, políticas de Office/Firefox/Chrome/NVIDIA/Visual Studio, gestão de serviços e parte das preferências Windows. Os ajustes Premium desfocados, onze opções avançadas de Game Mode, três opções Toque e parte inferior da grelha precisam de identificação. [A revisão das descrições TikTok](TIKTOK-REVIEW.md) regista também os erros de reprodução, sem fingir que todos os vídeos foram vistos. Opções agressivas/conflituantes não são implementadas como otimização. Não foi obtido código ou acesso pago ao TL.
+Continuam ausentes captura automática/overlay de FPS, benchmark integrado de jogos, latência de entrada, aprendizagem adaptativa e regras validadas por modelo de hardware, App Tuner específico por produto, políticas de Office/Firefox/Chrome/NVIDIA/Visual Studio, gestão de serviços e parte das preferências Windows. A descoberta de bibliotecas de launchers foi acrescentada na 0.9 com os limites documentados em [AUDIT-09.md](AUDIT-09.md). Os ajustes Premium desfocados, onze opções avançadas de Game Mode, três opções Toque e parte inferior da grelha precisam de identificação. [A revisão das descrições TikTok](TIKTOK-REVIEW.md) regista também os erros de reprodução, sem fingir que todos os vídeos foram vistos. Opções agressivas/conflituantes não são implementadas como otimização. Não foi obtido código ou acesso pago ao TL.
 
 Módulos: UI, Core, Hardware, Optimization, Gaming, Diagnostics, Benchmark, Network, Storage, Restore, Service e Tests. A monitorização é interna; não instala serviço Windows. Assinatura/distribuição: [CODE_SIGNING.md](CODE_SIGNING.md). Privacidade: [PRIVACY.md](PRIVACY.md).

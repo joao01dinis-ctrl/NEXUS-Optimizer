@@ -14,7 +14,7 @@ public sealed partial class MainWindow
     private string uiPreferencesPath = "";
     private DateTimeOffset nextSafeAnalysis = DateTimeOffset.MaxValue;
     private bool resourceSaving;
-    private sealed record UiPreferences(bool LightTheme = false, bool ResourceSaving = false);
+    private sealed record UiPreferences(bool LightTheme = false, bool ResourceSaving = false, string[]? FavoritePages = null);
 
     private void InitializeAssistant(string root)
     {
@@ -23,18 +23,25 @@ public sealed partial class MainWindow
         try { if (File.Exists(uiPreferencesPath)) prefs = JsonSerializer.Deserialize<UiPreferences>(File.ReadAllText(uiPreferencesPath)) ?? new(); }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
         LightThemeToggle.IsOn = prefs.LightTheme;
+        foreach (var page in prefs.FavoritePages ?? [])
+            if (SearchTargets.Any(p => p.Page == page)) favoritePages.Add(page);
         ResourceSavingToggle.IsOn = resourceSaving = prefs.ResourceSaving;
         model.SamplingOverrideSeconds = resourceSaving ? 10 : null;
         var configured = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
         AiConnectionStatus.Text = configured ? "Chave disponível nesta sessão. A IA só é usada depois de ativares a opção abaixo." : "Sem chave disponível. A análise e a otimização locais funcionam sem a OpenAI.";
         AiUseToggle.IsEnabled = configured;
         assistantInitialized = true;
+        UpdateFavoriteNavigation();
         ApplyAppearance();
         Root.Loaded += (_, _) => ApplyAppearance();
         Closed += (_, _) => { AutoSafeToggle.IsOn = false; nextSafeAnalysis = DateTimeOffset.MaxValue; };
     }
     private async void SmartAnalyze(object sender, RoutedEventArgs e) => await RunIntelligentAsync(false);
-    private async void SmartOptimize(object sender, RoutedEventArgs e) => await RunIntelligentAsync(true);
+    private async void SmartOptimize(object sender, RoutedEventArgs e)
+    {
+        ShowPage("optimize");
+        await AnalyzeSmartBoost();
+    }
     private async Task RunIntelligentAsync(bool apply, bool periodic = false)
     {
         if (assistantBusy || operationRunning || closed) return;
@@ -133,6 +140,9 @@ public sealed partial class MainWindow
         {
             var state = MousePrecision.Resolve().Read();
             MouseStateText.Text = "Aceleração do Windows: " + (MousePrecision.ParseState(state)[2] == 0 ? "desligada" : "ligada") + ". O valor anterior é guardado antes de qualquer alteração.";
+            var speed = MousePrecision.ResolveSpeed().Read();
+            MouseSpeedText.Text = "Velocidade atual: " + speed + " / 20. A alteração é manual e reversível.";
+            MouseSpeedValue.Value = double.Parse(speed, System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex) { MouseStateText.Text = "Não foi possível consultar o rato: " + ex.Message; }
     }
@@ -171,7 +181,7 @@ public sealed partial class MainWindow
     }
     private void SaveUiPreferences()
     {
-        try { File.WriteAllText(uiPreferencesPath, JsonSerializer.Serialize(new UiPreferences(LightThemeToggle.IsOn, resourceSaving))); }
+        try { File.WriteAllText(uiPreferencesPath, JsonSerializer.Serialize(new UiPreferences(LightThemeToggle.IsOn, resourceSaving, favoritePages.Order().ToArray()))); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Notice("A preferência não pôde ser guardada.", true); }
     }
     private static readonly Dictionary<string, string> LightPalette = new()
