@@ -17,11 +17,12 @@
         </StackPanel>
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="6" x:Name="NavigationButtons">
+            <StackPanel x:Name="FavoriteNavigation" Spacing="4" Visibility="Collapsed" />
             <TextBlock Text="O TEU ESPAÇO" FontSize="10" Margin="12,0,0,10" CharacterSpacing="160" Foreground="#8390AE" />
             <Button Tag="overview" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="" FontSize="17" />
-                <TextBlock Text="O meu PC" FontSize="14" />
+                <TextBlock Text="Início" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Tag="optimize" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
@@ -30,10 +31,16 @@
                 <TextBlock Text="Otimizar" FontSize="14" />
               </StackPanel>
             </Button>
+            <Button Tag="library" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="&#xE7FC;" FontSize="17" />
+                <TextBlock Text="Os meus jogos" FontSize="14" />
+              </StackPanel>
+            </Button>
             <Button Tag="gaming" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="" FontSize="17" />
-                <TextBlock Text="Jogos e FiveM" FontSize="14" />
+                <TextBlock Text="Game Boost" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Tag="precision" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
@@ -50,6 +57,8 @@
             </Button>
             <Expander Header="Mais ferramentas" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,18,0,0">
               <StackPanel x:Name="AdvancedNavigationButtons" Spacing="4">
+                <Button Tag="hardware" Click="Navigate" Style="{StaticResource NexusNavigationButton}" Content="Hardware e GPU" />
+                <Button Tag="vpn" Click="Navigate" Style="{StaticResource NexusNavigationButton}" Content="Nexos VPN" />
                 <Button Tag="tweaks" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
                   <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="" FontSize="17" />
@@ -129,7 +138,7 @@
         </ScrollViewer>
         <StackPanel Grid.Row="2" Spacing="6" Margin="10,12,0,0">
           <TextBlock Text="NEXUS · SEM SUBSCRIÇÃO" FontSize="10" TextWrapping="Wrap" Foreground="#B5A4FF" />
-          <TextBlock Text="0.8 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
+          <TextBlock Text="0.9 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
         </StackPanel>
       </Grid>
     </Border>
@@ -141,7 +150,11 @@
       </Grid.RowDefinitions>
       <StackPanel Spacing="10" Margin="0,0,0,18">
         <AutoSuggestBox x:Name="QuickSearch" PlaceholderText="Pesquisar funções e páginas…" TextMemberPath="Title" TextChanged="SearchChanged" QuerySubmitted="SearchSubmitted" AutomationProperties.Name="Pesquisar páginas e funções" />
-        <TextBlock x:Name="PageTitle" Text="Início" FontSize="28" FontWeight="SemiBold" />
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <TextBlock x:Name="PageTitle" Text="Início" FontSize="28" FontWeight="SemiBold" />
+          <Button Grid.Column="1" x:Name="FavoritePageButton" Content="Guardar favorito" Click="ToggleFavoritePage" VerticalAlignment="Center" />
+        </Grid>
         <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Content="Desfazer alterações" Click="RestoreEverything" />
           <TextBlock Text="Nenhuma alteração por repor" FontSize="12" TextWrapping="Wrap" Foreground="#95A1BF" x:Name="GlobalChangeStatus" />
@@ -165,7 +178,7 @@
                 <TextBlock Text="Menos ajustes. Mais controlo." FontSize="29" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="#F5F4FF" />
                 <TextBlock Text="O teu PC analisado em segundos. A NEXUS aplica apenas preferências visuais reversíveis quando os dados as justificam." MaxWidth="660" HorizontalAlignment="Left" FontSize="15" TextWrapping="Wrap" Foreground="#D4D7EA" />
                 <VariableSizedWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2">
-                  <Button x:Name="HomeOptimizeButton" Content="Analisar e otimizar" Click="SmartOptimize" Style="{StaticResource AccentButtonStyle}" Padding="22,12" Margin="0,0,10,8" />
+                  <Button x:Name="HomeOptimizeButton" Content="Otimizar o meu PC" Click="SmartOptimize" Style="{StaticResource AccentButtonStyle}" Padding="22,12" Margin="0,0,10,8" />
                   <Button x:Name="HomeAnalyzeButton" Content="Só analisar" Click="SmartAnalyze" Padding="20,12" Margin="0,0,0,8" />
                 </VariableSizedWrapGrid>
                 <ProgressBar x:Name="AssistantProgress" IsIndeterminate="True" Visibility="Collapsed" />
@@ -323,6 +336,65 @@
               </StackPanel>
             </Expander>
           </StackPanel>
+          <StackPanel x:Name="InstalledGamesPanel" Visibility="Collapsed" Spacing="18">
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Os teus jogos, num só lugar" FontSize="25" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="A NEXUS lê as bibliotecas acessíveis deste PC. Guarda um perfil por jogo e revê os ajustes antes de iniciar. Os ficheiros dos jogos e o anti-cheat ficam intactos." TextWrapping="Wrap" Foreground="#C3CBE0" />
+                <Button x:Name="InstalledScanButton" Content="Procurar jogos instalados" Click="ScanInstalledGames" />
+                <TextBlock x:Name="InstalledGamesStatus" Text="A biblioteca será procurada automaticamente ao abrir a NEXUS." TextWrapping="Wrap" />
+                <Button Content="Ativar / pausar Game Boost dos meus jogos" Click="TogglePerGameAutomation" Style="{StaticResource AccentButtonStyle}" />
+                <TextBlock Text="As escolhas por jogo ficam guardadas. A autorização de execução automática é confirmada nesta abertura; novos jogos não são incluídos sem escolha." TextWrapping="Wrap" Foreground="#95A1BF" />
+              </StackPanel>
+            </Border>
+            <StackPanel x:Name="InstalledGameCards" Spacing="14" />
+            <Expander Header="Os teus perfis e importação" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Padrão acompanha a sessão. Competitivo reduz duas animações. Máximo permite cinco preferências visuais. Nenhum perfil fecha programas, altera o jogo ou garante mais FPS." TextWrapping="Wrap" />
+                <TextBox x:Name="CustomProfileName" Header="Nome do perfil personalizado" MaxLength="60" />
+                <ComboBox x:Name="CustomProfileTemplate" Header="Preferências a guardar" HorizontalAlignment="Stretch" />
+                <Button Content="Guardar o meu perfil" Click="SaveCustomGameProfile" />
+                <Button Content="Exportar perfil personalizado ou modelo escolhido" Click="ExportGameProfile" />
+                <Button Content="Importar perfil" Click="ImportGameProfile" />
+                <TextBlock Text="Importar só guarda preferências visuais compatíveis. Não executa comandos, não aplica ajustes e não ativa o automático." TextWrapping="Wrap" Foreground="#95A1BF" />
+              </StackPanel>
+            </Expander>
+            <Button Content="Deteção manual e sessões avançadas" Tag="gaming" Click="Navigate" />
+          </StackPanel>
+          <StackPanel x:Name="VpnPanel" Visibility="Collapsed" Spacing="18">
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Nexos VPN" FontSize="27" FontWeight="SemiBold" />
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Ainda indisponível" Message="Ainda não existem servidores Nexos contratados ou um túnel real validado. A tua ligação atual não está protegida pela Nexos VPN." />
+                <TextBlock Text="A VPN será opcional e independente das otimizações. O Game Boost nunca a liga. Pode aumentar o ping e não garante melhor desempenho." TextWrapping="Wrap" Foreground="#C3CBE0" />
+                <TextBlock x:Name="VpnAvailabilityText" Text="Servidores disponíveis: 0 · ligação: não configurada · proteção: não verificada" TextWrapping="Wrap" />
+                <Button Content="Ligar VPN — requer infraestrutura" IsEnabled="False" />
+                <TextBlock Text="Localização, IP público, latência e tráfego só serão apresentados depois de uma ligação e medições reais." TextWrapping="Wrap" Foreground="#95A1BF" />
+                <Button Content="Ver plano técnico e requisitos" Click="ShowVpnPlan" />
+                <Button Content="Abrir diagnóstico de rede" Tag="network" Click="Navigate" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          <StackPanel x:Name="HardwarePanel" Visibility="Collapsed" Spacing="18">
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Hardware deste computador" FontSize="25" FontWeight="SemiBold" />
+                <TextBlock x:Name="ExtendedHardwareText" Text="A consultar o Windows…" TextWrapping="Wrap" />
+                <Button Content="Atualizar hardware e drivers" Click="RefreshExtendedHardware" />
+                <Button Content="Consultar energia e planos disponíveis" Tag="optimize" Click="Navigate" />
+                <Button Content="Preferências de GPU por aplicação" Tag="ms-settings:display-advancedgraphics" Click="OpenSetting" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="GPU e jogos: escolher e medir" FontSize="21" FontWeight="SemiBold" />
+                <TextBlock Text="NVIDIA Reflex deve ser configurado no jogo compatível. Testa um limite de FPS que o teu PC consiga sustentar. V-Sync, G-SYNC e Adaptive-Sync dependem do monitor, do driver e da prioridade entre fluidez e latência." TextWrapping="Wrap" />
+                <TextBlock Text="A NEXUS não altera perfis globais NVIDIA. Usa a NVIDIA App ou o Painel de Controlo NVIDIA para opções não expostas por métodos suportados. Compara o mesmo cenário antes e depois." TextWrapping="Wrap" Foreground="#C3CBE0" />
+                <TextBlock Text="Temperaturas, utilização GPU, VRAM e frequências GPU ainda não têm um fornecedor validado nesta revisão. Não são estimadas a partir do modelo do hardware." TextWrapping="Wrap" Foreground="#95A1BF" />
+                <Button Content="Comparar capturas de FPS e frametimes" Tag="benchmark" Click="Navigate" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
           <StackPanel x:Name="GamingPanel" Visibility="Collapsed" Spacing="16">
             <Border Background="#171D2F" CornerRadius="14" Padding="22" BorderBrush="#2A3350" BorderThickness="1">
               <StackPanel Spacing="14">
@@ -356,8 +428,8 @@
             </Border>
             <Border Background="#171D2F" CornerRadius="14" Padding="22" BorderBrush="#2A3350" BorderThickness="1">
               <StackPanel Spacing="14">
-                <TextBlock Text="Biblioteca e perfis de sessão" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Text="Adiciona o executável local de um jogo ou programa. A deteção compara o caminho completo; launchers, processos protegidos e apps da Store podem precisar de seleção manual. Nenhum jogo é iniciado pela NEXUS." TextWrapping="Wrap" />
+                <TextBlock Text="Adições manuais e sessões avançadas" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="Os jogos encontrados automaticamente aparecem em Os meus jogos. Esta seleção manual é um recurso avançado para instalações não identificadas. A deteção compara o caminho completo; processos protegidos podem não estar acessíveis. Nenhum jogo é iniciado pela NEXUS." TextWrapping="Wrap" />
                 <ListView x:Name="LibraryApps" MaxHeight="180" SelectionMode="Single" AutomationProperties.Name="Biblioteca de aplicações">
                   <ListView.ItemTemplate>
                     <DataTemplate>
@@ -687,6 +759,16 @@
           <StackPanel x:Name="PrecisionPanel" Visibility="Collapsed" Spacing="18">
             <Border Style="{StaticResource NexusCard}">
               <StackPanel Spacing="12">
+                <TextBlock Text="Velocidade do ponteiro do Windows" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock x:Name="MouseSpeedText" Text="A consultar…" TextWrapping="Wrap" />
+                <NumberBox x:Name="MouseSpeedValue" Header="Velocidade de 1 a 20" Minimum="1" Maximum="20" Value="10" SmallChange="1" SpinButtonPlacementMode="Compact" />
+                <Button Content="Rever e aplicar velocidade" Click="ApplyMouseSpeed" />
+                <Button Content="Repor velocidade anterior" Click="RestoreMouseSpeed" />
+                <TextBlock Text="DPI é a resolução do sensor; polling é a frequência de comunicação; esta velocidade controla o ponteiro do Windows. A sensibilidade do jogo é outra definição. Raw Input pode ignorar velocidade e aceleração do Windows. Não alteramos a energia USB de forma genérica." TextWrapping="Wrap" Foreground="#95A1BF" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="12">
                 <TextBlock Text="Movimentos consistentes. Escolhas claras." FontSize="25" FontWeight="SemiBold" TextWrapping="Wrap" />
                 <TextBlock Text="Ajusta o ponteiro do Windows e calcula a sensibilidade ao mudar de DPI. As alterações do rato são sempre manuais e ficam no Histórico." TextWrapping="Wrap" Foreground="#C3CBE0" />
               </StackPanel>
@@ -769,6 +851,7 @@
             <Border Background="#171D2F" BorderBrush="#2A3350" BorderThickness="1" CornerRadius="14" Padding="20">
               <StackPanel Spacing="12">
                 <TextBlock Text="Começar a usar" FontSize="23" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <Button Content="Primeiros passos — guia opcional" Click="ShowQuickGuide" />
                 <TextBlock Text="1. PC Boost: analisa e aplica a seleção.&#10;2. Game Mode: escolhe um perfil e ativa o acompanhamento.&#10;3. Tweaks: aplica opções individualmente.&#10;4. Histórico: repõe os valores anteriores." FontSize="14" TextWrapping="Wrap" />
                 <Button Content="Ver testes e FPS" Tag="benchmark" Click="Navigate" />
                 <Button Content="Ver cobertura da referência" Tag="catalog" Click="Navigate" />

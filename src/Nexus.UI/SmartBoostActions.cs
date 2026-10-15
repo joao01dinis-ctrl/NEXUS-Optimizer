@@ -62,7 +62,7 @@ public sealed partial class MainWindow
                 .Select(p => new DirectAdjustment(p.Key, p.Name, p.Description, p.Value)).ToList();
             items.Insert(0, new("animations", "Reduzir animações de conteúdo", "Menos transições na interface, sem ganho de FPS presumido.", "0"));
             var states = items.ToDictionary(p => p.Key, p => AdjustmentStates.Read(optimizer, p.Key, p.Desired));
-            var goal = preset.Name switch { "Competitivo" => BoostGoal.Competitive, "Streaming" => BoostGoal.Streaming, _ => BoostGoal.Balanced };
+            var goal = preset.Name switch { "Competitivo" or "Máximo" => BoostGoal.Competitive, "Streaming" => BoostGoal.Streaming, _ => BoostGoal.Balanced };
             var input = new BoostInput(goal, samples.AsReadOnly(), volumes, processes, power.OnAcPower, power.BatterySaver,
                 model.CpuName, model.GpuName, RuntimeInformation.OSDescription, drivers,
                 items.Select(p => new BoostSetting(p.Key, p.Name, p.Desired, states[p.Key].Current, states[p.Key].Error)).ToArray());

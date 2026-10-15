@@ -7,7 +7,30 @@ namespace Nexus.Optimization;
 public static class MousePrecision
 {
     public const string AccelerationKey = "mouse-acceleration";
+    public const string SpeedKey = "mouse-speed";
     public static ISystemSetting Resolve() => new AccelerationSetting();
+    public static ISystemSetting ResolveSpeed() => new SpeedSetting();
+    public static int ParseSpeed(string value)
+    {
+        if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var speed) || speed is < 1 or > 20)
+            throw new ArgumentException("Escolhe uma velocidade inteira entre 1 e 20.");
+        return speed;
+    }
+    private sealed class SpeedSetting : ISystemSetting
+    {
+        public string Key => SpeedKey;
+        public string Name => "Velocidade do ponteiro do Windows";
+        public string Read()
+        {
+            var result = new int[1];
+            if (!SystemParametersInfo(0x0070, 0, result, 0)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            return ParseSpeed(result[0].ToString(CultureInfo.InvariantCulture)).ToString(CultureInfo.InvariantCulture);
+        }
+        public void Write(string value)
+        {
+            if (!SetSystemParametersInfo(0x0071, 0, (nint)ParseSpeed(value), 3)) throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
     public static double EquivalentSensitivity(double originalDpi, double originalSensitivity, double newDpi)
     {
         if (!double.IsFinite(originalDpi) || !double.IsFinite(newDpi) || !double.IsFinite(originalSensitivity) ||
@@ -44,4 +67,7 @@ public static class MousePrecision
     [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SystemParametersInfo(uint action, uint parameter, [In, Out] int[] values, uint flags);
+    [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetSystemParametersInfo(uint action, uint parameter, nint value, uint flags);
 }

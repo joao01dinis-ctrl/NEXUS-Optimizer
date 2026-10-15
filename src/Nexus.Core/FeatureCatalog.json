@@ -185,8 +185,8 @@
     "Name": "Biblioteca de jogos",
     "Area": "Game Mode",
     "State": "Implementação própria com limites",
-    "Page": "gaming",
-    "Note": "Executáveis escolhidos ou adicionados de processos abertos; deteção por caminho/PID/arranque. Automático opt-in com autorização fixa nesta abertura e reposição ao terminar; sem importar todos os launchers."
+    "Page": "library",
+    "Note": "Descoberta por metadados de launchers e registos acessíveis, com limites. Perfis guardados por instalação. Não garante identificar todos os jogos ou processos protegidos."
   },
   {
     "Name": "App Tuner",
@@ -1027,5 +1027,40 @@
     "State": "Implementação própria com limites",
     "Page": "memory",
     "Note": "Consulta passiva em duas amostras, com PID/arranque e capacidade total. Não fecha apps, altera CPU/GPU ou prova impacto nos FPS."
+  },
+  {
+    "Name": "Game Boost e perfis por jogo",
+    "Page": "library",
+    "State": "Implementação própria com limites",
+    "Note": "Perfis visuais temporários com autorização congelada por abertura, diário e restauro. Não altera ficheiros, anti-cheat, prioridade ou energia.",
+    "Area": "Gaming"
+  },
+  {
+    "Name": "Perfis personalizados exportáveis",
+    "Page": "library",
+    "State": "Implementado; formato limitado",
+    "Note": "Nome e preferências visuais permitidas. Importação não executa comandos nem aplica alterações.",
+    "Area": "Gaming"
+  },
+  {
+    "Name": "Velocidade do ponteiro",
+    "Page": "precision",
+    "State": "Implementação própria com limites",
+    "Note": "Inteiro de 1 a 20, valor anterior capturado, verificação e Undo. Raw Input pode ignorar.",
+    "Area": "Rato"
+  },
+  {
+    "Name": "Favoritos e guia inicial",
+    "Page": "help",
+    "State": "Implementado",
+    "Note": "Favoritos locais persistentes e guia opcional. Sem telemetria ou notificações obrigatórias.",
+    "Area": "Interface"
+  },
+  {
+    "Name": "Nexos VPN",
+    "Page": "vpn",
+    "State": "Indisponível; estudo e interface",
+    "Note": "Sem servidores, componentes instalados ou ligação real. O utilizador escolheu não criar custos nesta fase. Não protege tráfego.",
+    "Area": "Rede"
   }
 ]

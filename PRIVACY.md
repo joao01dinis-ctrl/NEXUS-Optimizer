@@ -1,6 +1,6 @@
 # Privacy policy
 
-NEXUS Optimizer 0.8.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
+NEXUS Optimizer 0.9.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
 advertising, cloud sync or automatic update client. No hardware inventory,
 process list, file paths or diagnostic logs are uploaded.
 
@@ -93,3 +93,8 @@ GitHub/SignPath/Store websites have their own policies. NEXUS does not contact G
 or SignPath at runtime. Review logs, backups and executable paths before sharing them.
 
 Smart Boost also reads installed graphics driver version and power/battery-saver status. Repeated CPU/RAM observations and rule decisions are processed locally. Diagnostic export writes a JSON report, including hardware/driver and accessible application names, only to the folder the user selects. No report is uploaded. Rule decisions and repeated FPS comparison summaries are stored in the local activity history. FPS captures may be labelled Reference/Optimized; labels are user declarations, not verified game conditions.
+# Biblioteca local e VPN na revisão 0.9
+
+A descoberta lê metadados de launchers e instalações acessíveis à conta atual. Nomes, raízes de instalação e preferências por jogo ficam na base de dados local até remoção dos dados da aplicação. Não são enviados para a OpenAI nem para servidores NEXUS. Perfis exportados incluem apenas nome e preferências visuais permitidas, sem caminhos de instalação ou credenciais.
+
+Nexos VPN não tem servidores ou ligação nesta revisão e não recolhe tráfego, IP público ou credenciais VPN. Não há alegação de proteção ou política no logs. Um futuro serviço depende de autorização e de uma política própria publicada antes de tratar tráfego.

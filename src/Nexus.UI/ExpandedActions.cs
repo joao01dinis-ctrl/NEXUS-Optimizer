@@ -55,6 +55,7 @@ public sealed partial class MainWindow
             PolicyChoices.Children.Add(row);
         }
         Closed += (_, _) => { latencyCancellation?.Cancel(); backgroundCancellation.Cancel(); };
+        InitializeGameCatalog(root);
         RefreshLibrary(); LoadFeatureCatalog();
     }
     private void SaveActivity(string area, string message)
@@ -92,7 +93,7 @@ public sealed partial class MainWindow
     private sealed record DnsProvider(string Name, string Address) { public override string ToString() => Name + " · " + Address; }
     private void RefreshLibrary()
     {
-        LibraryApps.ItemsSource = library.Read();
+        LibraryApps.ItemsSource = library.ReadManual();
     }
     private async void AddLibraryApp(object sender, RoutedEventArgs e) => await Run(async () =>
     {
@@ -134,6 +135,8 @@ public sealed partial class MainWindow
     private async Task PollDiscoveryAsync()
     {
         if ((DiscoveryChoice.IsChecked != true && !gameAutomation.Enabled) || discoveryBusy || operationRunning || benchmarkCancellation is not null || temporaryCancellation is not null || autoCleanupBusy) return;
+        if (DateTimeOffset.Now < nextProcessScan) return;
+        nextProcessScan = DateTimeOffset.Now.AddSeconds(5);
         discoveryBusy = true;
         try
         {
@@ -146,7 +149,8 @@ public sealed partial class MainWindow
                 gameAutomation.MarkAttempt(target);
                 var power = HardwareEnvironment.ReadPower();
                 var plan = SessionPowerPolicy.CanChangePower(power.OnAcPower, power.BatterySaver) ? configuration.PowerPlan : null;
-                var result = sessions.Start(target.ProcessKey, target.App.Name, plan, configuration.Priority, configuration.Animations);
+                var individual = configuration.PerApp?.GetValueOrDefault(target.App.Path);
+                var result = sessions.Start(target.ProcessKey, target.App.Name, plan, configuration.Priority, configuration.Animations, individual?.VisualKeys);
                 AutomationStatus.Text = result.Status == "active" ? "A acompanhar · " + target.App.Name + " · " + configuration.ProfileName + (configuration.PowerPlan is not null && plan is null ? " · plano mantido: alimentação não elegível" : "") : "Recuperação necessária · " + result.Error;
                 RefreshSystem(); RefreshAdjustmentCards(this, new());
             }

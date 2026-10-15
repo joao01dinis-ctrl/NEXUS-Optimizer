@@ -11,6 +11,7 @@ public sealed class NativePreferenceFactAttribute : FactAttribute
             Skip = "Opt-in: briefly changes menu animation using Windows API and restores the captured original value.";
     }
 }
+[Collection("Native Windows preferences")]
 public sealed class NativePreferenceTests
 {
     [NativePreferenceFact]
