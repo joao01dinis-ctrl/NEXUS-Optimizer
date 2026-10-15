@@ -385,7 +385,7 @@
               <StackPanel Spacing="12">
                 <TextBlock Text="Analisar e atualizar" FontSize="22" FontWeight="SemiBold" />
                 <TextBlock x:Name="ProtectionPermissions" Text="A disponibilidade depende do fornecedor ativo, dos direitos e das políticas deste PC." TextWrapping="Wrap" Foreground="#C3CBE0" />
-                <VariableSizedWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3">
+                <VariableSizedWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3" ItemWidth="190" ItemHeight="44">
                   <Button x:Name="ProtectionQuickButton" Content="Análise rápida" Tag="QuickScan" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,10,8" />
                   <Button x:Name="ProtectionFullButton" Content="Análise completa" Tag="FullScan" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,10,8" />
                   <Button x:Name="ProtectionUpdateButton" Content="Atualizar definições" Tag="UpdateSignatures" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,0,8" />
