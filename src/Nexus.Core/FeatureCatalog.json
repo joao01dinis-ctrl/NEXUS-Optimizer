@@ -1062,5 +1062,19 @@
     "State": "Indisponível; estudo e interface",
     "Note": "Sem servidores, componentes instalados ou ligação real. O utilizador escolheu não criar custos nesta fase. Não protege tráfego.",
     "Area": "Rede"
+  },
+  {
+    "Name": "Proteção com Microsoft Defender",
+    "Page": "protection",
+    "State": "Integração com o Windows; consulta local",
+    "Note": "Estado do antivírus e Defender, datas e definições reais disponíveis. Não é um motor próprio nem prova ausência de malware.",
+    "Area": "Proteção"
+  },
+  {
+    "Name": "Análises e atualização do Defender",
+    "Page": "protection",
+    "State": "Pedidos confirmados; direitos e fornecedor ativo",
+    "Note": "Análise rápida/completa ou atualização por cmdlets oficiais. Exige confirmação, Defender ativo e administrador. Deteções e quarentena ficam no Windows, sem Undo NEXUS.",
+    "Area": "Proteção"
   }
 ]

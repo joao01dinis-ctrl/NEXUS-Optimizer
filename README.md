@@ -1,5 +1,7 @@
 # NEXUS Optimizer
 
+**Revisão 0.10 em validação:** mantém a otimização e acrescenta **Proteção do PC** com Microsoft Defender: consulta de estado, pedidos confirmados de análise rápida/completa e atualização das definições, com revalidação de direitos e fornecedor ativo. Deteções e quarentena são geridas pelo Windows. Não é um antivírus independente. Build sem avisos/erros e 225 testes locais aprovados, com 5 ignorados. O arranque da 0.10 neste portátil foi bloqueado por App Control num componente sem assinatura; o arranque da 0.9 foi confirmado separadamente. [Funcionamento, limites e fontes](PROTECTION.md).
+
 **Revisão 0.9 experimental:** descoberta de instalações de jogos, perfis guardados por jogo, Game Boost com autorização fixa e restauro, revisão antes de otimizar, velocidade do ponteiro reversível, favoritos e guia opcional. Build local sem erros, 201 testes aprovados e 5 ignorados; arranque e cinco páginas confirmados neste portátil com a proteção do Windows ativa, sem aplicar ajustes. [Auditoria e limites](AUDIT-09.md), [utilização e validação](VALIDATION-09.md). Nexos VPN tem estudo e página de indisponibilidade: por decisão do utilizador não são contratados serviços nesta fase. [Proposta técnica](NEXOS-VPN-STUDY.md). Esta revisão não altera a submissão Store 0.7.
 
 **Revisão anterior 0.8:** temas e modo leve, análise local e integração opcional OpenAI. Não são incluídas credenciais em código ou executáveis. A configuração local de desenvolvimento é independente da distribuição pública; uma consulta de autenticação não valida uma análise dentro da app. [Âmbito PrecisionFix](DESIGN-08.md), [validação histórica 0.8](VALIDATION-08.md).
@@ -39,7 +41,7 @@ Smart Boost recolhe cinco amostras de CPU/RAM espaçadas, identifica o hardware/
 
 ## Executar e desenvolver
 
-Usar a publicação completa, não apenas o EXE. Nesta entrega local, `Start-Nexus-0.9.cmd` abre `artifacts/app-v0.9-gaming-vpn/Nexus.UI.exe`; `Start-Nexus.cmd` dá preferência à 0.9 quando a pasta existe. Um novo build com `build.ps1 -Publish` grava em `artifacts/app`, onde se pode abrir `Nexus.UI.exe` diretamente. O arranque da 0.9 foi confirmado neste portátil. Permanece sem assinatura de distribuição ou certificação Store; a validação local não garante aceitação por políticas de outros dispositivos.
+Usar a publicação completa, não apenas o EXE. O iniciador principal mantém a 0.9 cujo arranque foi validado neste portátil. `Start-Nexus-0.10.cmd` aponta explicitamente para a revisão experimental em `artifacts/app-v0.10-protection`, atualmente bloqueada pela política deste PC. A configuração privada de desenvolvimento é independente e não é distribuída. Um novo build com `build.ps1 -Publish` grava em `artifacts/app`, onde se pode abrir `Nexus.UI.exe` diretamente. A publicação permanece sem assinatura de distribuição ou certificação Store; a validação de uma versão não garante aceitação de outra por políticas Windows.
 
 ```powershell
 ./build.ps1

@@ -14,6 +14,7 @@ public sealed partial class MainWindow
     private CancellationTokenSource? benchmarkCancellation;
     private sealed record SearchTarget(string Title, string Page);
     private static readonly SearchTarget[] SearchTargets = [
+        new("Proteção do PC — Microsoft Defender", "protection"), new("Antivírus, análises e quarentena", "protection"),
         new("Os meus jogos — deteção automática", "library"), new("Game Boost por jogo e perfis", "library"),
         new("VPN opcional — estado e requisitos", "vpn"), new("GPU, NVIDIA e drivers", "hardware"),
         new("Velocidade do ponteiro", "precision"), new("Favoritos e primeiros passos", "help"),

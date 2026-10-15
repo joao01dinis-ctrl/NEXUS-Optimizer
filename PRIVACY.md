@@ -1,6 +1,6 @@
 # Privacy policy
 
-NEXUS Optimizer 0.9.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
+NEXUS Optimizer 0.10.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
 advertising, cloud sync or automatic update client. No hardware inventory,
 process list, file paths or diagnostic logs are uploaded.
 
@@ -98,3 +98,7 @@ Smart Boost also reads installed graphics driver version and power/battery-saver
 A descoberta lê metadados de launchers e instalações acessíveis à conta atual. Nomes, raízes de instalação e preferências por jogo ficam na base de dados local até remoção dos dados da aplicação. Não são enviados para a OpenAI nem para servidores NEXUS. Perfis exportados incluem apenas nome e preferências visuais permitidas, sem caminhos de instalação ou credenciais.
 
 Nexos VPN não tem servidores ou ligação nesta revisão e não recolhe tráfego, IP público ou credenciais VPN. Não há alegação de proteção ou política no logs. Um futuro serviço depende de autorização e de uma política própria publicada antes de tratar tráfego.
+
+## Windows protection in revision 0.10
+
+The protection page reads the Windows antivirus health and selected Microsoft Defender status fields locally. It does not read malware samples, threat file paths or send security information to OpenAI or NEXUS servers. Explicitly confirmed scans and signature updates are delegated to the active Microsoft Defender under the Windows policies and the current process rights. Defender may quarantine threats and contact its configured Microsoft services according to the Windows settings. These are not NEXUS undo operations. The local activity journal records only the requested action and command outcome; quarantine and detailed detection history remain in Windows Security. NEXUS does not change exclusions, security providers or protection settings. No scan or update starts just by opening this page.

@@ -43,6 +43,12 @@
                 <TextBlock Text="Game Boost" FontSize="14" />
               </StackPanel>
             </Button>
+            <Button Tag="protection" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="&#xE83D;" FontSize="17" />
+                <TextBlock Text="Proteção do PC" FontSize="14" />
+              </StackPanel>
+            </Button>
             <Button Tag="precision" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="" FontSize="17" />
@@ -138,7 +144,7 @@
         </ScrollViewer>
         <StackPanel Grid.Row="2" Spacing="6" Margin="10,12,0,0">
           <TextBlock Text="NEXUS · SEM SUBSCRIÇÃO" FontSize="10" TextWrapping="Wrap" Foreground="#B5A4FF" />
-          <TextBlock Text="0.9 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
+          <TextBlock Text="0.10 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
         </StackPanel>
       </Grid>
     </Border>
@@ -360,6 +366,43 @@
               </StackPanel>
             </Expander>
             <Button Content="Deteção manual e sessões avançadas" Tag="gaming" Click="Navigate" />
+          </StackPanel>
+          <StackPanel x:Name="ProtectionPanel" Visibility="Collapsed" Spacing="18">
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="14">
+                <TextBlock Text="Proteção com Microsoft Defender" FontSize="26" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="A proteção antivírus é fornecida pelo Windows. A NEXUS reúne o estado e os pedidos de análise num só lugar." TextWrapping="Wrap" Foreground="#C3CBE0" />
+                <InfoBar x:Name="ProtectionState" IsOpen="True" IsClosable="False" Severity="Informational" Title="Estado comunicado pelo Windows" Message="A consultar a proteção deste PC…" />
+                <TextBlock x:Name="ProtectionDetails" Text="Os dados serão apresentados depois da consulta local." TextWrapping="Wrap" />
+                <TextBlock x:Name="ProtectionCheckedAt" Text="Ainda sem consulta concluída." TextWrapping="Wrap" Foreground="#95A1BF" />
+                <VariableSizedWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="2">
+                  <Button Content="Abrir Segurança do Windows" Click="OpenWindowsProtection" Style="{StaticResource AccentButtonStyle}" Margin="0,0,10,8" />
+                  <Button x:Name="ProtectionRefreshButton" Content="Atualizar estado" Click="RefreshProtection" Margin="0,0,0,8" />
+                </VariableSizedWrapGrid>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Analisar e atualizar" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock x:Name="ProtectionPermissions" Text="A disponibilidade depende do fornecedor ativo, dos direitos e das políticas deste PC." TextWrapping="Wrap" Foreground="#C3CBE0" />
+                <VariableSizedWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3">
+                  <Button x:Name="ProtectionQuickButton" Content="Análise rápida" Tag="QuickScan" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,10,8" />
+                  <Button x:Name="ProtectionFullButton" Content="Análise completa" Tag="FullScan" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,10,8" />
+                  <Button x:Name="ProtectionUpdateButton" Content="Atualizar definições" Tag="UpdateSignatures" Click="RequestProtectionAction" IsEnabled="False" Margin="0,0,0,8" />
+                </VariableSizedWrapGrid>
+                <ProgressBar x:Name="ProtectionProgress" IsIndeterminate="True" Visibility="Collapsed" />
+                <TextBlock x:Name="ProtectionRequestStatus" Text="Nenhum pedido enviado nesta abertura. O Defender mantém o seu funcionamento normal." TextWrapping="Wrap" />
+                <TextBlock Text="As análises podem isolar ameaças automaticamente no Defender. Não fazem parte do Undo do otimizador. Não são iniciadas pela análise inteligente, pelo Game Boost ou por esta consulta de estado." TextWrapping="Wrap" Foreground="#95A1BF" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource NexusCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Histórico e quarentena" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock x:Name="ProtectionScanHistory" Text="A consultar as datas comunicadas pelo Defender…" TextWrapping="Wrap" />
+                <Button Content="Consultar deteções e quarentena no Windows" Click="OpenWindowsProtection" />
+                <TextBlock Text="Na Segurança do Windows, abre Proteção contra vírus e ameaças → Histórico de proteção. A NEXUS não lê ficheiros suspeitos, envia amostras para a OpenAI ou decide restaurar ameaças." TextWrapping="Wrap" Foreground="#95A1BF" />
+              </StackPanel>
+            </Border>
           </StackPanel>
           <StackPanel x:Name="VpnPanel" Visibility="Collapsed" Spacing="18">
             <Border Style="{StaticResource NexusCard}">

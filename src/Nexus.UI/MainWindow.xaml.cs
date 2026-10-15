@@ -52,6 +52,15 @@ public sealed partial class MainWindow : Window
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
                 if (page == "hardware")
                     for (var i = 0; extendedHardwareBusy && i < 100; i++) await Task.Delay(100);
+                if (page == "protection")
+                {
+                    for (var i = 0; protectionReadBusy && i < 230; i++) await Task.Delay(100);
+                    if (protectionReadBusy || protectionActionCount != 0 || optimizer.History().Count != 0 || AiUseToggle.IsOn)
+                        throw new InvalidOperationException("Protection read-only validation failed.");
+                    File.WriteAllText(Path.Combine(output, "protection-readonly.json"), System.Text.Json.JsonSerializer.Serialize(new
+                    { Result = "PASS", StatusQueried = protectionStatus is not null, WindowsHealth = protectionStatus?.WindowsHealth.ToString(),
+                        DefenderAvailable = protectionStatus?.Defender is not null, OperationsRequested = protectionActionCount, WindowsChanges = 0, CloudEnabled = false }));
+                }
                 if (page is "library" or "vpn")
                 {
                     if (optimizer.History().Count != 0 || sessions.Active is not null || gameAutomation.Enabled || AiUseToggle.IsOn)
