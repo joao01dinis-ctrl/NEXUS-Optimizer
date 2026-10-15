@@ -41,6 +41,22 @@ jobs:
           }
           Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
+      - name: Prepare the unsigned Store candidate without installing it
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $identity = Import-PowerShellDataFile StorePreparation/PartnerCenterIdentity.psd1
+          & ./StorePreparation/Build-StorePackage.ps1 -IdentityName $identity.IdentityName -Publisher $identity.Publisher -PublisherDisplayName $identity.PublisherDisplayName -AppDisplayName $identity.AppDisplayName -PartnerCenterIdentityConfirmed -PackageVersion '0.10.0.0' -SourceDirectory artifacts/app
+          $reportFile = Get-ChildItem StorePreparation/builds -Recurse -Filter packaging-report.json | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (!$reportFile) { throw 'Store packaging report missing.' }
+          $report = Get-Content -LiteralPath $reportFile.FullName -Raw | ConvertFrom-Json
+          if ($report.MakeAppxExitCode -ne 0 -or $report.Signed -or $report.Installed -or $report.StoreSubmitted) { throw 'Unexpected Store candidate state.' }
+          New-Item -ItemType Directory -Path artifacts/store-candidate -Force | Out-Null
+          Copy-Item -LiteralPath $report.Package -Destination artifacts/store-candidate
+          Copy-Item -LiteralPath $reportFile.FullName -Destination artifacts/store-candidate
+          Copy-Item -LiteralPath (Join-Path $reportFile.DirectoryName 'input-files.json') -Destination artifacts/store-candidate
+          $package = Get-ChildItem artifacts/store-candidate -Filter '*.msix' | Select-Object -First 1
+          if ((Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256).Hash -ne $report.PackageSHA256) { throw 'Store candidate hash mismatch.' }
       - name: Check startup and render the new pages without applying tweaks
         shell: pwsh
         run: |
@@ -130,6 +146,12 @@ jobs:
         with:
           name: NEXUS-Optimizer-win-x64-unsigned
           path: artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NEXUS-0.10-unsigned-Store-candidate
+          path: artifacts/store-candidate
           retention-days: 14
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
