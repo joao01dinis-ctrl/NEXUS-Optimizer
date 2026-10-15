@@ -39,7 +39,7 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md artifacts/app
+          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
       - name: Check startup and render the new pages without applying tweaks
         shell: pwsh
@@ -100,7 +100,9 @@ jobs:
               @{ Page = 'library'; Light = '0'; Analyze = '0'; Fixtures = '1' },
               @{ Page = 'library'; Light = '1'; Analyze = '0'; Fixtures = '1' },
               @{ Page = 'vpn'; Light = '0'; Analyze = '0' },
-              @{ Page = 'hardware'; Light = '0'; Analyze = '0' }
+              @{ Page = 'hardware'; Light = '0'; Analyze = '0' },
+              @{ Page = 'protection'; Light = '0'; Analyze = '0' },
+              @{ Page = 'protection'; Light = '1'; Analyze = '0' }
             )) {
               $page = $scenario.Page
               $label = $page + $(if ($scenario.Light -eq '1') { '-light' } else { '' }) + $(if ($scenario.Fixtures -eq '1') { '-fixtures' } else { '' })
@@ -119,6 +121,7 @@ jobs:
               if ($scenario.Analyze -eq '1' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'assistant-analysis.json'))) { throw 'Assistant evidence missing.' }
               if ($page -eq 'precision' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'precision-readonly.json'))) { throw 'Precision evidence missing.' }
               if ($page -in @('library','vpn') -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'library-vpn-readonly.json'))) { throw 'Library/VPN evidence missing.' }
+              if ($page -eq 'protection' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'protection-readonly.json'))) { throw 'Protection read-only evidence missing.' }
               $result = Get-Content (Join-Path $env:NEXUS_DATA_DIR 'smoke-test.json') -Raw | ConvertFrom-Json
               if ($result.Width -lt 1366 -or $result.Height -lt 768) { throw "Rendered window too small: $page" }
             }
