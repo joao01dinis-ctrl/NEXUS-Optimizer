@@ -62,6 +62,7 @@ public sealed partial class MainWindow
     private void ShowPage(string page)
     {
         currentPage = page;
+        if (page != "vpn") vpnMeasurementCancellation?.Cancel();
         OverviewPanel.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
         OptimizePanel.Visibility = page == "optimize" ? Visibility.Visible : Visibility.Collapsed;
         GamingPanel.Visibility = page == "gaming" ? Visibility.Visible : Visibility.Collapsed;
@@ -91,7 +92,7 @@ public sealed partial class MainWindow
         if (page == "optimize") PageTitle.Text = "Otimizar";
         if (page == "library") { PageTitle.Text = "Os meus jogos"; RenderInstalledGames(); }
         if (page == "gaming") PageTitle.Text = "Game Boost";
-        if (page == "vpn") PageTitle.Text = "Nexos VPN";
+        if (page == "vpn") { PageTitle.Text = "Nexos VPN"; RefreshVpnStatus(this, new()); }
         if (page == "hardware") { PageTitle.Text = "Hardware e GPU"; RefreshExtendedHardware(this, new()); }
         if (page == "protection") { PageTitle.Text = "Proteção do PC"; RefreshProtection(this, new()); }
         foreach (var button in NavigationButtons.Children.OfType<Button>().Concat(AdvancedNavigationButtons.Children.OfType<Button>()))

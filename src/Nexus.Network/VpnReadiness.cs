@@ -1,6 +1,6 @@
 namespace Nexus.Network;
 
-public enum VpnConnectionState { Unavailable, Disconnected, Connecting, Connected, Disconnecting, Error }
+public enum VpnConnectionState { Unavailable, Disconnected, Connecting, Connected, Disconnecting, Error, Unknown }
 public sealed record VpnReadiness(bool CanConnect, string Reason)
 {
     public static VpnReadiness Evaluate(int provisionedServers, bool trustedComponentInstalled, bool deviceRegistered)

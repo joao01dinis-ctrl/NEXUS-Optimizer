@@ -12,6 +12,7 @@ public sealed partial class MainWindow : Window
         model = new(root);
         InitializeOptimizer(root);
         InitializeAssistant(root);
+        InitializeVpn();
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
@@ -63,11 +64,19 @@ public sealed partial class MainWindow : Window
                 }
                 if (page is "library" or "vpn")
                 {
+                    if (page == "vpn")
+                    {
+                        for (var i = 0; vpnReadBusy && i < 300; i++) await Task.Delay(100);
+                        if (vpnReadBusy || vpnControlRequests != 0 || vpnExternalSamples != 0 || vpnMeasureBusy)
+                            throw new InvalidOperationException("VPN read-only validation requested a connection or external probe.");
+                    }
                     if (optimizer.History().Count != 0 || sessions.Active is not null || gameAutomation.Enabled || AiUseToggle.IsOn)
                         throw new InvalidOperationException("Library/VPN read-only validation changed settings or enabled automation.");
                     File.WriteAllText(Path.Combine(output, "library-vpn-readonly.json"), System.Text.Json.JsonSerializer.Serialize(new
                     { Result = "PASS", Games = gameCatalog.Read().Count, FixtureData = Environment.GetEnvironmentVariable("NEXUS_SMOKE_GAME_FIXTURES") == "1",
-                        WindowsChanges = 0, CloudEnabled = false, VpnCanConnect = Nexus.Network.VpnReadiness.Evaluate(0, false, false).CanConnect }));
+                        WindowsChanges = 0, CloudEnabled = false, VpnCanConnect = Nexus.Network.VpnReadiness.Evaluate(0, false, false).CanConnect,
+                        WarpState = page == "vpn" ? vpnStatus?.State.ToString() : null, WarpInstalled = page == "vpn" && vpnStatus?.Installed == true,
+                        VpnControlRequests = vpnControlRequests, VpnExternalSamples = vpnExternalSamples }));
                 }
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_LIGHT") == "1")
                 { LightThemeToggle.IsOn = true; await Task.Delay(300); ApplyAppearance(); }
@@ -206,6 +215,7 @@ public sealed partial class MainWindow : Window
             if (!closed) await PollInstalledGamesAsync();
             if (!closed) await PollAutoCleanupAsync();
             if (!closed) await PollSafeAnalysisAsync();
+            if (!closed) await PollVpnStatusAsync();
             timer.Interval = TimeSpan.FromSeconds(resourceSaving ? 10 : model.SampleSeconds);
         }
         catch (Exception ex) { Nexus.Diagnostics.AppLog.Error(ex, "Atualizar monitor e tarefas opcionais"); }

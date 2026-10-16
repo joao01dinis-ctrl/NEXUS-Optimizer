@@ -1059,8 +1059,8 @@
   {
     "Name": "Nexos VPN",
     "Page": "vpn",
-    "State": "Indisponível; estudo e interface",
-    "Note": "Sem servidores, componentes instalados ou ligação real. O utilizador escolheu não criar custos nesta fase. Não protege tráfego.",
+    "State": "Integração do cliente oficial Cloudflare WARP; instalação e autorização necessárias",
+    "Note": "Deteção com assinatura, pedidos confirmados e verificação de tráfego/latência opt-in. DNS sem túnel e respostas desconhecidas não são proteção confirmada. WireGuard próprio continua indisponível e sem servidores.",
     "Area": "Rede"
   },
   {

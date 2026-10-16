@@ -2,7 +2,7 @@
 
 Proposta de 15 de outubro de 2026. Não foram contratados servidores, criada subscrição, instalados drivers ou alterada a rede do utilizador. A VPN não está operacional.
 
-**Decisão do utilizador: sem custos por agora; manter a VPN indisponível.** As fases que dependem de infraestrutura não avançam nesta revisão.
+**Atualização de 16/10/2026:** o utilizador pediu integração gratuita do cliente oficial Cloudflare WARP e arquitetura para WireGuard futuro. [Plano e implementação](VPN-IMPLEMENTATION.md). A decisão de não contratar infraestrutura mantém-se: este estudo refere-se à VPN própria, que continua indisponível. WARP é um fornecedor independente, não um servidor Nexos.
 
 ## Tecnologia
 

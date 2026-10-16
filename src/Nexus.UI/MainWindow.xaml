@@ -55,6 +55,12 @@
                 <TextBlock Text="Rato e precisão" FontSize="14" />
               </StackPanel>
             </Button>
+            <Button Tag="vpn" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="&#xE774;" FontSize="17" />
+                <TextBlock Text="Nexos VPN" FontSize="14" />
+              </StackPanel>
+            </Button>
             <Button Tag="history" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="" FontSize="17" />
@@ -64,7 +70,6 @@
             <Expander Header="Mais ferramentas" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,18,0,0">
               <StackPanel x:Name="AdvancedNavigationButtons" Spacing="4">
                 <Button Tag="hardware" Click="Navigate" Style="{StaticResource NexusNavigationButton}" Content="Hardware e GPU" />
-                <Button Tag="vpn" Click="Navigate" Style="{StaticResource NexusNavigationButton}" Content="Nexos VPN" />
                 <Button Tag="tweaks" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
                   <StackPanel Orientation="Horizontal" Spacing="12">
                     <FontIcon Glyph="" FontSize="17" />
@@ -404,17 +409,68 @@
               </StackPanel>
             </Border>
           </StackPanel>
-          <StackPanel x:Name="VpnPanel" Visibility="Collapsed" Spacing="18">
-            <Border Style="{StaticResource NexusCard}">
+          <StackPanel x:Name="VpnPanel" Visibility="Collapsed" Spacing="18" RequestedTheme="Dark">
+            <StackPanel.Resources>
+              <Style x:Key="VpnCard" TargetType="Border">
+                <Setter Property="Background" Value="#101010" /><Setter Property="BorderBrush" Value="#363636" />
+                <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="16" /><Setter Property="Padding" Value="22" />
+              </Style>
+              <Style x:Key="VpnAction" TargetType="Button">
+                <Setter Property="Background" Value="#242424" /><Setter Property="Foreground" Value="White" />
+                <Setter Property="BorderBrush" Value="#555555" /><Setter Property="Padding" Value="14,10" />
+              </Style>
+            </StackPanel.Resources>
+            <Border Style="{StaticResource VpnCard}">
               <StackPanel Spacing="14">
-                <TextBlock Text="Nexos VPN" FontSize="27" FontWeight="SemiBold" />
-                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Ainda indisponível" Message="Ainda não existem servidores Nexos contratados ou um túnel real validado. A tua ligação atual não está protegida pela Nexos VPN." />
-                <TextBlock Text="A VPN será opcional e independente das otimizações. O Game Boost nunca a liga. Pode aumentar o ping e não garante melhor desempenho." TextWrapping="Wrap" Foreground="#C3CBE0" />
-                <TextBlock x:Name="VpnAvailabilityText" Text="Servidores disponíveis: 0 · ligação: não configurada · proteção: não verificada" TextWrapping="Wrap" />
-                <Button Content="Ligar VPN — requer infraestrutura" IsEnabled="False" />
-                <TextBlock Text="Localização, IP público, latência e tráfego só serão apresentados depois de uma ligação e medições reais." TextWrapping="Wrap" Foreground="#95A1BF" />
-                <Button Content="Ver plano técnico e requisitos" Click="ShowVpnPlan" />
-                <Button Content="Abrir diagnóstico de rede" Tag="network" Click="Navigate" />
+                <TextBlock Text="NEXOS VPN" FontSize="12" CharacterSpacing="180" Foreground="#BBBBBB" />
+                <TextBlock x:Name="VpnStateText" Text="A consultar o WARP…" FontSize="30" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="White" />
+                <TextBlock Text="Cloudflare WARP · opção gratuita" FontSize="17" Foreground="White" />
+                <TextBlock x:Name="VpnAvailabilityText" Text="A deteção consulta apenas este PC. Ainda não foi pedido qualquer teste externo ou ligação." TextWrapping="Wrap" Foreground="#CCCCCC" />
+                <TextBlock x:Name="VpnVerificationText" Text="Passagem de tráfego: ainda não verificada." TextWrapping="Wrap" Foreground="White" />
+                <ItemsControl>
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><VariableSizedWrapGrid ItemWidth="190" ItemHeight="52" Orientation="Horizontal" MaximumRowsOrColumns="3" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <Button x:Name="VpnConnectButton" Content="Ligar WARP" Tag="connect" Click="RequestVpnConnection" IsEnabled="False" Style="{StaticResource VpnAction}" Background="White" Foreground="#101010" />
+                  <Button x:Name="VpnDisconnectButton" Content="Desligar WARP" Tag="disconnect" Click="RequestVpnConnection" IsEnabled="False" Style="{StaticResource VpnAction}" />
+                  <Button x:Name="VpnOpenClientButton" Content="Abrir WARP oficial" Click="OpenWarpClient" IsEnabled="False" Style="{StaticResource VpnAction}" />
+                </ItemsControl>
+                <Button x:Name="VpnRefreshButton" Content="Atualizar estado" Click="RefreshVpnStatus" Style="{StaticResource VpnAction}" />
+                <TextBlock x:Name="VpnCheckedAtText" Text="Nunca liga ao abrir a NEXUS ou iniciar um jogo." TextWrapping="Wrap" Foreground="#AAAAAA" FontSize="12" />
+                <TextBlock x:Name="VpnRequestText" Text="As ligações são geridas pelo WARP e continuam independentes quando fechas a NEXUS." TextWrapping="Wrap" Foreground="#CCCCCC" />
+                <ProgressBar x:Name="VpnProgress" IsIndeterminate="True" Visibility="Collapsed" Foreground="White" />
+              </StackPanel>
+            </Border>
+            <Border x:Name="VpnSetupPanel" Style="{StaticResource VpnCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Configurar em três passos" FontSize="21" FontWeight="SemiBold" Foreground="White" />
+                <TextBlock Text="1. Abre a página oficial e instala o Cloudflare WARP.&#10;2. Lê e aceita os termos na aplicação da Cloudflare e escolhe o modo de tráfego e DNS.&#10;3. Volta aqui e carrega em Atualizar estado." TextWrapping="Wrap" Foreground="#CCCCCC" />
+                <Button Content="Obter WARP oficial" Click="AssistWarpSetup" Style="{StaticResource VpnAction}" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <HyperlinkButton Content="Termos Cloudflare" NavigateUri="https://www.cloudflare.com/application/terms/" Foreground="White" />
+                  <HyperlinkButton Content="Privacidade" NavigateUri="https://www.cloudflare.com/application/privacypolicy/" Foreground="White" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource VpnCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Verificar a ligação" FontSize="21" FontWeight="SemiBold" Foreground="White" />
+                <TextBlock Text="Mede respostas HTTPS e latência para a Cloudflare. O teste só começa com a tua autorização e pode ser interrompido a qualquer momento." TextWrapping="Wrap" Foreground="#CCCCCC" />
+                <ItemsControl>
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><VariableSizedWrapGrid ItemWidth="220" ItemHeight="52" Orientation="Horizontal" MaximumRowsOrColumns="3" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <Button x:Name="VpnMeasureButton" Content="Verificar agora" Tag="once" Click="MeasureVpnConnection" Style="{StaticResource VpnAction}" />
+                  <Button x:Name="VpnMonitorButton" Content="Acompanhar 1 minuto" Tag="monitor" Click="MeasureVpnConnection" Style="{StaticResource VpnAction}" />
+                  <Button x:Name="VpnStopMeasureButton" Content="Parar medição" Click="StopVpnMeasurement" IsEnabled="False" Style="{StaticResource VpnAction}" />
+                </ItemsControl>
+                <TextBlock x:Name="VpnMeasurementText" Text="Sem medições nesta abertura." TextWrapping="Wrap" Foreground="White" />
+                <TextBlock x:Name="VpnMeasurementProgressText" Text="Ao sair desta página, o acompanhamento para. A ligação WARP mantém o estado escolhido por ti." TextWrapping="Wrap" Foreground="#AAAAAA" FontSize="12" />
+                <TextBlock Text="WARP não oculta a tua identidade, não permite escolher um país e pode aumentar o ping. Uma verificação de tráfego não é um teste completo de fugas DNS ou IPv6." TextWrapping="Wrap" Foreground="#CCCCCC" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource VpnCard}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Nexos WireGuard · futuro" FontSize="20" Foreground="White" />
+                <TextBlock Text="A VPN própria continua indisponível: ainda não existem servidores Nexos ou um túnel próprio validado. A integração WARP é independente e não utiliza servidores Nexos." TextWrapping="Wrap" Foreground="#CCCCCC" />
+                <Button Content="Arquitetura e próximos passos" Click="ShowVpnPlan" Style="{StaticResource VpnAction}" />
+                <Button Content="Abrir diagnóstico de rede" Tag="network" Click="Navigate" Style="{StaticResource VpnAction}" />
               </StackPanel>
             </Border>
           </StackPanel>

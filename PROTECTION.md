@@ -22,7 +22,7 @@ Não há comandos para desligar antivírus, firewall, Smart App Control, proteç
 
 Build local sem avisos nem erros; suite local com 225 aprovados, 5 ignorados e zero falhas. Os testes de autorização, revalidação do fornecedor, concorrência e interpretação de estados/datas usam um backend de teste e não executam análises no PC. O modo de captura da página apenas consulta dados do Windows e verifica zero pedidos. Deteção e quarentena não são ensaiadas nos dados pessoais do utilizador.
 
-O arranque da publicação 0.10 neste portátil em 15/10/2026 foi bloqueado pelo App Control ao carregar Nexus.Restore.dll sem assinatura (0x800711C7). Nenhuma política foi alterada. A página precisa de validação nativa no Windows de testes e de uma distribuição aceite neste PC para utilização local. A 0.9 tem arranque local confirmado e permanece no iniciador principal. São versões diferentes.
+O arranque da publicação local 0.10 em 15/10/2026 foi bloqueado pelo App Control ao carregar Nexus.Restore.dll sem assinatura (0x800711C7). Em 16/10/2026 a publicação da execução CI 38804391311 abriu neste portátil com Smart App Control=1; consultou o Defender e não pediu análises ou alterações Windows. Nenhuma política foi alterada. A nova revisão que acrescenta WARP volta a ser validada separadamente: a compilação local foi bloqueada e os resultados da publicação CI serão registados em VPN-IMPLEMENTATION.md. A submissão Store 0.7 é independente.
 
 A revisão base 0.9 passou 201 testes e quatro testes nativos no [Windows descartável](https://github.com/joao01dinis-ctrl/NEXUS-Optimizer/actions/runs/38797601374), com doze capturas reais da interface. O primeiro ensaio Máximo tinha os cinco valores já em zero; nesta revisão o teste prepara cinco valores opostos antes da sessão para exigir alterações e reposição reais.
 
@@ -34,4 +34,4 @@ A revisão base 0.9 passou 201 testes e quatro testes nativos no [Windows descar
 - [Estado agregado do Windows](https://learn.microsoft.com/en-us/windows/win32/api/wscapi/nf-wscapi-wscgetsecurityproviderhealth)
 - [Compatibilidade com outros antivírus](https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-antivirus-compatibility)
 
-Usar a publicação completa em artifacts/app-v0.10-protection ou Start-Nexus-0.10.cmd. A distribuição continua experimental e sem assinatura, independente da submissão Store 0.7.
+Usar a publicação completa em artifacts/app-v0.10 ou Start-Nexus-0.10.cmd depois de disponibilizada e validada. O iniciador prefere a instalação oficial Store 0.10 ou superior quando existir. A publicação portátil continua experimental e sem assinatura, independente da submissão Store 0.7.

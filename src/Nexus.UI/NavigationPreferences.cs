@@ -38,7 +38,7 @@ public sealed partial class MainWindow
                 "3. Em Os meus jogos, atualiza a procura automática e guarda um perfil por jogo. Abre o jogo pelo launcher habitual.\n\n" +
                 "4. Otimizar este jogo cria uma sessão temporária. Mantém a NEXUS aberta; ao terminar, as preferências são repostas.\n\n" +
                 "5. Game Boost automático é opcional. Usa Histórico ou Repor sessão para recuperar configurações.\n\n" +
-                "A VPN é independente e ainda está indisponível. As medições e os dados pertencem sempre ao computador onde a NEXUS está a correr." }
+                "Nexos VPN integra o cliente oficial Cloudflare WARP instalado por ti. Ligar, desligar e testar exigem confirmação. A VPN própria WireGuard permanece indisponível. As medições pertencem ao PC onde a NEXUS está a correr." }
         };
         await dialog.ShowAsync();
     }

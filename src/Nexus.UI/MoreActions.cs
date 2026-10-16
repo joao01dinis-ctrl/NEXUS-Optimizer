@@ -16,7 +16,7 @@ public sealed partial class MainWindow
     private static readonly SearchTarget[] SearchTargets = [
         new("Proteção do PC — Microsoft Defender", "protection"), new("Antivírus, análises e quarentena", "protection"),
         new("Os meus jogos — deteção automática", "library"), new("Game Boost por jogo e perfis", "library"),
-        new("VPN opcional — estado e requisitos", "vpn"), new("GPU, NVIDIA e drivers", "hardware"),
+        new("Nexos VPN — Cloudflare WARP, ligação e latência", "vpn"), new("GPU, NVIDIA e drivers", "hardware"),
         new("Velocidade do ponteiro", "precision"), new("Favoritos e primeiros passos", "help"),
         new("Análise inteligente e otimização automática", "overview"), new("Aceleração do rato e precisão", "precision"),
         new("Calculadora de DPI e sensibilidade", "precision"), new("OpenAI e modo leve", "settings"), new("Tema claro e escuro", "settings"),
