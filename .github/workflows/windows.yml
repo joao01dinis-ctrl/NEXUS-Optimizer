@@ -39,7 +39,7 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md artifacts/app
+          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md,VPN-IMPLEMENTATION.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
       - name: Prepare the unsigned Store candidate without installing it
         shell: pwsh
@@ -116,6 +116,7 @@ jobs:
               @{ Page = 'library'; Light = '0'; Analyze = '0'; Fixtures = '1' },
               @{ Page = 'library'; Light = '1'; Analyze = '0'; Fixtures = '1' },
               @{ Page = 'vpn'; Light = '0'; Analyze = '0' },
+              @{ Page = 'vpn'; Light = '1'; Analyze = '0' },
               @{ Page = 'hardware'; Light = '0'; Analyze = '0' },
               @{ Page = 'protection'; Light = '0'; Analyze = '0' },
               @{ Page = 'protection'; Light = '1'; Analyze = '0' }
