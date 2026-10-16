@@ -47,7 +47,8 @@ public sealed partial class MainWindow
     private async void ShowVpnPlan(object sender, RoutedEventArgs e)
     {
         if (closed) return;
-        var text = "Estado real: fases de estudo e interface; ligação ainda indisponível.\n\n" +
+        var text = "Fase atual: integração independente do cliente oficial Cloudflare WARP. A NEXUS não redistribui o cliente nem aceita termos por ti. A ajuda da versão instalada tem de confirmar a CLI e cada pedido de rede exige confirmação. O modo apenas DNS não é apresentado como túnel.\n\n" +
+            "A VPN própria Nexos/WireGuard continua indisponível. Não foram contratados servidores ou criadas subscrições.\n\n" +
             "Proposta mínima: um servidor Linux na Europa com WireGuard oficial e uma API autenticada para registar dispositivos e distribuir apenas configurações individuais. Os componentes Windows têm de ser assinados e instalados com autorização.\n\n" +
             "Orçamento inicial estimado: 7–10 €/mês para um único nó de testes com IPv4 e impostos. Alojamento da API, manutenção, tráfego excedente e expansão podem acrescentar custos. Não foi contratado qualquer serviço.\n\n" +
             "Antes de disponibilizar: ligação real, revogação de dispositivos, chaves protegidas, testes de DNS/IPv6, falhas e reposição da conectividade. Kill Switch e split tunneling ficam indisponíveis até validação específica.\n\n" +

@@ -30,7 +30,7 @@ public sealed class SmartBoostNativeTests
         Assert.True(samples[^1].At - samples[0].At >= TimeSpan.FromSeconds(8));
         Assert.True(SmartBoost.IsFresh(report, DateTimeOffset.Now));
         Assert.All(originals, s => Assert.Equal(s.Value, WindowsSettings.Resolve(s.Key).Read()));
-        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        var repository = new DirectoryInfo(Environment.GetEnvironmentVariable("NEXUS_TEST_REPOSITORY") ?? AppContext.BaseDirectory);
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "src/Nexus.UI/Nexus.UI.csproj"))) repository = repository.Parent;
         Assert.NotNull(repository);
         var output = Path.Combine(repository!.FullName, "artifacts", "smart-boost-validation", "report.json");

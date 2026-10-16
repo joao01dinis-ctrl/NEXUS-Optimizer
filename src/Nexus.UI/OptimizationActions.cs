@@ -62,6 +62,7 @@ public sealed partial class MainWindow
     private void ShowPage(string page)
     {
         currentPage = page;
+        if (page != "vpn") vpnMeasurementCancellation?.Cancel();
         OverviewPanel.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
         OptimizePanel.Visibility = page == "optimize" ? Visibility.Visible : Visibility.Collapsed;
         GamingPanel.Visibility = page == "gaming" ? Visibility.Visible : Visibility.Collapsed;
@@ -83,6 +84,7 @@ public sealed partial class MainWindow
         InstalledGamesPanel.Visibility = page == "library" ? Visibility.Visible : Visibility.Collapsed;
         VpnPanel.Visibility = page == "vpn" ? Visibility.Visible : Visibility.Collapsed;
         HardwarePanel.Visibility = page == "hardware" ? Visibility.Visible : Visibility.Collapsed;
+        ProtectionPanel.Visibility = page == "protection" ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = page switch { "optimize" => "PC Boost", "gaming" => "Game Mode", "tuner" => "App Tuner", "memory" => "Memória", "network" => "Rede", "benchmark" => "Testes e FPS", "tools" or "utilities" => "Ferramentas do Windows", "history" => "Histórico e restauro", "preferences" or "apps" => "Windows", "latency" => "Latência", "tweaks" => "Tweaks", "autoclean" => "Auto Limpeza", "help" => "Ajuda", "catalog" => "Cobertura da referência", _ => "Início" };
         if (page == "precision") { PageTitle.Text = "Rato e precisão"; RefreshMousePrecision(this, new()); }
         if (page == "settings") PageTitle.Text = "Preferências e IA";
@@ -90,8 +92,9 @@ public sealed partial class MainWindow
         if (page == "optimize") PageTitle.Text = "Otimizar";
         if (page == "library") { PageTitle.Text = "Os meus jogos"; RenderInstalledGames(); }
         if (page == "gaming") PageTitle.Text = "Game Boost";
-        if (page == "vpn") PageTitle.Text = "Nexos VPN";
+        if (page == "vpn") { PageTitle.Text = "Nexos VPN"; RefreshVpnStatus(this, new()); }
         if (page == "hardware") { PageTitle.Text = "Hardware e GPU"; RefreshExtendedHardware(this, new()); }
+        if (page == "protection") { PageTitle.Text = "Proteção do PC"; RefreshProtection(this, new()); }
         foreach (var button in NavigationButtons.Children.OfType<Button>().Concat(AdvancedNavigationButtons.Children.OfType<Button>()))
             button.Background = Color((string)button.Tag == page ? "#302C50" : "#111525");
         if (page is "optimize" or "history") RefreshSystem();

@@ -1,6 +1,6 @@
 # Privacy policy
 
-NEXUS Optimizer 0.9.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
+NEXUS Optimizer 0.10.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
 advertising, cloud sync or automatic update client. No hardware inventory,
 process list, file paths or diagnostic logs are uploaded.
 
@@ -97,4 +97,18 @@ Smart Boost also reads installed graphics driver version and power/battery-saver
 
 A descoberta lê metadados de launchers e instalações acessíveis à conta atual. Nomes, raízes de instalação e preferências por jogo ficam na base de dados local até remoção dos dados da aplicação. Não são enviados para a OpenAI nem para servidores NEXUS. Perfis exportados incluem apenas nome e preferências visuais permitidas, sem caminhos de instalação ou credenciais.
 
-Nexos VPN não tem servidores ou ligação nesta revisão e não recolhe tráfego, IP público ou credenciais VPN. Não há alegação de proteção ou política no logs. Um futuro serviço depende de autorização e de uma política própria publicada antes de tratar tráfego.
+A VPN própria Nexos/WireGuard não tem servidores ou ligação. Não há alegação de proteção ou política no logs para um serviço próprio. Um futuro serviço depende de autorização e de uma política própria publicada antes de tratar tráfego.
+
+## Cloudflare WARP integration in revision 0.10
+
+Nexos VPN optionally detects the official Cloudflare WARP client in its documented Windows installation folders and validates its Authenticode signer before execution. Local `status`, `settings` and command-help queries are used to display state and compatibility; their raw output, account information and configuration are not logged or retained. These queries do not issue external NEXUS connectivity probes. WARP itself runs independently according to its own configuration and privacy policy.
+
+Installing WARP is assisted through the official Cloudflare Windows setup page. The user downloads, installs and accepts Cloudflare's terms personally. NEXUS does not redistribute WARP, create a Cloudflare registration, extract credentials, accept terms automatically or purchase WARP+. Confirmed connect/disconnect requests use the installed official CLI and its existing configuration. NEXUS never enables WARP from AI analysis or Game Boost and does not disconnect it automatically on exit.
+
+External verification requires separate confirmation and sends HTTPS requests to `https://www.cloudflare.com/cdn-cgi/trace` and ICMP probes to `1.1.1.1`. Cloudflare receives the source IP and ordinary request metadata. NEXUS keeps only the parsed WARP on/off/unknown indication, response availability, ICMP timings and timestamps in memory (at most twelve samples). The public IP and remaining trace payload are discarded, not written to logs/SQLite, exported or sent to OpenAI. Monitoring is limited to one minute, stops when leaving the page and can be cancelled. A test response does not establish complete traffic coverage or absence of DNS/IPv6 leaks.
+
+Cloudflare is an independent provider. Review its [application terms](https://www.cloudflare.com/application/terms/) and [application privacy policy](https://www.cloudflare.com/application/privacypolicy/) before use.
+
+## Windows protection in revision 0.10
+
+The protection page reads the Windows antivirus health and selected Microsoft Defender status fields locally. It does not read malware samples, threat file paths or send security information to OpenAI or NEXUS servers. Explicitly confirmed scans and signature updates are delegated to the active Microsoft Defender under the Windows policies and the current process rights. Defender may quarantine threats and contact its configured Microsoft services according to the Windows settings. These are not NEXUS undo operations. The local activity journal records only the requested action and command outcome; quarantine and detailed detection history remain in Windows Security. NEXUS does not change exclusions, security providers or protection settings. No scan or update starts just by opening this page.

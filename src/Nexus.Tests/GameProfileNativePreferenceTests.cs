@@ -27,25 +27,29 @@ public sealed class GameProfileNativePreferenceTests
         var root = Path.Combine(repository!.FullName, "artifacts", "native-game-profile-validation"); Directory.CreateDirectory(root);
         var profile = GameSessionOptions.BuiltIn.Single(p => p.Name == "Máximo");
         var original = profile.VisualKeys.ToDictionary(k => k, k => WindowsSettings.Resolve(k).Read());
+        var prepared = profile.VisualKeys.ToDictionary(k => k, _ => "1");
         var process = new ProcessState();
         ISystemSetting Resolve(string key) => key == process.Key ? process : WindowsSettings.Resolve(key);
         var optimizer = new SystemOptimizer(Path.Combine(root, "session.db"), Resolve);
         var sessions = new GameSessions(optimizer.DatabasePath, optimizer, Resolve);
         try
         {
+            foreach (var key in profile.VisualKeys) WindowsSettings.Resolve(key).Write(prepared[key]);
+            Assert.All(prepared, pair => Assert.Equal(pair.Value, WindowsSettings.Resolve(pair.Key).Read()));
             Assert.Equal("active", sessions.Start(process.Key, "Disposable profile test", priority: false, visualKeys: profile.VisualKeys).Status);
             var applied = profile.VisualKeys.ToDictionary(k => k, k => WindowsSettings.Resolve(k).Read());
             Assert.All(applied.Values, value => Assert.Equal("0", value));
             process.Ended = true;
             Assert.Equal("ended", sessions.Poll()!.Status);
             var restored = profile.VisualKeys.ToDictionary(k => k, k => WindowsSettings.Resolve(k).Read());
-            Assert.All(original, pair => Assert.Equal(pair.Value, restored[pair.Key]));
+            Assert.All(prepared, pair => Assert.Equal(pair.Value, restored[pair.Key]));
             Assert.All(optimizer.History(), record => Assert.Equal("reverted", record.State));
-            File.WriteAllText(Path.Combine(root, "result.json"), JsonSerializer.Serialize(new { Result = "PASS", Original = original, Applied = applied, Restored = restored, PriorityWrites = 0 }));
+            File.WriteAllText(Path.Combine(root, "result.json"), JsonSerializer.Serialize(new { Result = "PASS", Original = original, Prepared = prepared, Applied = applied, Restored = restored, ChangedValues = applied.Count(p => p.Value != prepared[p.Key]), PriorityWrites = 0 }));
         }
         finally
         {
             Assert.True(optimizer.RestoreAll().Complete);
+            foreach (var key in profile.VisualKeys) WindowsSettings.Resolve(key).Write(original[key]);
             Assert.All(original, pair => Assert.Equal(pair.Value, WindowsSettings.Resolve(pair.Key).Read()));
         }
     }

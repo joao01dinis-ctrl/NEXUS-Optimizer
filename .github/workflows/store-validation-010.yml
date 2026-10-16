@@ -1,0 +1,63 @@
+name: Validate NEXUS 0.10 packaged lifecycle
+on:
+  push:
+    branches: [nexus-v0.10-defender]
+    paths: ['.github/workflows/store-validation-010.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  packaged:
+    if: github.ref == 'refs/heads/nexus-v0.10-defender' && github.actor == 'joao01dinis-ctrl'
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: NEXUS-0.10-unsigned-Store-candidate
+          run-id: 38961709553
+          github-token: ${{ github.token }}
+          path: artifacts/store-candidate
+      - name: Verify the exact production candidate and unpack it only for the isolated test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Get-ChildItem artifacts/store-candidate -Filter '*.msix' | Select-Object -First 1
+          $hash = (Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256).Hash
+          if ($hash -ne 'AB9EEB3105BFE2397BC2EFE7ED305992DD881C52C941132C501115C6D2D3716C') { throw 'Unexpected production candidate.' }
+          $sdk = Get-ChildItem -LiteralPath (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin') -Directory |
+            Where-Object Name -Match '^\d+\.\d+\.\d+\.\d+$' | Sort-Object { [version]$_.Name } -Descending |
+            Where-Object { Test-Path (Join-Path $_.FullName 'x64/makeappx.exe') } | Select-Object -First 1
+          & (Join-Path $sdk.FullName 'x64/makeappx.exe') unpack /p $package.FullName /d artifacts/test-payload /no
+          if ($LASTEXITCODE -ne 0) { throw 'Unpack failed.' }
+          foreach ($name in @('AppxBlockMap.xml','[Content_Types].xml','AppxSignature.p7x')) {
+            $file = Join-Path $env:GITHUB_WORKSPACE "artifacts/test-payload/$name"
+            if (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file }
+          }
+          Get-ChildItem artifacts/test-payload -Recurse -File | Where-Object Extension -In '.exe','.dll','.xbf' |
+            ForEach-Object { [pscustomobject]@{ Path = $_.FullName.Substring((Join-Path $env:GITHUB_WORKSPACE 'artifacts/test-payload').Length); SHA256 = (Get-FileHash -LiteralPath $_.FullName).Hash } } |
+            ConvertTo-Json -Depth 3 | Set-Content artifacts/test-payload-files.json
+      - name: Validate installation, actual packaged Undo, update, retained data and reinstall
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & ./StorePreparation/Test-StorePackage.ps1 -ContentDirectory artifacts/test-payload -OutputDirectory artifacts/store-validation -InitialVersion '0.10.0.0' -UpdateVersion '0.10.1.0'
+          $report = Get-Content artifacts/store-validation/packaged-validation.json -Raw | ConvertFrom-Json
+          if ($report.Result -ne 'PASS' -or !$report.PackagedWindowsPreferenceAndUndoVerified -or !$report.DatabasePreservedAcrossUpdate -or !$report.DatabasePreservedAfterUninstall -or !$report.Reinstalled) { throw 'Packaged lifecycle verification failed.' }
+          $report | Add-Member -NotePropertyName ProductionCandidateSHA256 -NotePropertyValue 'AB9EEB3105BFE2397BC2EFE7ED305992DD881C52C941132C501115C6D2D3716C'
+          $report | Add-Member -NotePropertyName ProductionCandidateSource -NotePropertyValue '41d5f5b6c8e5ff86d7abc3b14298d53c3f29b0f4'
+          $report | ConvertTo-Json -Depth 8 | Set-Content artifacts/store-validation/packaged-validation.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NEXUS-0.10-packaged-lifecycle-validation
+          path: |
+            artifacts/store-validation/packaged-validation.json
+            artifacts/store-validation/screenshots
+            artifacts/store-validation/startup-diagnostics
+            artifacts/store-validation/makeappx-test-*.log
+            artifacts/test-payload-files.json
+          if-no-files-found: error
+          retention-days: 14

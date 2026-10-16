@@ -4,6 +4,7 @@
 *.user
 TestResults/
 artifacts/
+StorePreparation/builds/
 *.db*
 *.log
 .sdk/

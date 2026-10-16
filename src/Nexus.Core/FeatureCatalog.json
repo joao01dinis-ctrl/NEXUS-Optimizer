@@ -1059,8 +1059,22 @@
   {
     "Name": "Nexos VPN",
     "Page": "vpn",
-    "State": "Indisponível; estudo e interface",
-    "Note": "Sem servidores, componentes instalados ou ligação real. O utilizador escolheu não criar custos nesta fase. Não protege tráfego.",
+    "State": "Integração do cliente oficial Cloudflare WARP; instalação e autorização necessárias",
+    "Note": "Deteção com assinatura, pedidos confirmados e verificação de tráfego/latência opt-in. DNS sem túnel e respostas desconhecidas não são proteção confirmada. WireGuard próprio continua indisponível e sem servidores.",
     "Area": "Rede"
+  },
+  {
+    "Name": "Proteção com Microsoft Defender",
+    "Page": "protection",
+    "State": "Integração com o Windows; consulta local",
+    "Note": "Estado do antivírus e Defender, datas e definições reais disponíveis. Não é um motor próprio nem prova ausência de malware.",
+    "Area": "Proteção"
+  },
+  {
+    "Name": "Análises e atualização do Defender",
+    "Page": "protection",
+    "State": "Pedidos confirmados; direitos e fornecedor ativo",
+    "Note": "Análise rápida/completa ou atualização por cmdlets oficiais. Exige confirmação, Defender ativo e administrador. Deteções e quarentena ficam no Windows, sem Undo NEXUS.",
+    "Area": "Proteção"
   }
 ]
