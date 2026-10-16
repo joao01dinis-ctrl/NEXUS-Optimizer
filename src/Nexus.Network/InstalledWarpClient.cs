@@ -82,7 +82,8 @@ public sealed class InstalledWarpClient : ICloudflareWarpClient
     private static async Task<string> RunAsync(string executable, string command, CancellationToken cancellation)
     {
         if (command is not ("--help" or "status" or "settings" or "connect" or "disconnect")) throw new ArgumentException("Comando WARP não permitido.");
-        if (!CloudflareFileTrust.Verify(executable, Path.GetDirectoryName(executable)!)) throw new InvalidOperationException("A assinatura do WARP não pôde ser validada.");
+        if (!await Task.Run(() => CloudflareFileTrust.Verify(executable, Path.GetDirectoryName(executable)!), cancellation))
+            throw new InvalidOperationException("A assinatura do WARP não pôde ser validada.");
         var info = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         info.Environment.Remove("OPENAI_API_KEY"); info.ArgumentList.Add(command);
         using var process = new Process { StartInfo = info };
