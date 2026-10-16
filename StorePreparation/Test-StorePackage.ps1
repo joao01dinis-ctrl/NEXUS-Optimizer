@@ -1,4 +1,5 @@
-param([Parameter(Mandatory)][string]$ContentDirectory, [Parameter(Mandatory)][string]$OutputDirectory)
+param([Parameter(Mandatory)][string]$ContentDirectory, [Parameter(Mandatory)][string]$OutputDirectory,
+    [string]$InitialVersion = '0.10.0.0', [string]$UpdateVersion = '0.10.1.0')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted') {
@@ -7,6 +8,8 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hoste
 if (-not ([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw 'The official Windows unsigned-package test mechanism requires an administrator on the disposable runner.'
 }
+# The legacy test identity stays fixed to match the guarded in-app Undo test; it is never the production identity.
+if ($InitialVersion -notmatch '^\d+\.\d+\.\d+\.\d+$' -or $UpdateVersion -notmatch '^\d+\.\d+\.\d+\.\d+$' -or [version]$UpdateVersion -le [version]$InitialVersion) { throw 'Invalid installer test versions.' }
 $testName = 'NexusOptimizer.StoreValidation.07'
 if (Get-AppxPackage -Name $testName -AllUsers) { throw 'An existing test identity is present; refusing to modify it.' }
 $runRoot = [IO.Path]::GetFullPath($OutputDirectory)
@@ -104,6 +107,18 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
     [IO.Directory]::CreateDirectory($evidence) | Out-Null
     Copy-Item -LiteralPath (Join-Path $output 'dashboard.png'),(Join-Path $output 'smoke-test.json') -Destination $evidence
     if (Test-Path -LiteralPath (Join-Path $output 'packaged-undo.json')) { Copy-Item -LiteralPath (Join-Path $output 'packaged-undo.json') -Destination $evidence }
+    foreach ($name in @('library-vpn-readonly.json','protection-readonly.json')) {
+        $record = Join-Path $output $name
+        if (Test-Path -LiteralPath $record) { Copy-Item -LiteralPath $record -Destination $evidence }
+    }
+    if ($page -eq 'vpn') {
+        $vpn = Get-Content -LiteralPath (Join-Path $output 'library-vpn-readonly.json') -Raw | ConvertFrom-Json
+        if ($vpn.Result -ne 'PASS' -or $vpn.VpnControlRequests -ne 0 -or $vpn.VpnExternalSamples -ne 0) { throw 'Packaged VPN issued an unauthorized operation.' }
+    }
+    if ($page -eq 'protection') {
+        $protection = Get-Content -LiteralPath (Join-Path $output 'protection-readonly.json') -Raw | ConvertFrom-Json
+        if ($protection.Result -ne 'PASS' -or $protection.OperationsRequested -ne 0) { throw 'Packaged protection issued an unauthorized request.' }
+    }
     if ($result.PackageIdentity -ne $package.PackageFullName) { throw 'Process lacks the installed MSIX identity; portable startup is not a packaged test.' }
     if ($result.PrioritySelected -or $result.AnimationsSelected -or $result.PowerSelected) { throw 'Defaults selected a Windows change.' }
     Write-Host "Rendered packaged $page at $($result.Width)x$($result.Height) pixels."
@@ -124,18 +139,18 @@ function Invoke-PackageSmoke([string]$page, [string]$output) {
 try {
     $checks.HostedDesktopResolution = [NexusHostedDesktop]::Prepare()
     Write-Host "Hosted desktop: $($checks.HostedDesktopResolution)"
-    $first = New-TestPackage '0.7.0.0'
+    $first = New-TestPackage $InitialVersion
     Add-AppxPackage -Path $first -AllowUnsigned
     $installed = $true; $checks.Installed = $true
     $env:NEXUS_TEST_PACKAGED_UNDO = '1'
     Invoke-PackageSmoke 'overview' (Join-Path $dataRoot 'overview')
     Remove-Item Env:/NEXUS_TEST_PACKAGED_UNDO
-    foreach ($page in @('optimize','gaming','tweaks','history')) { Invoke-PackageSmoke $page (Join-Path $dataRoot $page) }
+    foreach ($page in @('optimize','gaming','tweaks','vpn','protection','history')) { Invoke-PackageSmoke $page (Join-Path $dataRoot $page) }
     $database = Join-Path $dataRoot 'history/nexus.db'
     $databaseHash = (Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash
-    $update = New-TestPackage '0.7.1.0'
+    $update = New-TestPackage $UpdateVersion
     Add-AppxPackage -Path $update -AllowUnsigned
-    if ((Get-AppxPackage -Name $testName).Version -ne [version]'0.7.1.0') { throw 'Package update did not occur.' }
+    if ((Get-AppxPackage -Name $testName).Version -ne [version]$UpdateVersion) { throw 'Package update did not occur.' }
     $checks.Updated = $true
     if ((Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash -ne $databaseHash) { throw 'Update changed or removed existing data.' }
     $checks.DatabasePreservedAcrossUpdate = $true
