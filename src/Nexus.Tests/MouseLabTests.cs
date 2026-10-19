@@ -10,7 +10,7 @@ public sealed class MouseLabTests : IDisposable
 {
     private readonly string root=Path.Combine(Path.GetTempPath(),"nexus-mouselab-tests-"+Guid.NewGuid().ToString("N"));
     private string Database=>Path.Combine(root,"nexus.db");
-    public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(root))Directory.Delete(root,true);}
+    public void Dispose(){TestSqliteCleanup.ReleasePools(root);if(Directory.Exists(root))Directory.Delete(root,true);}
     [Fact]public void SensitivityMathPreservesEdpiAndRequiresKnownAngularCoefficient()
     {Assert.Equal(800,MouseLabMath.Edpi(800,1));Assert.Equal(.5,MouseLabMath.ConvertDpi(800,1,1600));Assert.InRange(MouseLabMath.Cm360(800,1,.022),51.95454,51.95455);Assert.Equal(40,MouseLabMath.Calibrate(20,180));}
     [Theory][InlineData(double.NaN,1)][InlineData(800,double.PositiveInfinity)][InlineData(0,1)][InlineData(800,-1)]
@@ -48,4 +48,27 @@ public sealed class MouseLabTests : IDisposable
     {var provider=new WindowsMouseProvider();var device=new MouseDevice("test","test",null,null,"unknown",provider.Name);Assert.All(provider.Capabilities(device),c=>Assert.NotEqual("ReadWrite",c.Access.ToString()));Assert.Null(device.Dpi);Assert.Null(device.Sensor);}
     [Fact]public void ActualWindowsEnumerationIsReadOnlyAndMayHaveNoMouse()
     {if(!OperatingSystem.IsWindows())return;var devices=new WindowsMouseProvider().Detect();Assert.All(devices,d=>{Assert.NotEmpty(d.Id);Assert.NotEmpty(d.Name);Assert.Null(d.Dpi);Assert.Null(d.ConfiguredPolling);});}
+    [Fact]public void FullEightKhzCaptureHasBoundedProcessingMemoryAndGraph()
+    {
+        var samples=Enumerable.Range(0,MouseAnalyzer.MaximumSamples).Select(i=>new MouseSample(i*.125,1,0,0,0)).ToArray();
+        var allocated=GC.GetAllocatedBytesForCurrentThread();var watch=System.Diagnostics.Stopwatch.StartNew();
+        var result=MouseAnalyzer.Analyze(samples);watch.Stop();
+        Assert.InRange(GC.GetAllocatedBytesForCurrentThread()-allocated,0,64*1024*1024);
+        Assert.True(watch.Elapsed<TimeSpan.FromSeconds(5),"Bounded software analysis exceeded the test limit; this is not a game performance benchmark.");
+        Assert.Equal(8000,result.EventsPerSecond);Assert.InRange(result.IntervalGraph.Length,1,240);
+    }
+    [Fact]public void FixturePoolCleanupReleasesItsFilesWithoutClosingAnotherFixture()
+    {
+        var firstRoot=Path.Combine(root,"first");var first=new MouseLabStore(Path.Combine(firstRoot,"first.db"));
+        var other=new MouseLabStore(Path.Combine(root,"other.db"));var before=other.Profiles().Count;
+        TestSqliteCleanup.ReleasePools(firstRoot);Directory.Delete(firstRoot,true);
+        Assert.Equal(before,other.Profiles().Count);
+    }
+    [Fact]public void ExplicitGameProfileAndNeverModeSurviveBackupWithoutFallingBackToAnotherProfile()
+    {
+        var store=new MouseLabStore(Database);var p=MouseProfile.Defaults[0] with{Name="My CS2",Activation=MouseActivation.Never};store.Save(p);
+        Assert.Equal(p,store.GameProfiles().Single(x=>x.Game=="CS2"));
+        var other=new MouseLabStore(Path.Combine(root,"copy.db"));other.ImportProfiles(store.ExportProfiles());Assert.Equal(p,other.GameProfiles().Single(x=>x.Game=="CS2"));
+        Assert.Throws<InvalidDataException>(()=>other.ImportProfiles(JsonSerializer.Serialize(new MouseProfileBackup(1,[p],new(){{"FiveM",p.Name}}))));
+    }
 }

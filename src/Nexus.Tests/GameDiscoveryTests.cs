@@ -143,7 +143,7 @@ public sealed class GameDiscoveryTests : IDisposable
     }
     public void Dispose()
     {
-        SqliteConnection.ClearAllPools();
+        TestSqliteCleanup.ReleasePools(root);
         if (Directory.Exists(root)) Directory.Delete(root, true);
     }
 }

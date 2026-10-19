@@ -133,5 +133,5 @@ public sealed class ProductWorkflowTests : IDisposable
         Assert.False(WindowsSettings.PriorityEligible("custom", null));
         Assert.True(WindowsSettings.PriorityEligible("Game", @"C:\Games\Game.exe"));
     }
-    public void Dispose() { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); if (Directory.Exists(root)) Directory.Delete(root, true); }
+    public void Dispose() { TestSqliteCleanup.ReleasePools(root); if (Directory.Exists(root)) Directory.Delete(root, true); }
 }

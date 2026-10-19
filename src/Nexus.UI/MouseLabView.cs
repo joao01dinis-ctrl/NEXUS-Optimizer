@@ -52,9 +52,17 @@ public sealed class MouseLabView : UserControl, IDisposable
     public bool Capturing=>capture is not null;
     public bool AutomationEnabled=>automationEnabled;
     public int DeviceCount=>known.Count;
+    public string? RenderError {get;private set;}
+    public int RenderedSection {get;private set;}=-1;
     private static SolidColorBrush Brush(byte shade)=>new(Windows.UI.Color.FromArgb(255,shade,shade,shade));
     private static TextBlock Text(string text,double size=14)=>new(){Text=text,FontSize=size,TextWrapping=TextWrapping.Wrap,Foreground=Brush(225)};
     private static StackPanel Stack(params UIElement[] elements){var s=new StackPanel{Spacing=10};foreach(var e in elements)s.Children.Add(e);return s;}
+    private static Grid Columns(params UIElement[] elements)
+    {
+        var g=new Grid{ColumnSpacing=12,RowSpacing=10};g.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});g.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});
+        for(var i=0;i<(elements.Length+1)/2;i++)g.RowDefinitions.Add(new(){Height=GridLength.Auto});
+        for(var i=0;i<elements.Length;i++){Grid.SetRow(elements[i],i/2);Grid.SetColumn(elements[i],i%2);g.Children.Add(elements[i]);}return g;
+    }
     private static Border Card(string title,params UIElement[] elements)
     {var s=Stack(Text(title,19));foreach(var e in elements)s.Children.Add(e);return new(){Child=s,Background=Brush(22),BorderBrush=Brush(55),BorderThickness=new(1),CornerRadius=new(14),Padding=new(18)};}
     private Button Button(string label,Func<Task> action,string? help=null)
@@ -75,9 +83,9 @@ public sealed class MouseLabView : UserControl, IDisposable
     {
         this.owner=owner;this.optimizer=optimizer;this.library=library;this.conflict=conflict;this.confirm=confirm;
         Model=new(root);profileSession=new(optimizer);DataContext=Model;RequestedTheme=ElementTheme.Dark;
-        var header=Stack(Text("NEXOS MOUSE LAB",27),Text("Conhece o teu rato. Mede, treina e compara — com controlo sobre cada alteração."));
+        var header=Stack(Text("NEXOS MOUSE LAB",27),Text("Conhece o teu rato. Mede, treina e compara com controlo sobre cada alteração.",13));
         var status=Text("");status.SetBinding(TextBlock.TextProperty,new Binding{Source=Model,Path=new PropertyPath(nameof(Model.Status)),Mode=BindingMode.OneWay});
-        var rootPanel=Stack(Card("O teu espaço de precisão",header,advanced,navigation,devices,Button("Atualizar dispositivos",DetectAsync),status),body);
+        var rootPanel=Stack(new Border{Child=Stack(header,Columns(navigation,devices,advanced,Button("Atualizar dispositivos",DetectAsync)),status),Padding=new(18),CornerRadius=new(14),Background=Brush(22),BorderBrush=Brush(55),BorderThickness=new(1)},body);
         Content=new Border{Child=rootPanel,Background=Brush(12),Padding=new(4),CornerRadius=new(14)};
         navigation.ItemsSource=Sections;navigation.SelectionChanged+=(_,_)=>Render();
         advanced.Toggled+=(_,_)=>{Model.Advanced=advanced.IsOn;Render();};
@@ -108,11 +116,12 @@ public sealed class MouseLabView : UserControl, IDisposable
         if(body is null || disposed)return;
         FinishCapture("Teste interrompido ao mudar de separador.");FinishTraining("Treino interrompido ao mudar de separador.");
         body.Children.Clear();captureText=null;graph=null;trainingText=null;arena=null;target=null;secondTarget=null;
+        RenderError=null;RenderedSection=navigation.SelectedIndex;
         try { switch(navigation.SelectedIndex)
         {
             case 0: Dashboard();break;case 1: Settings();break;case 2: Sensor();break;case 3: Analyzer();break;case 4: Trainer();break;
             case 5: Sensitivity();break;case 6: Profiles();break;case 7: Health();break;case 8: Advanced();break;case 9: History();break;
-        } } catch(Exception ex) { Model.Status="Não foi possível carregar esta ferramenta: "+ex.Message;body.Children.Add(Card("Ferramenta temporariamente indisponível",Text("As restantes funções da NEXUS continuam disponíveis. Não foram aplicadas configurações.")));Nexus.Diagnostics.AppLog.Error(ex,"Mouse Lab render"); }
+        } } catch(Exception ex) { RenderError=ex.Message;Model.Status="Não foi possível carregar esta ferramenta: "+ex.Message;body.Children.Add(Card("Ferramenta temporariamente indisponível",Text("As restantes funções da NEXUS continuam disponíveis. Não foram aplicadas configurações.")));Nexus.Diagnostics.AppLog.Error(ex,"Mouse Lab render"); }
     }
     private void Dashboard()
     {
@@ -217,7 +226,7 @@ public sealed class MouseLabView : UserControl, IDisposable
         var difficulty=Choice("Dificuldade",new[]{"1 · Confortável","2 · Intermédia","3 · Pequenos alvos"});
         var dpi=Number("DPI declarado para esta sessão",800,50,100000);var sensitivity=Number("Sensibilidade declarada (registo)",1,.001,1000);
         trainingText=Text("Treino local de 30 segundos. Estes campos guardam contexto; não alteram o rato nem reproduzem a mira do jogo.");
-        arena=new Canvas{Height=360,Background=Brush(7),HorizontalAlignment=HorizontalAlignment.Stretch};
+        arena=new Canvas{Height=300,Background=Brush(7),HorizontalAlignment=HorizontalAlignment.Stretch};
         arena.PointerMoved+=(_,e)=>{if(exercise is null||arena is null)return;var p=e.GetCurrentPoint(arena);if(p.PointerDeviceType==Microsoft.UI.Input.PointerDeviceType.Mouse){var normalized=Normalize(p.Position.X,p.Position.Y);exercise.Move(normalized.X,normalized.Y);}};
         arena.PointerExited+=(_,_)=>exercise?.Move(null,null);
         arena.PointerPressed+=(_,e)=>
@@ -226,7 +235,7 @@ public sealed class MouseLabView : UserControl, IDisposable
             if(p.PointerDeviceType!=Microsoft.UI.Input.PointerDeviceType.Mouse||!p.Properties.IsLeftButtonPressed)return;
             var normalized=Normalize(p.Position.X,p.Position.Y);exercise.Click(normalized.X,normalized.Y,trainingClock.Elapsed.TotalSeconds);PaintTarget();e.Handled=true;
         };
-        body.Children.Add(Card("NEXOS Aim Trainer",mode,difficulty,dpi,sensitivity,
+        body.Children.Add(Card("NEXOS Aim Trainer",Columns(mode,difficulty,dpi,sensitivity),
             Button("Começar treino",()=>
             {
                 if(!active)return Task.CompletedTask;FinishCapture("Treino iniciado.");FinishTraining("Sessão anterior parada.");
@@ -273,7 +282,7 @@ public sealed class MouseLabView : UserControl, IDisposable
     {
         var game=Choice("Jogo",new[]{"Counter-Strike 2","FiveM / GTA V"});var dpi=Number("DPI declarado",800,50,100000);var sens=Number("Sensibilidade do jogo",1,.0001,1000);var targetDpi=Number("DPI pretendido",1600,50,100000);
         var yaw=Number("Coeficiente angular conhecido (graus/contagem/sensibilidade)",double.NaN,.000001,360);var result=Text("Preenche valores que conheças. Não lemos as definições do jogo.");
-        body.Children.Add(Card("Calculadora de sensibilidade",game,dpi,sens,targetDpi,Model.Advanced?yaw:Text("cm/360 por coeficiente angular está no modo avançado; a calibração manual está disponível abaixo."),
+        body.Children.Add(Card("Calculadora de sensibilidade",game,Columns(dpi,sens,targetDpi,Model.Advanced?yaw:Text("cm/360 por coeficiente angular está no modo avançado; a calibração manual está disponível abaixo.")),
             Button("Calcular e guardar comparação",()=>
             {
                 var edpi=MouseLabMath.Edpi(dpi.Value,sens.Value);var equivalent=MouseLabMath.ConvertDpi(dpi.Value,sens.Value,targetDpi.Value);
@@ -298,14 +307,14 @@ public sealed class MouseLabView : UserControl, IDisposable
         auto.Click+=async(_,_)=>await Execute(async()=>
         {
             if(auto.IsChecked!=true){automationEnabled=false;automationTimer.Stop();Model.Status="Acompanhamento desligado. Uma sessão ativa continua a ser reposta ao fechar ou ao terminar o jogo.";if(profileSession.Active)automationTimer.Start();return;}
-            var acceptedLibrary=library.Read().ToArray();var acceptedProfiles=Model.Store.Profiles().ToArray();
+            var acceptedLibrary=library.Read().ToArray();var acceptedProfiles=Model.Store.GameProfiles().ToArray();
             var automaticSummary=string.Join("\n",acceptedProfiles.Where(p=>p.Activation==MouseActivation.Automatic).Select(p=>$"{p.Name} ({p.Game}): velocidade {p.WindowsSpeed}/20; desligar aceleração {p.DisableAcceleration}"));
             if(!await confirm("Autorizar acompanhamento de jogos?","Enquanto a NEXOS estiver aberta, consulta os processos dos jogos registados na tua biblioteca a cada 5 segundos. Perfis 'Perguntar' exigem confirmação. Automático aplica apenas os valores guardados abaixo, com restauro ao terminar. Não escreve DPI, sensor, ficheiros do jogo nem prioridade. A autorização não persiste após fechar.\n\nPerfis automáticos revistos:\n"+(automaticSummary.Length==0?"Nenhum; todos exigem confirmação ou estão desativados.":automaticSummary))){auto.IsChecked=false;return;}
             automationLibrary=acceptedLibrary;automationProfiles=acceptedProfiles;
             automationEnabled=true;lastOfferedProcess=null;automationTimer.Start();Model.Status="Acompanhamento autorizado nesta execução. Usa os perfis e jogos guardados no momento da autorização; alterações exigem reativar.";
         });
-        body.Children.Add(Card("Gaming Profiles",profiles,name,game,dpi,polling,sens,speed,accel,activation,notes,
-            Button("Guardar perfil",async()=>{var p=Read();if(p.Activation==MouseActivation.Automatic&&!await confirm("Guardar aplicação automática?",$"O perfil {p.Name} poderá alterar velocidade Windows para {p.WindowsSpeed}/20"+(p.DisableAcceleration?" e desligar aceleração":"")+" quando autorizares o acompanhamento. DPI/polling são apenas valores pretendidos. Restauro no fim da sessão."))return;Model.Store.Save(p);PauseAutomation();auto.IsChecked=false;Model.Status="Perfil guardado. Nenhuma configuração foi aplicada. Reativa o acompanhamento para usar novos perfis.";profiles.ItemsSource=Model.Store.Profiles();profiles.SelectedItem=Model.Store.Profiles().First(x=>x.Name==p.Name);}),
+        body.Children.Add(Card("Gaming Profiles",profiles,Columns(name,game,dpi,polling,sens,speed,accel,activation),notes,
+            Button("Guardar e usar neste jogo",async()=>{var p=Read();if(p.Activation==MouseActivation.Automatic&&!await confirm("Guardar aplicação automática?",$"O perfil {p.Name} poderá alterar velocidade Windows para {p.WindowsSpeed}/20"+(p.DisableAcceleration?" e desligar aceleração":"")+" quando autorizares o acompanhamento. DPI/polling são apenas valores pretendidos. Restauro no fim da sessão."))return;Model.Store.Save(p);PauseAutomation();auto.IsChecked=false;Model.Status="Perfil guardado. Nenhuma configuração foi aplicada. Reativa o acompanhamento para usar novos perfis.";profiles.ItemsSource=Model.Store.Profiles();profiles.SelectedItem=Model.Store.Profiles().First(x=>x.Name==p.Name);}),
             Button("Aplicar apenas definições Windows deste perfil",async()=>{EnsureCanChange();var p=Read();var prepared=MouseProfileSession.Prepare(p,WindowsSettings.Resolve);if(!await confirm("Aplicar definições suportadas?",Describe(prepared)))return;EnsureCanChange();optimizer.ApplyBatch(prepared);Model.Status="Definições Windows verificadas. DPI, polling e sensor não foram alterados.";}),auto,
             Button("Terminar e restaurar sessão de rato",RestoreMouseAsync),Text("Automação usa a identidade e o caminho dos jogos da biblioteca existente. O perfil CS2/FiveM só é oferecido se o processo corresponder a uma instalação registada. Nenhuma alteração a ficheiros de jogo.")));
         BackupCard();
@@ -321,9 +330,9 @@ public sealed class MouseLabView : UserControl, IDisposable
     private void Advanced()
     {
         var priority=Choice("Prioridade",new[]{"Competitive FPS","Precision","Tracking","Balanced","Productivity"},3);var polling=Choice("Polling pretendido",MouseLabMath.PollingRates.Select(p=>p+" Hz"),3);var experience=Choice("Experiência",new[]{"Principiante","Intermédio","Experiente"});var preference=Choice("Preferência de sensibilidade",new[]{"Ainda a descobrir","Movimentos amplos","Movimentos curtos"});var result=Text("As recomendações são regras locais explicáveis; não enviam dados a uma IA externa.");
-        body.Children.Add(Card("Smart Mouse Optimization",priority,polling,experience,preference,
+        body.Children.Add(Card("Smart Mouse Optimization",Columns(priority,polling,experience,preference),
             Button("Analisar dados disponíveis",()=>
-            {var a=MousePrecision.ParseState(MousePrecision.Resolve().Read())[2]!=0;var rules=MouseRecommendations.Create((string)priority.SelectedItem=="Productivity"?"Productivity":"Gaming",Model.Analysis,a,MouseLabMath.PollingRates[polling.SelectedIndex]);result.Text=$"Experiência declarada: {experience.SelectedItem}; preferência: {preference.SelectedItem}. Não determinam uma sensibilidade ideal.\n\n"+string.Join("\n\n",rules.Select(r=>$"{r.Title}\nRazão: {r.Reason}\nBenefício possível: {r.Benefit}\nDesvantagem/limite: {r.Tradeoff}\nConfiança: {r.Confidence}"));return Task.CompletedTask;}),result,
+            {var a=MousePrecision.ParseState(MousePrecision.Resolve().Read())[2]!=0;var rules=MouseRecommendations.Create((string)priority.SelectedItem,Model.Analysis,a,MouseLabMath.PollingRates[polling.SelectedIndex]);result.Text=$"Experiência declarada: {experience.SelectedItem}; preferência: {preference.SelectedItem}. Não determinam uma sensibilidade ideal.\n\n"+string.Join("\n\n",rules.Select(r=>$"{r.Title}\nRazão: {r.Reason}\nBenefício possível: {r.Benefit}\nDesvantagem/limite: {r.Tradeoff}\nConfiança: {r.Confidence}"));return Task.CompletedTask;}),result,
             Button("Aplicar alterações suportadas — rever primeiro",()=>Navigate(1)),Button("Testar configuração",()=>Navigate(3)),Button("Restaurar definições anteriores",RestoreMouseAsync)));
         body.Children.Add(Card("Centro de ajuda",Text("Configuração: definições Windows têm restauro; hardware depende do fabricante. Análise: o teste mede entrega de eventos, incluindo influência da aplicação e do sistema. Treino: mede apenas este exercício. Importar perfis não os ativa. Capturas param ao sair/perder foco; automação só funciona com autorização nesta execução.")));
         BackupCard();

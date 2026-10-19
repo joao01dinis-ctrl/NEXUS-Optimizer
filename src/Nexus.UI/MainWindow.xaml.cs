@@ -56,7 +56,7 @@ public sealed partial class MainWindow : Window
                 {
                     await mouseLab!.ActivateAsync();
                     if(int.TryParse(Environment.GetEnvironmentVariable("NEXUS_MOUSE_LAB_SECTION"),out var section))mouseLab.SelectSection(section);
-                    if(mouseLab.Capturing || mouseLab.AutomationEnabled || mouseLab.HasActiveSession || optimizer.History().Count!=0)
+                    if(mouseLab.Capturing || mouseLab.AutomationEnabled || mouseLab.HasActiveSession || optimizer.History().Count!=0 || mouseLab.RenderError is not null || mouseLab.RenderedSection!=section)
                         throw new InvalidOperationException("Mouse Lab read-only validation changed Windows or started monitoring.");
                     File.WriteAllText(Path.Combine(output,"mouselab-readonly.json"),System.Text.Json.JsonSerializer.Serialize(new
                         {Result="PASS",Devices=mouseLab.DeviceCount,Section=section,WindowsChanges=0,Capturing=false,Automation=false}));

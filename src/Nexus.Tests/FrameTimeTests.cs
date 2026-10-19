@@ -100,6 +100,6 @@ public sealed class FrameTimeTests
             using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => FrameTimes.ReadFileAsync(path, cancelled.Token));
         }
-        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); Directory.Delete(root, true); }
+        finally { TestSqliteCleanup.ReleasePools(root); Directory.Delete(root, true); }
     }
 }

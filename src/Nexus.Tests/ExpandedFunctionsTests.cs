@@ -129,5 +129,5 @@ public sealed class ExpandedFunctionsTests : IDisposable
         Assert.Equal(25, selected.Count); Assert.True(selected.Sum(x => x.Bytes) <= 256 * 1048576L);
         Assert.All(selected, x => Assert.InRange(x.Bytes, 0, 10 * 1048576L));
     }
-    public void Dispose() { SqliteConnection.ClearAllPools(); Directory.Delete(root, true); }
+    public void Dispose() { TestSqliteCleanup.ReleasePools(root); Directory.Delete(root, true); }
 }

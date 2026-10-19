@@ -107,6 +107,8 @@ public static class MouseRecommendations
         if (acceleration && priority != "Productivity") result.Add(new("Experimentar sem aceleração", "A precisão melhorada está ativa no Windows.", "Pode facilitar consistência do ponteiro.", "Jogos com Raw Input podem ignorar esta opção; pode ser menos confortável no ambiente de trabalho.", "Média"));
         if (desiredPolling > 1000) result.Add(new("Comparar polling elevado", "2000–8000 Hz aumenta o número de eventos.", "Mais amostras quando hardware e jogo suportam.", "Mais CPU e bateria; não garante menor latência ou mais FPS.", "Média"));
         if (analysis?.GapsOver20Ms > 0) result.Add(new("Repetir o teste em movimento contínuo", "Foram observados intervalos superiores a 20 ms.", "Ajuda a distinguir pausas de irregularidades persistentes.", "Não identifica sozinho a causa; verifica ligação, carga e superfície.", "Baixa"));
+        var exercise=priority switch { "Competitive FPS"=>"Flick e Troca de alvos", "Precision"=>"Microajustes e calibração manual", "Tracking"=>"Tracking", "Productivity"=>"Conforto do ponteiro no ambiente de trabalho", _=>"Alternar Flick e Tracking" };
+        result.Add(new(exercise,"Prioridade escolhida: "+priority,"Ajuda a comparar conforto e resultados da tua utilização.","Não determina uma sensibilidade ideal nem altera o rato por si só.","Baixa — depende do utilizador"));
         return result;
     }
 }

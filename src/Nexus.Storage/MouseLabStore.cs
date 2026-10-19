@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Nexus.Storage;
 
 public sealed record MouseLabEntry(long Id, DateTimeOffset At, string Kind, string Label, string Json);
-public sealed record MouseProfileBackup(int Schema, MouseProfile[] Profiles);
+public sealed record MouseProfileBackup(int Schema, MouseProfile[] Profiles, Dictionary<string,string>? GameAssignments=null);
 public sealed class MouseLabStore
 {
     private readonly string connectionString;
@@ -37,9 +37,19 @@ public sealed class MouseLabStore
     }
     public void Save(MouseProfile profile)
     {
-        profile.Validate(); using var c=Open(); using var q=c.CreateCommand();
+        profile.Validate(); using var c=Open();using var tx=c.BeginTransaction(); using var q=c.CreateCommand();q.Transaction=tx;
         q.CommandText="INSERT INTO mouse_lab_profiles VALUES($n,$j) ON CONFLICT(name) DO UPDATE SET json=$j";
         q.Parameters.AddWithValue("$n",profile.Name); q.Parameters.AddWithValue("$j",JsonSerializer.Serialize(profile)); q.ExecuteNonQuery();
+        if(profile.Game is "CS2" or "FiveM")
+        {q.CommandText="INSERT INTO mouse_lab_metadata VALUES($k,$v) ON CONFLICT(key) DO UPDATE SET value=$v";q.Parameters.Clear();q.Parameters.AddWithValue("$k","game-profile-"+profile.Game);q.Parameters.AddWithValue("$v",profile.Name);q.ExecuteNonQuery();}
+        tx.Commit();
+    }
+    public IReadOnlyList<MouseProfile> GameProfiles()
+    {
+        var profiles=Profiles();var result=new List<MouseProfile>();using var c=Open();
+        foreach(var game in new[]{"CS2","FiveM"})
+        {using var q=c.CreateCommand();q.CommandText="SELECT value FROM mouse_lab_metadata WHERE key=$k";q.Parameters.AddWithValue("$k","game-profile-"+game);var name=q.ExecuteScalar() as string;var profile=profiles.FirstOrDefault(p=>p.Game==game&&p.Name==name)??profiles.FirstOrDefault(p=>p.Game==game);if(profile is not null)result.Add(profile);}
+        return result;
     }
     public long Record<T>(string kind,string label,T value)
     {
@@ -59,7 +69,7 @@ public sealed class MouseLabStore
         q.Parameters.AddWithValue("$k",(object?)kind??DBNull.Value);using var r=q.ExecuteReader();var result=new List<MouseLabEntry>();
         while(r.Read())result.Add(new(r.GetInt64(0),DateTimeOffset.Parse(r.GetString(1)),r.GetString(2),r.GetString(3),r.GetString(4)));return result;
     }
-    public string ExportProfiles()=>JsonSerializer.Serialize(new MouseProfileBackup(1,Profiles().ToArray()),new JsonSerializerOptions{WriteIndented=true});
+    public string ExportProfiles()=>JsonSerializer.Serialize(new MouseProfileBackup(1,Profiles().ToArray(),GameProfiles().ToDictionary(p=>p.Game,p=>p.Name)),new JsonSerializerOptions{WriteIndented=true});
     public void ImportProfiles(string json)
     {
         if (System.Text.Encoding.UTF8.GetByteCount(json)>MaxImportBytes) throw new InvalidDataException("Backup superior a 256 KiB.");
@@ -67,12 +77,17 @@ public sealed class MouseLabStore
         if(backup.Schema!=1 || backup.Profiles is null || backup.Profiles.Length is <1 or >100 || backup.Profiles.Any(p=>p is null) || backup.Profiles.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=backup.Profiles.Length)
             throw new InvalidDataException("Formato, versão ou nomes duplicados no backup.");
         foreach(var p in backup.Profiles)p.Validate();
+        if(backup.GameAssignments is {} assignments && (assignments.Count>2 || assignments.Any(a=>a.Key is not ("CS2" or "FiveM") || !backup.Profiles.Any(p=>p.Name==a.Value && p.Game==a.Key))))
+            throw new InvalidDataException("Associação de jogo inválida no backup.");
         // All validation precedes the transaction: a malformed import cannot partially replace profiles.
         using var c=Open();using var tx=c.BeginTransaction();
         foreach(var p in backup.Profiles)
         {
             using var q=c.CreateCommand();q.Transaction=tx;q.CommandText="INSERT INTO mouse_lab_profiles VALUES($n,$j) ON CONFLICT(name) DO UPDATE SET json=$j";
             q.Parameters.AddWithValue("$n",p.Name);q.Parameters.AddWithValue("$j",JsonSerializer.Serialize(p));q.ExecuteNonQuery();
-        }tx.Commit();
+        }
+        foreach(var a in backup.GameAssignments??[])
+        {using var q=c.CreateCommand();q.Transaction=tx;q.CommandText="INSERT INTO mouse_lab_metadata VALUES($k,$v) ON CONFLICT(key) DO UPDATE SET value=$v";q.Parameters.AddWithValue("$k","game-profile-"+a.Key);q.Parameters.AddWithValue("$v",a.Value);q.ExecuteNonQuery();}
+        tx.Commit();
     }
 }

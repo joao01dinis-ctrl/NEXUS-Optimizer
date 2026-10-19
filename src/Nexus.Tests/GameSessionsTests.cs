@@ -152,7 +152,7 @@ public sealed class GameSessionsTests : IDisposable
     }
     public void Dispose()
     {
-        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        TestSqliteCleanup.ReleasePools(root);
         if (Directory.Exists(root)) Directory.Delete(root, true);
     }
 }

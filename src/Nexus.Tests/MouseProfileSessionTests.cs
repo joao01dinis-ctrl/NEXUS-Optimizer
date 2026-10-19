@@ -13,7 +13,7 @@ public sealed class MouseProfileSessionTests:IDisposable
     private readonly Dictionary<string,Setting> values=new(){[MousePrecision.SpeedKey]=new(MousePrecision.SpeedKey,"12"),[MousePrecision.AccelerationKey]=new(MousePrecision.AccelerationKey,"6,10,1"),[Process]=new(Process,"Normal")};
     private ISystemSetting Resolve(string key)=>values[key];
     private SystemOptimizer Optimizer()=>new(Path.Combine(root,"nexus.db"),Resolve);
-    public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(root))Directory.Delete(root,true);}
+    public void Dispose(){TestSqliteCleanup.ReleasePools(root);if(Directory.Exists(root))Directory.Delete(root,true);}
     [Fact]public void ProcessExitRestoresCapturedValuesWithoutChangingPriorityOrHardware()
     {var o=Optimizer();var session=new MouseProfileSession(o,Resolve);session.Start(MouseProfile.Defaults[0],Process);Assert.True(session.Active);Assert.Equal("10",values[MousePrecision.SpeedKey].Value);Assert.Equal("0,0,0",values[MousePrecision.AccelerationKey].Value);Assert.Equal("Normal",values[Process].Value);values[Process].Value="ended";session.Poll();Assert.False(session.Active);Assert.Equal("12",values[MousePrecision.SpeedKey].Value);Assert.Equal("6,10,1",values[MousePrecision.AccelerationKey].Value);Assert.All(o.History(),x=>Assert.Equal("reverted",x.State));}
     [Fact]public void ReopenedInstanceRequiresExplicitRecoveryAndDoesNotAutoRestoreLiveOwner()

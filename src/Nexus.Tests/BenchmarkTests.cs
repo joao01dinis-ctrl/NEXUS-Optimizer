@@ -40,7 +40,7 @@ public sealed class BenchmarkTests
             Assert.Throws<ArgumentException>(() => store.Save(Sample(double.PositiveInfinity)));
             Assert.Equal(second, Assert.Single(store.History(1)));
         }
-        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); Directory.Delete(root, true); }
+        finally { TestSqliteCleanup.ReleasePools(root); Directory.Delete(root, true); }
     }
     [Fact] public async Task ExcessiveDurationIsRejected()
     {
