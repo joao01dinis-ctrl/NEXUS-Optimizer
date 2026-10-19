@@ -25,6 +25,8 @@ public sealed class MouseLabTests : IDisposable
     {var a=MouseAnalyzer.Analyze([new(0,10,10,0,0,true),new(1,20,20,1,120,true)]);Assert.Equal(0,a.Movements);Assert.Equal(2,a.AbsoluteEvents);Assert.Null(a.EventsPerSecond);Assert.Null(a.DiagnosticScore);Assert.Equal(1,a.Clicks);Assert.Equal(1,a.WheelEvents);Assert.Throws<ArgumentException>(()=>MouseAnalyzer.Analyze([new(2,1,0,0,0),new(1,1,0,0,0)]));}
     [Fact]public void ClickPairsAreObservationsAndCaptureLossSuppressesScore()
     {var samples=Enumerable.Range(0,2001).Select(i=>new MouseSample(i,1,0,(ushort)(i is 10 or 20?1:0),0)).ToArray();var a=MouseAnalyzer.Analyze(samples,1);Assert.Equal(1,a.CloseClickPairs);Assert.Equal(10,a.MeanClickIntervalMs);Assert.Null(a.DiagnosticScore);}
+    [Fact]public void ButtonTesterCountsPressTransitionsAndNotReleases()
+    {var a=MouseAnalyzer.Analyze([new(0,0,0,1|4|16|64|256,0),new(1,0,0,2|8|32|128|512,0),new(2,0,0,1,0)]);Assert.Equal(new[]{2,1,1,1,1},a.ButtonPresses);}
     [Fact]public void Existing010ProfilesHistoryAndSettingsSurviveMouseLabInitialization()
     {
         var old=new ProfileStore(Database);old.Apply("Gaming");var before=old.History().Count;

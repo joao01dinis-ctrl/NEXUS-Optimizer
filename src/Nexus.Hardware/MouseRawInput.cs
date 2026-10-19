@@ -81,6 +81,8 @@ public sealed class MouseRawCapture : IDisposable
     public bool Active {get;private set;}
     public string? StopReason {get;private set;}
     public int Discarded {get;private set;}
+    public ushort ObservedButtons {get;private set;}
+    public int WheelEvents {get;private set;}
     public double ElapsedMs=>watch.Elapsed.TotalMilliseconds;
     public IReadOnlyList<MouseSample> Samples=>samples;
     public MouseRawCapture(nint hwnd,string path)
@@ -119,8 +121,13 @@ public sealed class MouseRawCapture : IDisposable
                     else if(Marshal.ReadInt32(buffer)==0 && Marshal.ReadIntPtr(buffer,8)==selectedHandle)
                     {
                         if(samples.Count>=MouseAnalyzer.MaximumSamples){Discarded++;Stop("Limite de amostras atingido.");}
-                        else samples.Add(new(watch.Elapsed.TotalMilliseconds,Marshal.ReadInt32(buffer,36),Marshal.ReadInt32(buffer,40),
-                            unchecked((ushort)Marshal.ReadInt16(buffer,28)),Marshal.ReadInt16(buffer,30), (Marshal.ReadInt16(buffer,24)&1)!=0));
+                        else
+                        {
+                            var buttons=unchecked((ushort)Marshal.ReadInt16(buffer,28));
+                            var wheel=(buttons&0x0C00)!=0?Marshal.ReadInt16(buffer,30):(short)0;
+                            ObservedButtons|=buttons;if(wheel!=0)WheelEvents++;
+                            samples.Add(new(watch.Elapsed.TotalMilliseconds,Marshal.ReadInt32(buffer,36),Marshal.ReadInt32(buffer,40),buttons,wheel,(Marshal.ReadInt16(buffer,24)&1)!=0));
+                        }
                     }
                 }
             }

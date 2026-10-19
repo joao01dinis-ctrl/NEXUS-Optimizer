@@ -57,7 +57,7 @@ public sealed class MouseLabView : UserControl, IDisposable
     private static SolidColorBrush Brush(byte shade)=>new(Windows.UI.Color.FromArgb(255,shade,shade,shade));
     private static TextBlock Text(string text,double size=14)=>new(){Text=text,FontSize=size,TextWrapping=TextWrapping.Wrap,Foreground=Brush(225)};
     private static StackPanel Stack(params UIElement[] elements){var s=new StackPanel{Spacing=10};foreach(var e in elements)s.Children.Add(e);return s;}
-    private static Grid Columns(params UIElement[] elements)
+    private static Grid Columns(params FrameworkElement[] elements)
     {
         var g=new Grid{ColumnSpacing=12,RowSpacing=10};g.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});g.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});
         for(var i=0;i<(elements.Length+1)/2;i++)g.RowDefinitions.Add(new(){Height=GridLength.Auto});
@@ -193,8 +193,8 @@ public sealed class MouseLabView : UserControl, IDisposable
         if(!c.Active || c.ElapsedMs>=15000){FinishCapture(c.StopReason??"Teste de 15 segundos concluído.");return;}
         if(captureText is not null)
         {
-            var b=c.Samples.Aggregate(0,(flags,s)=>flags|s.Buttons);
-            captureText.Text=$"{c.ElapsedMs/1000:F1} / 15 s · {c.Samples.Count} eventos · botões observados: esquerdo {(b&1)!=0}, direito {(b&4)!=0}, meio {(b&16)!=0}, lateral 1 {(b&64)!=0}, lateral 2 {(b&256)!=0} · roda: {c.Samples.Count(s=>s.Wheel!=0)}";
+            var b=c.ObservedButtons;
+            captureText.Text=$"{c.ElapsedMs/1000:F1} / 15 s · {c.Samples.Count} eventos · botões observados: esquerdo {(b&1)!=0}, direito {(b&4)!=0}, meio {(b&16)!=0}, lateral 1 {(b&64)!=0}, lateral 2 {(b&256)!=0} · roda: {c.WheelEvents}";
         }
         var recent=c.Samples.TakeLast(160).Where(s=>!s.Absolute && (s.X!=0||s.Y!=0)).ToArray();
         DrawGraph(recent.Zip(recent.Skip(1),(a,b)=>b.Ms-a.Ms).ToArray());
@@ -212,7 +212,7 @@ public sealed class MouseLabView : UserControl, IDisposable
         catch(Exception e){Model.Status="Não foi possível guardar o resultado: "+e.Message;}
         finally{c.Dispose();}
     }
-    private static string Format(MouseAnalysis a)=>$"{a.Movements} eventos de movimento relativo · frequência média observada: {N(a.EventsPerSecond)} eventos/s\nIntervalo mediano {N(a.MedianIntervalMs)} ms · P95 {N(a.P95IntervalMs)} ms · desvio {N(a.IntervalDeviationMs)} ms\n{a.GapsOver20Ms} intervalos >20 ms (inclui pausas) · {a.Clicks} cliques esquerdos · intervalo médio entre cliques {N(a.MeanClickIntervalMs)} ms · {a.CloseClickPairs} pares <30 ms\n{a.WheelEvents} eventos de roda · {a.AbsoluteEvents} eventos absolutos · {a.Discarded} leituras perdidas\nÍndice de continuidade de entrega: {(a.DiagnosticScore is {} score?score+"/100 (% de intervalos >0 e ≤20 ms)":"amostra insuficiente ou incompatível")}. Não avalia a habilidade, o sensor ou FPS.";
+    private static string Format(MouseAnalysis a)=>$"{a.Movements} eventos de movimento relativo · frequência média observada: {N(a.EventsPerSecond)} eventos/s\nIntervalo mediano {N(a.MedianIntervalMs)} ms · P95 {N(a.P95IntervalMs)} ms · desvio {N(a.IntervalDeviationMs)} ms\n{a.GapsOver20Ms} intervalos >20 ms (inclui pausas) · {a.Clicks} cliques esquerdos · intervalo médio entre cliques {N(a.MeanClickIntervalMs)} ms · {a.CloseClickPairs} pares <30 ms\nBotões E/D/meio/lateral 1/lateral 2: {(a.ButtonPresses is {} presses?string.Join(" / ",presses):"não disponível")}\n{a.WheelEvents} eventos de roda · {a.AbsoluteEvents} eventos absolutos · {a.Discarded} leituras perdidas\nÍndice de continuidade de entrega: {(a.DiagnosticScore is {} score?score+"/100 (% de intervalos >0 e ≤20 ms)":"amostra insuficiente ou incompatível")}. Não avalia a habilidade, o sensor ou FPS.";
     private static string N(double? value)=>value?.ToString("F2",CultureInfo.CurrentCulture)??"não disponível";
     private void DrawGraph(double[] values)
     {
@@ -277,6 +277,17 @@ public sealed class MouseLabView : UserControl, IDisposable
             Text(string.Join("\n",completed.GroupBy(x=>(x.Record.Result.Mode,x.Record.Result.Difficulty)).Select(g=>$"Recorde {g.Key.Mode} nível {g.Key.Difficulty}: {(g.Key.Mode==AimMode.Tracking?g.Max(x=>x.Record.Result.TrackingPercent):g.Max(x=>x.Record.Result.Accuracy)):F1}%")))));
         var week=completed.Where(e=>e.At>=DateTimeOffset.UtcNow.AddDays(-7)).GroupBy(e=>e.At.ToLocalTime().Date).OrderBy(g=>g.Key).Select(g=>$"{g.Key:dd/MM}: {g.Count()} treinos completos");
         body.Children.Add(Card("Últimos sete dias",Text(week.Any()?string.Join("\n",week):"Ainda sem treinos completos nesta semana.")));
+        foreach(var group in completed.GroupBy(x=>(x.Record.Result.Mode,x.Record.Result.Difficulty)).Take(5))
+        {
+            var plot=Stack(Text("Precisão / tracking: escala de 0 a 100%. Só sessões completas do mesmo exercício e dificuldade."));
+            foreach(var item in group.OrderBy(x=>x.At).TakeLast(7))
+            {
+                var r=item.Record.Result;var value=r.Mode==AimMode.Tracking?r.TrackingPercent:r.Accuracy;
+                plot.Children.Add(Text($"{item.At.ToLocalTime():dd/MM HH:mm} · {value:F1}% · {r.Hits} acertos · {r.DeclaredDpi} DPI declarados · sens. {r.Sensitivity:G4}",12));
+                plot.Children.Add(new ProgressBar{Minimum=0,Maximum=100,Value=value,Height=7,Foreground=Brush(245)});
+            }
+            body.Children.Add(Card($"Evolução · {group.Key.Mode}, nível {group.Key.Difficulty}",plot));
+        }
     }
     private void Sensitivity()
     {
@@ -352,6 +363,18 @@ public sealed class MouseLabView : UserControl, IDisposable
         var history=Model.Store.History();body.Children.Add(Card("Histórico local",Text(history.Count==0?"Ainda sem testes, treinos ou comparações.":string.Join("\n",history.Take(25).Select(e=>$"{e.At.ToLocalTime():dd/MM HH:mm} · {e.Kind} · {e.Label}"))),Button("Atualizar histórico",()=>{Render();return Task.CompletedTask;})));
         var changes=optimizer.History().Where(x=>x.Key is MousePrecision.SpeedKey or MousePrecision.AccelerationKey).Take(20);
         body.Children.Add(Card("Alterações Windows e recuperação",Text(profileSession.RecoveryRequired?"Há uma sessão interrompida por recuperar. Usa Restaurar.":profileSession.Active?"Sessão temporária ativa: "+profileSession.ActiveProfile:"Sem sessão temporária ativa."),Text(string.Join("\n",changes.Select(x=>$"{x.Name}: {x.Before} → {x.After} · {x.State}"))),Button("Restaurar alterações do rato",RestoreMouseAsync)));
+        var training=Model.Store.History("training").Select(e=>new EntryChoice(e)).ToArray();
+        var trainingBefore=new ComboBox{Header="Treino anterior",ItemsSource=training,HorizontalAlignment=HorizontalAlignment.Stretch};
+        var trainingAfter=new ComboBox{Header="Treino posterior",ItemsSource=training,HorizontalAlignment=HorizontalAlignment.Stretch};
+        if(training.Length>0)trainingAfter.SelectedIndex=0;if(training.Length>1)trainingBefore.SelectedIndex=1;
+        var trainingResult=Text("Seleciona duas sessões completas do mesmo modo e dificuldade.");
+        body.Children.Add(Card("Comparar treinos",Columns(trainingBefore,trainingAfter),Button("Comparar sessões",()=>
+        {
+            if(trainingBefore.SelectedItem is not EntryChoice b || trainingAfter.SelectedItem is not EntryChoice a || b.Entry.Id==a.Entry.Id)throw new ArgumentException("Seleciona duas sessões diferentes.");
+            var x=JsonSerializer.Deserialize<MouseTrainingRecord>(b.Entry.Json)!;var y=JsonSerializer.Deserialize<MouseTrainingRecord>(a.Entry.Json)!;
+            if(!x.Completed || !y.Completed || x.Result.Mode!=y.Result.Mode || x.Result.Difficulty!=y.Result.Difficulty)throw new ArgumentException("Compara sessões completas do mesmo modo e dificuldade.");
+            trainingResult.Text=$"{x.Result.Mode}, nível {x.Result.Difficulty}\nPrecisão: {x.Result.Accuracy:F1}% → {y.Result.Accuracy:F1}%\nTracking: {x.Result.TrackingPercent:F1}% → {y.Result.TrackingPercent:F1}%\nResposta média observada: {N(x.Result.MeanResponseMs)} → {N(y.Result.MeanResponseMs)} ms\nDPI declarados: {x.Result.DeclaredDpi} → {y.Result.DeclaredDpi}; sensibilidade declarada: {x.Result.Sensitivity:G4} → {y.Result.Sensitivity:G4}.\nVariações de treino não demonstram efeito causal de uma configuração ou ganho num jogo.";return Task.CompletedTask;
+        }),trainingResult));
         BackupCard();RenderTrainingHistory();
     }
     private void BackupCard()=>body.Children.Add(Card("Backups e relatórios",Button("Exportar perfis (JSON)",()=>SaveTextAsync("NEXOS-Mouse-Profiles",Model.Store.ExportProfiles())),Button("Importar perfis (não os aplica)",ImportAsync),Button("Exportar relatório local",()=>SaveTextAsync("NEXOS-Mouse-Report",JsonSerializer.Serialize(new{Schema=1,GeneratedAt=DateTimeOffset.UtcNow,Limitations=MouseAnalysis.Limitation,Events=Model.Store.History()},new JsonSerializerOptions{WriteIndented=true}))),Text("O backup contém preferências declaradas. Não importa o diário de alterações do Windows de outro PC nem aplica configurações automaticamente.")));

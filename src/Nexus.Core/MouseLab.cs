@@ -64,7 +64,7 @@ public static class MouseLabMath
 public readonly record struct MouseSample(double Ms, int X, int Y, ushort Buttons, short Wheel, bool Absolute = false);
 public sealed record MouseAnalysis(int Samples, int Movements, int Clicks, int WheelEvents, int AbsoluteEvents, int Discarded,
     double? EventsPerSecond, double? MedianIntervalMs, double? P95IntervalMs, double? IntervalDeviationMs,
-    int GapsOver20Ms, double? MeanClickIntervalMs, int CloseClickPairs, int? DiagnosticScore, double[] IntervalGraph)
+    int GapsOver20Ms, double? MeanClickIntervalMs, int CloseClickPairs, int? DiagnosticScore, double[] IntervalGraph, int[]? ButtonPresses=null)
 {
     public const string Limitation = "Intervalos de entrega de eventos no Windows, não latência física. Pausas, movimento lento, fila da aplicação e carga de CPU alteram o resultado. Cliques próximos não provam defeito ou debounce incorreto.";
 }
@@ -92,7 +92,8 @@ public static class MouseAnalyzer
         return new(samples.Count, movement.Length, clicks.Length, samples.Count(s => s.Wheel != 0), samples.Count(s=>s.Absolute), discarded,
             duration > 0 ? (movement.Length-1)*1000/duration : null, median, sorted.Length == 0 ? null : Percentile(sorted,.95), deviation,
             intervals.Count(x=>x>20), clickTimes.Length == 0 ? null : clickTimes.Average(), clickTimes.Count(x=>x<30), score,
-            intervals.Where((_,i)=>i % Math.Max(1,(int)Math.Ceiling(intervals.Length/240.0)) == 0).Take(240).ToArray());
+            intervals.Where((_,i)=>i % Math.Max(1,(int)Math.Ceiling(intervals.Length/240.0)) == 0).Take(240).ToArray(),
+            new[]{1,4,16,64,256}.Select(mask=>samples.Count(s=>(s.Buttons&mask)!=0)).ToArray());
     }
     private static double Percentile(double[] sorted,double p) => sorted[(int)Math.Ceiling((sorted.Length-1)*p)];
 }
