@@ -1,0 +1,56 @@
+name: Import locally reviewed Mouse Lab source
+on:
+  push:
+    branches: [nexus-v1.0-mouse-lab]
+    paths: ['nexus-mouse-source-100.zip', '.github/workflows/import-source-100.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+jobs:
+  import:
+    if: github.ref == 'refs/heads/nexus-v1.0-mouse-lab' && github.actor == 'joao01dinis-ctrl'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: nexus-v1.0-mouse-lab
+      - name: Verify the exact reviewed source archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-mouse-source-100.zip'
+          if (!(Test-Path -LiteralPath $archive)) { Write-Host 'Reviewed source already imported.'; exit 0 }
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne 'AC5025E00CCFF5F3C902FA01A8C6F276DB7900047FAC20CC41A6022B48E95822') { throw 'Source archive integrity check failed.' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($archive)
+          try {
+            $root = [IO.Path]::GetFullPath($env:GITHUB_WORKSPACE).TrimEnd('\') + '\'
+            foreach ($entry in $zip.Entries) {
+              if ($entry.FullName -notmatch '^(src/[A-Za-z0-9._/-]+\.(cs|csproj|xaml)|StorePreparation/[A-Za-z0-9._/-]+\.(ps1|py)|Directory.Build.props|MOUSE-LAB.md|PRIVACY.md|README.md)$') { throw 'Unexpected archive entry.' }
+              if ($entry.Length -gt 1048576) { throw 'Oversized archive entry.' }
+              $target = [IO.Path]::GetFullPath((Join-Path $root $entry.FullName))
+              if (!$target.StartsWith($root,[StringComparison]::OrdinalIgnoreCase)) { throw 'Archive path escaped the checkout.' }
+              [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
+              [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$true)
+            }
+          } finally { $zip.Dispose() }
+      - name: Commit the reviewed source and run the full validation
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src StorePreparation Directory.Build.props MOUSE-LAB.md PRIVACY.md README.md
+          if (Test-Path -LiteralPath nexus-mouse-source-100.zip) { git rm -- nexus-mouse-source-100.zip }
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m 'Import locally reviewed Mouse Lab 1.0 source, tests and documentation'
+            if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
+            git push origin HEAD:nexus-v1.0-mouse-lab
+            if ($LASTEXITCODE -ne 0) { throw 'Source publication failed.' }
+          }
+          gh workflow run windows.yml --ref nexus-v1.0-mouse-lab --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) { throw 'Validation dispatch failed.' }
