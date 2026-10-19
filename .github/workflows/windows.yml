@@ -20,6 +20,18 @@ jobs:
         run: dotnet restore NexusOptimizer.sln --configfile NuGet.Config
       - name: Build
         run: dotnet build NexusOptimizer.sln -c Release --no-restore
+      - name: Check tracked distribution inputs for accidental credentials
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($file in (git ls-files)) {
+            if ($file -match '(^|/)\.env($|\.)' -and $file -notmatch '\.example$') { throw 'A private environment file is tracked.' }
+            if ($file -match '\.(pfx|p12|key|pem)$') { throw 'Private key material must not be distributed.' }
+            if ($file -match '\.(cs|json|md|yml|yaml|ps1|cmd|props|xml|config)$') {
+              $text = Get-Content -LiteralPath $file -Raw
+              if ($text -match '(sk-proj-[A-Za-z0-9_-]{35,}|gh[pousr]_[A-Za-z0-9]{30,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)') { throw "Potential credential detected in $file; contents withheld." }
+            }
+          }
       - name: Test
         shell: pwsh
         run: |
@@ -39,14 +51,19 @@ jobs:
           foreach ($name in @('Nexus.UI.exe', 'Nexus.Core.dll', 'App.xbf', 'MainWindow.xbf', 'Nexus.UI.pri')) {
             if (!(Test-Path "artifacts/app/$name")) { throw "Missing publication file: $name" }
           }
-          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md,VPN-IMPLEMENTATION.md artifacts/app
+          Copy-Item LICENSE,README.md,USAGE.md,PRIVACY.md,CODE_SIGNING.md,THIRD_PARTY_NOTICES.md,FEATURES.md,VIDEO-FEATURES.md,TL-PARITY.md,TIKTOK-REVIEW.md,FPS-VALIDATION.md,FIVEM-VALIDATION.md,VALIDATION.md,DESIGN-08.md,VALIDATION-08.md,AUDIT-09.md,NEXOS-VPN-STUDY.md,VALIDATION-09.md,PROTECTION.md,VPN-IMPLEMENTATION.md,MOUSE-LAB.md artifacts/app
           Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
+          $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.Version
+          Copy-Item artifacts/NEXUS-Optimizer-win-x64-unsigned.zip "artifacts/NEXUS-Optimizer-$version-win-x64-unsigned.zip"
+          Get-FileHash "artifacts/NEXUS-Optimizer-$version-win-x64-unsigned.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } | Set-Content artifacts/SHA256SUMS.txt
+          [ordered]@{ Version = $version; Commit = $env:GITHUB_SHA; Signed = $false; StoreCertification = 'NOT PERFORMED'; LocalWindowsLaunch = 'NOT VERIFIED'; Payload = "NEXUS-Optimizer-$version-win-x64-unsigned.zip" } | ConvertTo-Json | Set-Content artifacts/distribution.json
       - name: Prepare the unsigned Store candidate without installing it
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $identity = Import-PowerShellDataFile StorePreparation/PartnerCenterIdentity.psd1
-          & ./StorePreparation/Build-StorePackage.ps1 -IdentityName $identity.IdentityName -Publisher $identity.Publisher -PublisherDisplayName $identity.PublisherDisplayName -AppDisplayName $identity.AppDisplayName -PartnerCenterIdentityConfirmed -PackageVersion '0.10.0.0' -SourceDirectory artifacts/app
+          $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.FileVersion
+          & ./StorePreparation/Build-StorePackage.ps1 -IdentityName $identity.IdentityName -Publisher $identity.Publisher -PublisherDisplayName $identity.PublisherDisplayName -AppDisplayName $identity.AppDisplayName -PartnerCenterIdentityConfirmed -PackageVersion $version -SourceDirectory artifacts/app
           $reportFile = Get-ChildItem StorePreparation/builds -Recurse -Filter packaging-report.json | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (!$reportFile) { throw 'Store packaging report missing.' }
           $report = Get-Content -LiteralPath $reportFile.FullName -Raw | ConvertFrom-Json
@@ -104,7 +121,7 @@ jobs:
           try {
             Write-Host ([NexusHostedDesktop]::Prepare())
             $env:NEXUS_STORE_SCREENSHOT = '1'
-            foreach ($scenario in @(
+            $scenarios = @(
               @{ Page = 'overview'; Light = '0'; Analyze = '1' },
               @{ Page = 'overview'; Light = '1'; Analyze = '0' },
               @{ Page = 'precision'; Light = '0'; Analyze = '0' },
@@ -120,9 +137,13 @@ jobs:
               @{ Page = 'hardware'; Light = '0'; Analyze = '0' },
               @{ Page = 'protection'; Light = '0'; Analyze = '0' },
               @{ Page = 'protection'; Light = '1'; Analyze = '0' }
-            )) {
+            )
+            $scenarios += 0..9 | ForEach-Object { @{ Page = 'mouselab'; Light = '0'; Analyze = '0'; MouseSection = "$_" } }
+            foreach ($scenario in $scenarios) {
               $page = $scenario.Page
               $label = $page + $(if ($scenario.Light -eq '1') { '-light' } else { '' }) + $(if ($scenario.Fixtures -eq '1') { '-fixtures' } else { '' })
+              if ($page -eq 'mouselab') { $label += '-' + $scenario.MouseSection }
+              $env:NEXUS_MOUSE_LAB_SECTION = $scenario.MouseSection
               $env:NEXUS_SMOKE_LIGHT = $scenario.Light
               $env:NEXUS_SMOKE_ASSISTANT_READONLY = $scenario.Analyze
               $env:NEXUS_SMOKE_GAME_FIXTURES = $(if ($scenario.Fixtures -eq '1') { '1' } else { '0' })
@@ -139,6 +160,10 @@ jobs:
               if ($page -eq 'precision' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'precision-readonly.json'))) { throw 'Precision evidence missing.' }
               if ($page -in @('library','vpn') -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'library-vpn-readonly.json'))) { throw 'Library/VPN evidence missing.' }
               if ($page -eq 'protection' -and !(Test-Path (Join-Path $env:NEXUS_DATA_DIR 'protection-readonly.json'))) { throw 'Protection read-only evidence missing.' }
+              if ($page -eq 'mouselab') {
+                $mouse = Get-Content (Join-Path $env:NEXUS_DATA_DIR 'mouselab-readonly.json') -Raw | ConvertFrom-Json
+                if ($mouse.Result -ne 'PASS' -or $mouse.WindowsChanges -ne 0 -or $mouse.Capturing -or $mouse.Automation) { throw 'Mouse Lab read-only validation failed.' }
+              }
               $result = Get-Content (Join-Path $env:NEXUS_DATA_DIR 'smoke-test.json') -Raw | ConvertFrom-Json
               if ($result.Width -lt 1366 -or $result.Height -lt 768) { throw "Rendered window too small: $page" }
             }
@@ -146,12 +171,15 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: NEXUS-Optimizer-win-x64-unsigned
-          path: artifacts/NEXUS-Optimizer-win-x64-unsigned.zip
+          path: |
+            artifacts/NEXUS-Optimizer-*-win-x64-unsigned.zip
+            artifacts/SHA256SUMS.txt
+            artifacts/distribution.json
           retention-days: 14
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: NEXUS-0.10-unsigned-Store-candidate
+          name: NEXUS-1.0-unsigned-Store-candidate
           path: artifacts/store-candidate
           retention-days: 14
           if-no-files-found: error
@@ -172,9 +200,55 @@ jobs:
             artifacts/native-game-profile-validation
             artifacts/smart-boost-validation
           if-no-files-found: warn
+  packaged-upgrade:
+    needs: build
+    runs-on: windows-2025
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: NEXUS-1.0-unsigned-Store-candidate
+          path: artifacts/new-store
+      - uses: actions/download-artifact@v4
+        with:
+          name: NEXUS-0.10-unsigned-Store-candidate
+          run-id: 38961709553
+          github-token: ${{ github.token }}
+          path: artifacts/old-store
+      - name: Verify exact old and new candidates, unpack and test a real binary upgrade
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $old = Get-ChildItem artifacts/old-store -Filter '*.msix' | Select-Object -First 1
+          $new = Get-ChildItem artifacts/new-store -Filter '*.msix' | Select-Object -First 1
+          if ((Get-FileHash $old.FullName).Hash -ne 'AB9EEB3105BFE2397BC2EFE7ED305992DD881C52C941132C501115C6D2D3716C') { throw 'Incorrect 0.10 candidate.' }
+          $report = Get-Content artifacts/new-store/packaging-report.json -Raw | ConvertFrom-Json
+          if ((Get-FileHash $new.FullName).Hash -ne $report.PackageSHA256) { throw 'Incorrect new candidate.' }
+          $sdk = Get-ChildItem -LiteralPath (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin') -Directory | Where-Object Name -Match '^\d+\.\d+\.\d+\.\d+$' | Sort-Object { [version]$_.Name } -Descending | Where-Object { Test-Path (Join-Path $_.FullName 'x64/makeappx.exe') } | Select-Object -First 1
+          foreach ($payload in @(@{Package=$old.FullName;Destination='artifacts/old-payload'},@{Package=$new.FullName;Destination='artifacts/new-payload'})) {
+            & (Join-Path $sdk.FullName 'x64/makeappx.exe') unpack /p $payload.Package /d $payload.Destination /no
+            if ($LASTEXITCODE -ne 0) { throw 'MSIX unpack failed.' }
+            foreach ($name in @('AppxBlockMap.xml','[Content_Types].xml','AppxSignature.p7x')) {
+              $path = Join-Path $env:GITHUB_WORKSPACE ($payload.Destination + '/' + $name)
+              if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
+            }
+          }
+          & ./StorePreparation/Test-StorePackage.ps1 -InitialContentDirectory artifacts/old-payload -ContentDirectory artifacts/new-payload -OutputDirectory artifacts/store-upgrade -InitialVersion '0.10.0.0' -UpdateVersion '1.0.0.0'
+          $result = Get-Content artifacts/store-upgrade/packaged-validation.json -Raw | ConvertFrom-Json
+          if ($result.Result -ne 'PASS' -or !$result.BinaryUpgradeVerified -or !$result.DataMigrationVerified -or !$result.Reinstalled -or !$result.PackagedWindowsPreferenceAndUndoVerified) { throw 'Real 0.10 upgrade checks failed.' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NEXUS-1.0-real-0.10-upgrade-validation
+          path: artifacts/store-upgrade
+          if-no-files-found: warn
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, packaged-upgrade]
     runs-on: windows-latest
     permissions:
       contents: write
@@ -183,18 +257,20 @@ jobs:
         with:
           name: NEXUS-Optimizer-win-x64-unsigned
           path: artifacts
-      - name: Publish experimental prerelease
+      - name: Create a draft experimental release without replacing previous assets
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $notes = 'Experimental unsigned Windows x64 build. Includes reversible power/interface adjustments, temporary application priority, gaming session recovery, memory inspection, DNS measurements and reviewed temporary-file recycling. Check README and VALIDATION.md for exact validation and limitations. Windows application control may block unsigned code. No Windows security protections are disabled.'
+          $metadata = Get-Content artifacts/distribution.json -Raw | ConvertFrom-Json
+          if ($env:RELEASE_TAG -notmatch ('^v' + [regex]::Escape($metadata.Version) + '(-[A-Za-z0-9.-]+)?$')) { throw 'Tag and binary version differ.' }
+          $notes = 'NEXOS Mouse Lab: foreground per-device Raw Input tests, local sensitivity calculators, reversible Windows mouse settings, profiles, five aim-training exercises and local history. Hardware DPI/polling/sensor controls require official manufacturer software. This archive is UNSIGNED; Windows App Control may block it. Store submission and Microsoft signing are separate. No physical latency, game performance or target-PC launch claims. Preserve the entire dependency folder. See MOUSE-LAB.md and distribution.json.'
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --clobber
+            throw 'Release already exists; no assets were replaced.'
           } else {
-            gh release create $env:RELEASE_TAG artifacts/NEXUS-Optimizer-win-x64-unsigned.zip --verify-tag --prerelease --title "NEXUS Optimizer $env:RELEASE_TAG (experimental, unsigned)" --notes $notes
+            gh release create $env:RELEASE_TAG "artifacts/$($metadata.Payload)" artifacts/SHA256SUMS.txt artifacts/distribution.json --verify-tag --draft --prerelease --title "NEXUS Optimizer $env:RELEASE_TAG (experimental, unsigned)" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
