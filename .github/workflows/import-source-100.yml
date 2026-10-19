@@ -2,7 +2,7 @@ name: Import locally reviewed Mouse Lab source
 on:
   push:
     branches: [nexus-v1.0-mouse-lab]
-    paths: ['nexus-mouse-source-100b.zip', '.github/workflows/import-source-100.yml']
+    paths: ['nexus-mouse-source-100c.zip', '.github/workflows/import-source-100.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,9 +20,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-mouse-source-100b.zip'
+          $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-mouse-source-100c.zip'
           if (!(Test-Path -LiteralPath $archive)) { Write-Host 'Reviewed source already imported.'; exit 0 }
-          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne '4F8870CE3A44688F2DD5AD81F625691EB1A4A2E25985BC1644793CB6937E3C29') { throw 'Source archive integrity check failed.' }
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne 'CE6B981B9E9B9A8365D5722F5F7B72FE2802221FE7ED4A7A95F2783029411D28') { throw 'Source archive integrity check failed.' }
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = [IO.Compression.ZipFile]::OpenRead($archive)
           try {
@@ -44,7 +44,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src StorePreparation Directory.Build.props MOUSE-LAB.md PRIVACY.md README.md
-          if (Test-Path -LiteralPath nexus-mouse-source-100b.zip) { git rm -- nexus-mouse-source-100b.zip }
+          if (Test-Path -LiteralPath nexus-mouse-source-100c.zip) { git rm -- nexus-mouse-source-100c.zip }
           git diff --cached --quiet
           if ($LASTEXITCODE -ne 0) {
             git commit -m 'Import locally reviewed Mouse Lab 1.0 source, tests and documentation'
