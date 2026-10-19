@@ -62,6 +62,9 @@ public sealed partial class MainWindow
     private void ShowPage(string page)
     {
         currentPage = page;
+        MouseLabHost.Visibility = page == "mouselab" ? Visibility.Visible : Visibility.Collapsed;
+        if(page != "mouselab") mouseLab?.Deactivate();
+        else ActivateMouseLab();
         if (page != "vpn") vpnMeasurementCancellation?.Cancel();
         OverviewPanel.Visibility = page == "overview" ? Visibility.Visible : Visibility.Collapsed;
         OptimizePanel.Visibility = page == "optimize" ? Visibility.Visible : Visibility.Collapsed;
@@ -87,6 +90,7 @@ public sealed partial class MainWindow
         ProtectionPanel.Visibility = page == "protection" ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = page switch { "optimize" => "PC Boost", "gaming" => "Game Mode", "tuner" => "App Tuner", "memory" => "Memória", "network" => "Rede", "benchmark" => "Testes e FPS", "tools" or "utilities" => "Ferramentas do Windows", "history" => "Histórico e restauro", "preferences" or "apps" => "Windows", "latency" => "Latência", "tweaks" => "Tweaks", "autoclean" => "Auto Limpeza", "help" => "Ajuda", "catalog" => "Cobertura da referência", _ => "Início" };
         if (page == "precision") { PageTitle.Text = "Rato e precisão"; RefreshMousePrecision(this, new()); }
+        if (page == "mouselab") PageTitle.Text = "Mouse Lab";
         if (page == "settings") PageTitle.Text = "Preferências e IA";
         if (page == "overview") PageTitle.Text = "O meu PC";
         if (page == "optimize") PageTitle.Text = "Otimizar";

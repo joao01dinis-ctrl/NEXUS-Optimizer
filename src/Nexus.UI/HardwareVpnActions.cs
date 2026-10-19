@@ -11,7 +11,7 @@ public sealed partial class MainWindow
 {
     private async void ApplyMouseSpeed(object sender, RoutedEventArgs e) => await Run(async () =>
     {
-        if (sessions.Active is not null) throw new InvalidOperationException("Termina e repõe a sessão antes de alterar o rato.");
+        if (sessions.Active is not null || mouseLab?.HasActiveSession == true) throw new InvalidOperationException("Termina e repõe a sessão antes de alterar o rato.");
         var value = MouseSpeedValue.Value;
         if (!double.IsFinite(value) || value != Math.Truncate(value)) throw new ArgumentException("Escolhe uma velocidade inteira entre 1 e 20.");
         var desired = MousePrecision.ParseSpeed(value.ToString(CultureInfo.InvariantCulture)).ToString(CultureInfo.InvariantCulture);

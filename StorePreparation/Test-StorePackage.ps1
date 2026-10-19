@@ -1,4 +1,5 @@
 param([Parameter(Mandatory)][string]$ContentDirectory, [Parameter(Mandatory)][string]$OutputDirectory,
+    [string]$InitialContentDirectory,
     [string]$InitialVersion = '0.10.0.0', [string]$UpdateVersion = '0.10.1.0')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -16,7 +17,8 @@ $runRoot = [IO.Path]::GetFullPath($OutputDirectory)
 [IO.Directory]::CreateDirectory($runRoot) | Out-Null
 $stage = Join-Path $runRoot 'test-content'
 [IO.Directory]::CreateDirectory($stage) | Out-Null
-Copy-Item -Path (Join-Path ([IO.Path]::GetFullPath($ContentDirectory)) '*') -Destination $stage -Recurse
+$initialSource = if ($InitialContentDirectory) { $InitialContentDirectory } else { $ContentDirectory }
+Copy-Item -Path (Join-Path ([IO.Path]::GetFullPath($initialSource)) '*') -Destination $stage -Recurse
 [xml]$manifest = Get-Content -LiteralPath (Join-Path $stage 'AppxManifest.xml') -Raw
 $ns = [Xml.XmlNamespaceManager]::new($manifest.NameTable)
 $ns.AddNamespace('m', 'http://schemas.microsoft.com/appx/manifest/foundation/windows10')
@@ -147,7 +149,24 @@ try {
     Remove-Item Env:/NEXUS_TEST_PACKAGED_UNDO
     foreach ($page in @('optimize','gaming','tweaks','vpn','protection','history')) { Invoke-PackageSmoke $page (Join-Path $dataRoot $page) }
     $database = Join-Path $dataRoot 'history/nexus.db'
+    if ($InitialContentDirectory) {
+        & python (Join-Path $PSScriptRoot 'check-mouse-upgrade.py') seed $database
+        if ($LASTEXITCODE -ne 0) { throw 'Could not seed the real 0.10 database.' }
+    }
     $databaseHash = (Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash
+    if ($InitialContentDirectory) {
+        $oldBinaryHash = (Get-FileHash (Join-Path $stage 'Nexus.Core.dll')).Hash
+        $stageAbsolute = [IO.Path]::GetFullPath($stage)
+        $workspaceAbsolute = [IO.Path]::GetFullPath($env:GITHUB_WORKSPACE).TrimEnd('\') + '\'
+        if (!$stageAbsolute.StartsWith($workspaceAbsolute, [StringComparison]::OrdinalIgnoreCase)) { throw 'Staging directory is outside the disposable workspace.' }
+        foreach ($item in (Get-ChildItem -LiteralPath $stageAbsolute -Force)) {
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or !$item.FullName.StartsWith($stageAbsolute + '\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Unexpected staging path.' }
+            Remove-Item -LiteralPath $item.FullName -Recurse -Force
+        }
+        Copy-Item -Path (Join-Path ([IO.Path]::GetFullPath($ContentDirectory)) '*') -Destination $stage -Recurse
+        $newBinaryHash = (Get-FileHash (Join-Path $stage 'Nexus.Core.dll')).Hash
+        if ($newBinaryHash -eq $oldBinaryHash) { throw 'The upgrade test requires different actual binaries.' }
+    }
     $update = New-TestPackage $UpdateVersion
     Add-AppxPackage -Path $update -AllowUnsigned
     if ((Get-AppxPackage -Name $testName).Version -ne [version]$UpdateVersion) { throw 'Package update did not occur.' }
@@ -155,12 +174,23 @@ try {
     if ((Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash -ne $databaseHash) { throw 'Update changed or removed existing data.' }
     $checks.DatabasePreservedAcrossUpdate = $true
     Invoke-PackageSmoke 'overview' (Join-Path $dataRoot 'updated')
+    if ($InitialContentDirectory) {
+        Invoke-PackageSmoke 'mouselab' (Join-Path $dataRoot 'history')
+        & python (Join-Path $PSScriptRoot 'check-mouse-upgrade.py') verify $database
+        if ($LASTEXITCODE -ne 0) { throw 'The 0.10 data migration failed.' }
+        $checks.BinaryUpgradeVerified = $true
+        $checks.DataMigrationVerified = $true
+        $checks.InitialBinarySHA256 = $oldBinaryHash
+        $checks.UpdatedBinarySHA256 = $newBinaryHash
+        $databaseHash = (Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash
+    }
     Remove-AppxPackage -Package (Get-AppxPackage -Name $testName).PackageFullName -AllUsers
     $installed = $false; $checks.Uninstalled = $true
     if (Get-AppxPackage -Name $testName -AllUsers) { throw 'Test identity is still registered after uninstall.' }
     if ((Get-FileHash -LiteralPath $database -Algorithm SHA256).Hash -ne $databaseHash) { throw 'Uninstall removed or changed the retained database.' }
     $checks.DatabasePreservedAfterUninstall = $true
-    Add-AppxPackage -Path $first -AllowUnsigned
+    $reinstall = if ($InitialContentDirectory) { $update } else { $first }
+    Add-AppxPackage -Path $reinstall -AllowUnsigned
     $installed = $true; $checks.Reinstalled = $true
     Invoke-PackageSmoke 'history' (Join-Path $dataRoot 'history')
     $checks.Result = 'PASS'

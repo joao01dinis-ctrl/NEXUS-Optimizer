@@ -14,6 +14,7 @@ public sealed partial class MainWindow
     private CancellationTokenSource? benchmarkCancellation;
     private sealed record SearchTarget(string Title, string Page);
     private static readonly SearchTarget[] SearchTargets = [
+        new("Mouse Lab — rato, polling, treino de mira e perfis", "mouselab"), new("Aim Trainer e Sensitivity Lab", "mouselab"),
         new("Proteção do PC — Microsoft Defender", "protection"), new("Antivírus, análises e quarentena", "protection"),
         new("Os meus jogos — deteção automática", "library"), new("Game Boost por jogo e perfis", "library"),
         new("Nexos VPN — Cloudflare WARP, ligação e latência", "vpn"), new("GPU, NVIDIA e drivers", "hardware"),

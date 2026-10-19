@@ -18,8 +18,8 @@ param(
     [Parameter(Mandatory, ParameterSetName = 'SchemaTest')]
     [switch]$SchemaValidationTest,
     [string]$AppDisplayName = 'NEXUS Optimizer',
-    [ValidatePattern('^\d{1,5}\.\d{1,5}\.\d{1,5}\.0$')][string]$PackageVersion = '0.7.0.0',
-    [string]$SourceDirectory = (Join-Path $PSScriptRoot '../NexusOptimizer/artifacts/app-v0.7-store'),
+    [ValidatePattern('^\d{1,5}\.\d{1,5}\.\d{1,5}\.0$')][string]$PackageVersion = '1.0.0.0',
+    [string]$SourceDirectory = (Join-Path $PSScriptRoot '../artifacts/app'),
     [string]$SdkBin
 )
 

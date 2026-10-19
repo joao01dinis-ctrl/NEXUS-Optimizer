@@ -13,6 +13,7 @@ public sealed partial class MainWindow : Window
         InitializeOptimizer(root);
         InitializeAssistant(root);
         InitializeVpn();
+        InitializeMouseLab(root);
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
@@ -51,6 +52,15 @@ public sealed partial class MainWindow : Window
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_GAME_FIXTURES") == "1")
                     SeedGameCatalogSmokeFixtures(output);
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (page == "mouselab")
+                {
+                    await mouseLab!.ActivateAsync();
+                    if(int.TryParse(Environment.GetEnvironmentVariable("NEXUS_MOUSE_LAB_SECTION"),out var section))mouseLab.SelectSection(section);
+                    if(mouseLab.Capturing || mouseLab.AutomationEnabled || mouseLab.HasActiveSession || optimizer.History().Count!=0)
+                        throw new InvalidOperationException("Mouse Lab read-only validation changed Windows or started monitoring.");
+                    File.WriteAllText(Path.Combine(output,"mouselab-readonly.json"),System.Text.Json.JsonSerializer.Serialize(new
+                        {Result="PASS",Devices=mouseLab.DeviceCount,Section=section,WindowsChanges=0,Capturing=false,Automation=false}));
+                }
                 if (page == "hardware")
                     for (var i = 0; extendedHardwareBusy && i < 100; i++) await Task.Delay(100);
                 if (page == "protection")

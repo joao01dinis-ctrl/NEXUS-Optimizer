@@ -49,6 +49,7 @@
                 <TextBlock Text="Proteção do PC" FontSize="14" />
               </StackPanel>
             </Button>
+            <Button Tag="mouselab" Click="Navigate" Style="{StaticResource NexusNavigationButton}" Content="Mouse Lab" />
             <Button Tag="precision" Click="Navigate" Style="{StaticResource NexusNavigationButton}">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="" FontSize="17" />
@@ -149,7 +150,7 @@
         </ScrollViewer>
         <StackPanel Grid.Row="2" Spacing="6" Margin="10,12,0,0">
           <TextBlock Text="NEXUS · SEM SUBSCRIÇÃO" FontSize="10" TextWrapping="Wrap" Foreground="#B5A4FF" />
-          <TextBlock Text="0.10 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
+          <TextBlock Text="1.0 · pré-visualização" FontSize="11" TextWrapping="Wrap" Foreground="#95A1BF" />
         </StackPanel>
       </Grid>
     </Border>
@@ -173,6 +174,7 @@
       </StackPanel>
       <ScrollViewer x:Name="PageScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="18">
+          <ContentControl x:Name="MouseLabHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" />
           <StackPanel x:Name="OverviewPanel" Spacing="18">
             <Border CornerRadius="20" Padding="22" BorderBrush="#494063" BorderThickness="1" RequestedTheme="Dark">
               <Border.Background>
