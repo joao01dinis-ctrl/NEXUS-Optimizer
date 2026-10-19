@@ -11,6 +11,7 @@ using Nexus.Gaming;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Path = System.IO.Path;
 
 namespace Nexus.UI;
 
@@ -22,6 +23,7 @@ public sealed class MouseLabView : UserControl, IDisposable
     private readonly SystemOptimizer optimizer;
     private readonly GameLibrary library;
     private readonly Func<bool> conflict;
+    private readonly Func<bool> automationConflict;
     private readonly Func<string,string,Task<bool>> confirm;
     private readonly WindowsMouseProvider provider=new();
     private readonly MouseProfileSession profileSession;
@@ -36,6 +38,8 @@ public sealed class MouseLabView : UserControl, IDisposable
     private IReadOnlyList<MouseDevice> known=[];
     private bool active,disposed,busy,automationBusy;
     private string? lastOfferedProcess;
+    private string? lastNotifiedProcess;
+    public event Action<string>? Notification;
     private bool automationEnabled;
     private IReadOnlyList<LibraryApp> automationLibrary=[];
     private IReadOnlyList<MouseProfile> automationProfiles=[];
@@ -79,9 +83,10 @@ public sealed class MouseLabView : UserControl, IDisposable
     private static NumberBox Number(string label,double value,double min,double max)=>new(){Header=label,Value=value,Minimum=min,Maximum=max,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Compact};
     private static ComboBox Choice(string label,IEnumerable<string> choices,int index=0)
     {var c=new ComboBox{Header=label,ItemsSource=choices.ToArray(),HorizontalAlignment=HorizontalAlignment.Stretch};c.SelectedIndex=index;return c;}
-    public MouseLabView(Window owner,string root,SystemOptimizer optimizer,GameLibrary library,Func<bool> conflict,Func<string,string,Task<bool>> confirm)
+    public MouseLabView(Window owner,string root,SystemOptimizer optimizer,GameLibrary library,Func<bool> conflict,Func<string,string,Task<bool>> confirm,Func<bool>? automationConflict=null)
     {
         this.owner=owner;this.optimizer=optimizer;this.library=library;this.conflict=conflict;this.confirm=confirm;
+        this.automationConflict=automationConflict??conflict;
         Model=new(root);profileSession=new(optimizer);DataContext=Model;RequestedTheme=ElementTheme.Dark;
         var header=Stack(Text("NEXOS MOUSE LAB",27),Text("Conhece o teu rato. Mede, treina e compara com controlo sobre cada alteração.",13));
         var status=Text("");status.SetBinding(TextBlock.TextProperty,new Binding{Source=Model,Path=new PropertyPath(nameof(Model.Status)),Mode=BindingMode.OneWay});
@@ -101,6 +106,24 @@ public sealed class MouseLabView : UserControl, IDisposable
     public void LoseFocus()
     {FinishCapture("Captura interrompida ao perder o foco.");FinishTraining("Treino interrompido ao perder o foco.");}
     public void SelectSection(int index){if(index<0||index>=Sections.Count)throw new ArgumentOutOfRangeException(nameof(index));navigation.SelectedIndex=index;}
+    public async Task ValidateHostedRawInputLifecycleAsync(string output)
+    {
+        if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")!="true" || Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT")!="github-hosted")
+            throw new InvalidOperationException("Este teste de captura só é permitido num Windows descartável de CI.");
+        if(known.Count==0)
+        {File.WriteAllText(Path.Combine(output,"native-rawinput.json"),JsonSerializer.Serialize(new{Result="NOT_PERFORMED",Reason="No Raw Input mouse in the hosted session",PhysicalMouseValidated=false}));return;}
+        owner.Activate();await Task.Delay(150);
+        var hwnd=WinRT.Interop.WindowNative.GetWindowHandle(owner);
+        if(MouseRawCapture.IsRegisteredForWindow(hwnd))throw new InvalidOperationException("Há uma captura anterior por terminar.");
+        using var native=new MouseRawCapture(hwnd,known[0].Id);
+        native.Start();var registered=MouseRawCapture.IsRegisteredForWindow(hwnd);
+        if(!registered)throw new InvalidOperationException("O Windows não confirmou o registo de captura.");
+        await Task.Delay(300);native.Stop("Hosted lifecycle test, no manufactured movement.");
+        if(native.Active || MouseRawCapture.IsRegisteredForWindow(hwnd))throw new InvalidOperationException("O Windows não confirmou a remoção da captura.");
+        File.WriteAllText(Path.Combine(output,"native-rawinput.json"),JsonSerializer.Serialize(new
+        {Result="PASS",Registered=registered,Unregistered=true,NativeEvents=native.Samples.Count,LostReads=native.Discarded,
+            PhysicalMouseValidated=false,PhysicalLatencyMeasured=false,WindowsSettingsChanged=0,Summary="Registration and cleanup on a hosted Windows device; no fabricated events or game performance claims"}));
+    }
     private async Task DetectAsync()
     {
         if(capture is not null)FinishCapture("Lista de dispositivos atualizada.");
@@ -204,7 +227,7 @@ public sealed class MouseLabView : UserControl, IDisposable
         captureTimer.Stop();if(capture is not {} c)return;capture=null;
         try
         {
-            c.Stop(reason);var a=MouseAnalyzer.Analyze(c.Samples,c.Discarded);Model.Analysis=a;
+            c.Stop(reason);reason=c.StopReason??reason;var a=MouseAnalyzer.Analyze(c.Samples,c.Discarded);Model.Analysis=a;
             var name=(devices.SelectedItem as MouseDevice)?.Name??"Rato selecionado";
             Model.Store.Record("analysis",name,new MouseAnalysisRecord(a,reason,name));
             if(captureText is not null)captureText.Text=reason+"\n"+Format(a);DrawGraph(a.IntervalGraph);Model.Status=reason+" Resumo guardado localmente.";
@@ -241,7 +264,7 @@ public sealed class MouseLabView : UserControl, IDisposable
                 if(!active)return Task.CompletedTask;FinishCapture("Treino iniciado.");FinishTraining("Sessão anterior parada.");
                 if(dpi.Value!=Math.Truncate(dpi.Value))throw new ArgumentException("Introduz um DPI inteiro.");MouseLabMath.Edpi(dpi.Value,sensitivity.Value);
                 trainingDpi=(int)dpi.Value;trainingSensitivity=sensitivity.Value;exercise=new((AimMode)mode.SelectedIndex,difficulty.SelectedIndex+1);
-                trainingClock.Restart();aimTimer.Start();PaintTarget();Model.Status="Treino em curso. Sair ou perder foco termina e guarda a sessão parcial.";return Task.CompletedTask;
+                trainingClock.Restart();aimTimer.Start();PaintTarget();arena?.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false});Model.Status="Treino em curso. Sair ou perder foco termina e guarda a sessão parcial.";return Task.CompletedTask;
             }),Button("Terminar treino",()=>{FinishTraining("Treino terminado pelo utilizador.");return Task.CompletedTask;}),trainingText,arena,
             Text("Tracking: mantém o ponteiro dentro do alvo. Nos outros modos, clica no alvo branco. Reação penaliza cliques antes de aparecer. Tempos observados incluem a aplicação e o ecrã; não são latência do switch. Não interage com jogos externos.")));
         RenderTrainingHistory();
@@ -385,8 +408,10 @@ public sealed class MouseLabView : UserControl, IDisposable
     private async Task ImportAsync()
     {
         var picker=new Microsoft.Windows.Storage.Pickers.FileOpenPicker(owner.AppWindow.Id);picker.FileTypeFilter.Add(".json");var file=await picker.PickSingleFileAsync();if(file is null)return;
-        if(new FileInfo(file.Path).Length>MouseLabStore.MaxImportBytes)throw new InvalidDataException("Backup superior a 256 KiB.");
-        var json=await File.ReadAllTextAsync(file.Path);if(!await confirm("Importar perfis?","Perfis com o mesmo nome serão substituídos. Não aplica alterações ao Windows ou ao hardware. Os restantes perfis e o histórico ficam guardados."))return;
+        string json;
+        using(var stream=new FileStream(file.Path,FileMode.Open,FileAccess.Read,FileShare.Read))
+        {if(stream.Length>MouseLabStore.MaxImportBytes)throw new InvalidDataException("Backup superior a 256 KiB.");using var reader=new StreamReader(stream);json=await reader.ReadToEndAsync();}
+        if(!await confirm("Importar perfis?","Perfis com o mesmo nome serão substituídos. Não aplica alterações ao Windows ou ao hardware. Os restantes perfis e o histórico ficam guardados."))return;
         Model.Store.ImportProfiles(json);PauseAutomation();Model.Status="Perfis importados e validados. Nenhuma definição foi aplicada. O acompanhamento exige nova autorização.";Render();
     }
     private void EnsureCanChange()
@@ -394,7 +419,7 @@ public sealed class MouseLabView : UserControl, IDisposable
     private static string Describe(IReadOnlyList<PreparedAdjustment> prepared)=>string.Join("\n",prepared.Select(x=>$"{x.Key}: {x.Expected} → {x.Value}"))+"\nO valor anterior é guardado antes da escrita. O Windows confirma o resultado. Jogos com Raw Input podem ignorar estas opções. DPI/polling/sensor não são alterados.";
     private async Task RestoreMouseAsync()
     {
-        if(conflict())throw new InvalidOperationException("Termina primeiro a operação ou sessão de jogo ativa.");
+        if(automationConflict())throw new InvalidOperationException("Termina primeiro a operação ativa.");
         if(!await confirm("Restaurar definições do rato?","Repõe alterações do rato guardadas no diário deste PC, respeitando alterações externas. Não importa valores de outros computadores."))return;
         var session=profileSession.End();if(!session.Complete)throw new InvalidOperationException(string.Join("\n",session.Errors));
         var restored=optimizer.RestoreAll(x=>x.Key is MousePrecision.SpeedKey or MousePrecision.AccelerationKey);
@@ -405,20 +430,21 @@ public sealed class MouseLabView : UserControl, IDisposable
         if(disposed||automationBusy||busy)return;automationBusy=true;
         try
         {
-            profileSession.Poll();
+            var hadSession=profileSession.Active;profileSession.Poll();
+            if(hadSession && !profileSession.Active){FinishCapture("Perfil Windows reposto no fim do jogo; teste interrompido.");FinishTraining("Perfil Windows reposto no fim do jogo; treino interrompido.");}
             if(!automationEnabled){if(!profileSession.Active)automationTimer.Stop();return;}
-            if(conflict()||profileSession.Active)return;
-            var detected=await Task.Run(()=>GameLibrary.Detect(automationLibrary));if(disposed||busy||conflict())return;
+            if(automationConflict()||profileSession.Active||capture is not null||exercise is not null)return;
+            var detected=await Task.Run(()=>GameLibrary.Detect(automationLibrary));if(disposed||busy||automationConflict())return;
             var game=detected.FirstOrDefault(d=>d.App.Name.Contains("FiveM",StringComparison.OrdinalIgnoreCase)||d.App.Name.Contains("Counter-Strike",StringComparison.OrdinalIgnoreCase)||string.Equals(System.IO.Path.GetFileName(d.ActualPath),"cs2.exe",StringComparison.OrdinalIgnoreCase));
-            if(game is null){lastOfferedProcess=null;return;}if(lastOfferedProcess==game.ProcessKey)return;
+            if(game is null){lastOfferedProcess=null;lastNotifiedProcess=null;return;}if(lastOfferedProcess==game.ProcessKey)return;
             var isFiveM=game.App.Name.Contains("FiveM",StringComparison.OrdinalIgnoreCase);var profile=automationProfiles.FirstOrDefault(p=>p.Game==(isFiveM?"FiveM":"CS2") && p.Activation!=MouseActivation.Never);if(profile is null)return;
-            if(profile.Activation==MouseActivation.Ask&&!active){Model.Status="Perfil disponível para "+game.App.Name+". Abre Gaming Profiles para o rever.";return;}
+            if(profile.Activation==MouseActivation.Ask&&!active){Model.Status="Perfil de rato disponível para "+game.App.Name+". Abre Mouse Lab → Gaming Profiles para o rever.";if(lastNotifiedProcess!=game.ProcessKey){lastNotifiedProcess=game.ProcessKey;Notification?.Invoke(Model.Status);}return;}
             lastOfferedProcess=game.ProcessKey;
             if(profile.Activation==MouseActivation.Ask&&!await confirm("Ativar perfil de rato para "+game.App.Name+"?",Describe(MouseProfileSession.Prepare(profile,WindowsSettings.Resolve))+"\nRestauro ao terminar o jogo ou fechar a NEXOS."))return;
-            if(disposed||!automationEnabled||busy||conflict())return;
+            if(disposed||!automationEnabled||busy||automationConflict())return;
             profileSession.Start(profile,game.ProcessKey);Model.Status="Perfil Windows temporário ativo: "+profile.Name+". DPI/sensor configuram-se no fabricante.";
         }
-        catch(Exception e){automationEnabled=false;Model.Status="Automação interrompida: "+e.Message+". Verifica o histórico e restaura a sessão.";if(!profileSession.Active)automationTimer.Stop();}
+        catch(Exception e){automationEnabled=false;FinishCapture("Automação interrompida; teste parado.");FinishTraining("Automação interrompida; treino parado.");Model.Status="Automação interrompida: "+e.Message+". Verifica o histórico e restaura a sessão.";Notification?.Invoke(Model.Status);if(!profileSession.Active)automationTimer.Stop();}
         finally{automationBusy=false;}
     }
     public void PrepareClose()

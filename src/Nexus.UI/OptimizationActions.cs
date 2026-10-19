@@ -126,6 +126,7 @@ public sealed partial class MainWindow
     private async Task Run(Func<Task> action)
     {
         if (operationRunning || benchmarkCancellation is not null || autoCleanupBusy || temporaryCancellation is not null) { Notice("Espera pela operação em curso ou cancela-a.", true); return; }
+        mouseLab?.LoseFocus();
         operationRunning = true; ApplySystemButton.IsEnabled = PriorityButton.IsEnabled = UndoSystemButton.IsEnabled = StartSessionButton.IsEnabled = EndSessionButton.IsEnabled = false;
         try { await action(); }
         catch (Exception e) { AppLog.Error(e, "Otimização do sistema"); if (!closed) Notice(e.Message, true); }

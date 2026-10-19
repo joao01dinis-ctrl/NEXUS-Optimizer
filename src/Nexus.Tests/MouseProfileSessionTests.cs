@@ -1,5 +1,6 @@
 using Nexus.Core;
 using Nexus.Optimization;
+using Nexus.Gaming;
 using Xunit;
 
 namespace Nexus.Tests;
@@ -26,4 +27,13 @@ public sealed class MouseProfileSessionTests:IDisposable
     {var o=Optimizer();var session=new MouseProfileSession(o,Resolve);values[Process].Value="ended";Assert.Throws<InvalidOperationException>(()=>session.Start(MouseProfile.Defaults[0],Process));Assert.Empty(o.History());values[Process].Value="Normal";session.Start(MouseProfile.Defaults[0],Process);Assert.Throws<InvalidOperationException>(()=>session.Start(MouseProfile.Defaults[1],Process));Assert.True(session.End().Complete);}
     [Fact]public void ProfileWithAccelerationUncheckedLeavesExistingThresholdsAlone()
     {var prepared=MouseProfileSession.Prepare(MouseProfile.Defaults[2],Resolve);Assert.Single(prepared);Assert.Equal(MousePrecision.SpeedKey,prepared[0].Key);}
+    [Theory][InlineData(true)][InlineData(false)]
+    public void GameBoostAndMouseSessionsRestoreOnlyTheirOwnSettings(bool mouseFirst)
+    {
+        values["animations"]=new("animations","1");var o=Optimizer();var gaming=new GameSessions(o.DatabasePath,o,Resolve);
+        var mouse=new MouseProfileSession(o,Resolve);gaming.Start(Process,"Fixture game",priority:false,animations:true);mouse.Start(MouseProfile.Defaults[0],Process);
+        if(mouseFirst){Assert.True(mouse.End().Complete);Assert.Equal("0",values["animations"].Value);gaming.End();}
+        else{gaming.End();Assert.Equal("10",values[MousePrecision.SpeedKey].Value);Assert.True(mouse.End().Complete);}
+        Assert.Equal("1",values["animations"].Value);Assert.Equal("12",values[MousePrecision.SpeedKey].Value);Assert.Equal("6,10,1",values[MousePrecision.AccelerationKey].Value);
+    }
 }

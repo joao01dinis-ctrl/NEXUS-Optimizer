@@ -148,7 +148,7 @@ public sealed partial class MainWindow
     }
     private async void DisableMouseAcceleration(object sender, RoutedEventArgs e) => await Run(async () =>
     {
-        if (sessions.Active is not null) throw new InvalidOperationException("Termina e repõe a sessão antes de alterar o rato.");
+        if (sessions.Active is not null || mouseLab?.HasActiveSession == true) throw new InvalidOperationException("Termina e repõe a sessão antes de alterar o rato.");
         var before = MousePrecision.Resolve().Read();
         if (MousePrecision.ParseState(before)[2] == 0) { Notice("A aceleração já está desligada."); return; }
         if (!await Confirm("Desligar a aceleração do ponteiro?", "Muda a sensação do ponteiro em aplicações que usam a entrada do Windows. Não muda a sensibilidade de jogos com Raw Input. O valor anterior fica guardado para restauro.")) return;

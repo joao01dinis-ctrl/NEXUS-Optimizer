@@ -140,7 +140,17 @@ public sealed class MouseRawCapture : IDisposable
     public void Stop(string reason="Teste parado pelo utilizador.")
     {
         Active=false;watch.Stop();StopReason=reason;
-        if(registered){if(!RegisterRawInputDevices([new(){Page=1,Usage=2,Flags=1,Target=0}],1,(uint)Marshal.SizeOf<Registration>()))StopReason+=" Não foi possível confirmar a remoção do registo Raw Input.";registered=false;}
+        if(registered)
+        {if(RegisterRawInputDevices([new(){Page=1,Usage=2,Flags=1,Target=0}],1,(uint)Marshal.SizeOf<Registration>()))registered=false;else StopReason+=" Não foi possível confirmar a remoção do registo Raw Input; fecha a janela da NEXUS se o problema persistir.";}
+    }
+    public static bool IsRegisteredForWindow(nint window)
+    {
+        uint count=0;var size=(uint)Marshal.SizeOf<Registration>();
+        var queried=GetRegisteredRawInputDevices(null,ref count,size);
+        if((queried==uint.MaxValue && Marshal.GetLastWin32Error()!=122) || count>1024)throw new Win32Exception();
+        if(count==0)return false;var entries=new Registration[count];var read=GetRegisteredRawInputDevices(entries,ref count,size);
+        if(read==uint.MaxValue)throw new Win32Exception();
+        return entries.Take((int)read).Any(e=>e.Page==1 && e.Usage==2 && e.Target==window);
     }
     public void Dispose()
     {if(disposed)return;Stop(StopReason??"Captura encerrada.");if(subclassed)RemoveWindowSubclass(hwnd,callback,0x4E584D);Marshal.FreeHGlobal(buffer);disposed=true;GC.KeepAlive(callback);}
@@ -153,5 +163,6 @@ public sealed class MouseRawCapture : IDisposable
     [DllImport("user32.dll",SetLastError=true)][return:MarshalAs(UnmanagedType.Bool)]private static extern bool RegisterRawInputDevices(Registration[] devices,uint count,uint size);
     [DllImport("user32.dll",SetLastError=true)]private static extern uint GetRawInputData(nint handle,uint command,nint data,ref uint size,uint headerSize);
     [DllImport("user32.dll",SetLastError=true)]private static extern uint GetRawInputDeviceList([Out] Device[]? list,ref uint count,uint size);
+    [DllImport("user32.dll",SetLastError=true)]private static extern uint GetRegisteredRawInputDevices([Out] Registration[]? entries,ref uint count,uint size);
     [DllImport("user32.dll")]private static extern nint GetForegroundWindow();
 }

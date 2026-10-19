@@ -50,6 +50,12 @@ foreach ($required in @('Nexus.UI.exe', 'Nexus.UI.dll', 'Nexus.UI.runtimeconfig.
     'Nexus.UI.pri', 'App.xbf', 'MainWindow.xbf', 'coreclr.dll', 'System.Private.CoreLib.dll', 'Microsoft.ui.xaml.dll')) {
     if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot $required) -PathType Leaf)) { throw "Missing publication component: $required" }
 }
+if (-not $SchemaValidationTest) {
+    foreach ($binary in @('Nexus.UI.exe','Nexus.UI.dll')) {
+        $actualVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $sourceRoot $binary)).FileVersion
+        if ([version]$actualVersion -ne [version]$PackageVersion) { throw "Package/binary version mismatch: $binary. Refusing to relabel an older binary." }
+    }
+}
 if (-not $SdkBin) {
     $sdkBase = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin'
     $sdkCandidates = Get-ChildItem -LiteralPath $sdkBase -Directory |
