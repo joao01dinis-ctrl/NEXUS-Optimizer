@@ -44,7 +44,18 @@ public sealed partial class MainWindow
         var heading = new Grid { ColumnSpacing = 10 };
         heading.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         heading.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-        heading.Children.Add(new FontIcon { Glyph = glyph, FontSize = 21, Foreground = Color("#43DF79") });
+        if (glyph == "\uE782")
+        {
+            var logo = new Grid { Width = 20, Height = 20, RowSpacing = 2, ColumnSpacing = 2 };
+            for (var i = 0; i < 2; i++) { logo.RowDefinitions.Add(new()); logo.ColumnDefinitions.Add(new()); }
+            for (var i = 0; i < 4; i++)
+            {
+                var pane = new Microsoft.UI.Xaml.Shapes.Rectangle { Fill = Color("#43DF79") };
+                Grid.SetColumn(pane, i % 2); Grid.SetRow(pane, i / 2); logo.Children.Add(pane);
+            }
+            heading.Children.Add(logo);
+        }
+        else heading.Children.Add(new FontIcon { Glyph = glyph, FontSize = 21, Foreground = Color("#43DF79") });
         var labels = new StackPanel { Spacing = 3 };
         labels.Children.Add(DashboardText(title, 15, true));
         labels.Children.Add(DashboardText(description, 11, muted: true));
@@ -67,13 +78,19 @@ public sealed partial class MainWindow
     private void InitializeDashboard()
     {
         var body = new StackPanel { Spacing = 12 };
-        var top = DashboardSection("Visão geral do sistema", "Medições deste computador · alterações só depois de revisão", "\uE7F4");
+        var top = new Grid { ColumnSpacing = 12, RowSpacing = 8 };
+        top.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) }); top.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        top.RowDefinitions.Add(new() { Height = GridLength.Auto }); top.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        top.Children.Add(DashboardSection("Visão geral do sistema", "Medições deste computador · alterações só depois de revisão", "\uE7F4"));
         var actions = new VariableSizedWrapGrid { Orientation = Orientation.Horizontal, MaximumRowsOrColumns = 2 };
         HomeOptimizeButton.Padding = new Thickness(18, 10, 18, 10); HomeOptimizeButton.Margin = new Thickness(0, 0, 8, 6);
         HomeAnalyzeButton.Padding = new Thickness(18, 10, 18, 10); HomeAnalyzeButton.Margin = new Thickness(0, 0, 0, 6);
+        HomeOptimizeButton.Style = null;
+        HomeOptimizeButton.Background = Color("#43DF79"); HomeOptimizeButton.BorderBrush = Color("#43DF79"); HomeOptimizeButton.Foreground = Color("#0D1213");
         ToolTipService.SetToolTip(HomeOptimizeButton, "Analisa o PC e abre a seleção para revisão. Não aplica ajustes ao clicar.");
         DashboardMove(HomeOptimizeButton, actions); DashboardMove(HomeAnalyzeButton, actions);
-        top.Children.Add(actions); top.Children.Add(dashboardSample);
+        Grid.SetColumn(actions, 1); top.Children.Add(actions);
+        Grid.SetRow(dashboardSample, 1); Grid.SetColumnSpan(dashboardSample, 2); top.Children.Add(dashboardSample);
         var hero = DashboardCard(top);
         hero.RequestedTheme = ElementTheme.Dark;
         hero.Background = new LinearGradientBrush
@@ -88,7 +105,7 @@ public sealed partial class MainWindow
         {
             var panel = new StackPanel { Spacing = 7 };
             panel.Children.Add(DashboardText(title, 12, true)); panel.Children.Add(reading);
-            if (chart is not null) DashboardMove(chart, panel);
+            if (chart is not null) { chart.Height = 36; DashboardMove(chart, panel); }
             var explanation = property is null ? DashboardText(detail, 11, muted: true) : DashboardBound(property, 11);
             explanation.MaxLines = 2; explanation.TextTrimming = TextTrimming.CharacterEllipsis;
             ToolTipService.SetToolTip(explanation, property is null ? detail : "Identificação detetada neste PC; detalhes em Hardware.");
@@ -100,7 +117,7 @@ public sealed partial class MainWindow
         Metric("Latência", DashboardText("Por medir", 19, true), "O teste é iniciado por ti em Rede. Não é o ping de todos os jogos.");
         Metric("Temperatura", DashboardText("Sem leitura", 19, true), "Este painel não tem uma fonte térmica validada. Nenhum valor estimado.");
         Metric("FPS / antes e depois", DashboardText("Por medir", 19, true), "Importa capturas em Testes e FPS. Não existe uma previsão de ganho.");
-        dashboardMetrics.SizeChanged += (_, _) => DashboardLayout(dashboardMetrics, dashboardMetrics.ActualWidth >= 1120 ? 6 : dashboardMetrics.ActualWidth >= 760 ? 3 : 2);
+        dashboardMetrics.SizeChanged += (_, _) => DashboardLayout(dashboardMetrics, dashboardMetrics.ActualWidth >= 1040 ? 6 : dashboardMetrics.ActualWidth >= 600 ? 3 : 2);
         body.Children.Add(dashboardMetrics);
 
         var games = DashboardSection("Jogos detetados", "Biblioteca deste PC · perfis guardados por jogo", "\uE7FC");
@@ -249,7 +266,7 @@ public sealed partial class MainWindow
     }
     private void ValidateDashboard(string output)
     {
-        DashboardLayout(dashboardMetrics, dashboardMetrics.ActualWidth >= 1120 ? 6 : dashboardMetrics.ActualWidth >= 760 ? 3 : 2);
+        DashboardLayout(dashboardMetrics, dashboardMetrics.ActualWidth >= 1040 ? 6 : dashboardMetrics.ActualWidth >= 600 ? 3 : 2);
         DashboardLayout(dashboardModules, dashboardModules.ActualWidth >= 1020 ? 3 : dashboardModules.ActualWidth >= 650 ? 2 : 1);
         var cards = dashboardMetrics.Children.Concat(dashboardModules.Children).OfType<FrameworkElement>().ToArray();
         if (!dashboardReady || cards.Length != 15 || cards.Any(x => x.ActualWidth < 100 || !double.IsFinite(x.ActualHeight) || x.ActualHeight < 1))

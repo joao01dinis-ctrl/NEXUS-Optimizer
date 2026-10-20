@@ -30,8 +30,8 @@ public sealed partial class MainWindow
         foreach (var point in chartSamples)
         {
             var x = i++ / 59d;
-            if (point.Cpu is double value) cpu.Add(new Windows.Foundation.Point(x * CpuGraph.ActualWidth, 60 - Math.Clamp(value, 0, 100) * .6));
-            ram.Add(new Windows.Foundation.Point(x * MemoryGraph.ActualWidth, 60 - Math.Clamp(point.Ram, 0, 100) * .6));
+            if (point.Cpu is double value) cpu.Add(new Windows.Foundation.Point(x * CpuGraph.ActualWidth, CpuGraph.Height * (1 - Math.Clamp(value, 0, 100) / 100)));
+            ram.Add(new Windows.Foundation.Point(x * MemoryGraph.ActualWidth, MemoryGraph.Height * (1 - Math.Clamp(point.Ram, 0, 100) / 100)));
         }
         CpuLine.Points = cpu; MemoryLine.Points = ram;
         var uptime = TimeSpan.FromMilliseconds(Environment.TickCount64);

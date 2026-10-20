@@ -62,6 +62,7 @@ public sealed partial class MainWindow
     private void ShowPage(string page)
     {
         currentPage = page;
+        HeaderQuickActions.Visibility = FavoritePageButton.Visibility = page == "overview" ? Visibility.Collapsed : Visibility.Visible;
         MouseLabHost.Visibility = page == "mouselab" ? Visibility.Visible : Visibility.Collapsed;
         if(page != "mouselab") mouseLab?.Deactivate();
         else ActivateMouseLab();

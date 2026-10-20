@@ -20,7 +20,7 @@
             <StackPanel x:Name="FavoriteNavigation" Spacing="4" Visibility="Collapsed" />
             <Button Tag="overview" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE80F;" FontSize="17"/><TextBlock Text="Dashboard" FontSize="13"/></StackPanel></Button>
             <Button Tag="library" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE7FC;" FontSize="17"/><TextBlock Text="Jogos" FontSize="13"/></StackPanel></Button>
-            <Button Tag="preferences" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE782;" FontSize="17"/><TextBlock Text="Windows" FontSize="13"/></StackPanel></Button>
+            <Button Tag="preferences" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><Path Width="17" Height="17" Stretch="Uniform" Fill="{ThemeResource TextFillColorPrimaryBrush}" Data="M0,0 H7 V7 H0 Z M9,0 H16 V7 H9 Z M0,9 H7 V16 H0 Z M9,9 H16 V16 H9 Z"/><TextBlock Text="Windows" FontSize="13"/></StackPanel></Button>
             <Button Tag="hardware" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE7F4;" FontSize="17"/><TextBlock Text="GPU e hardware" FontSize="13"/></StackPanel></Button>
             <Button Tag="memory" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE950;" FontSize="17"/><TextBlock Text="CPU / RAM" FontSize="13"/></StackPanel></Button>
             <Button Tag="vpn" Click="Navigate" Style="{StaticResource NexusNavigationButton}"><StackPanel Orientation="Horizontal" Spacing="12"><FontIcon Glyph="&#xE774;" FontSize="17"/><TextBlock Text="Rede &amp; VPN" FontSize="13"/></StackPanel></Button>
@@ -133,7 +133,7 @@
           <TextBlock Text="O teu PC. Sob controlo." Foreground="#9DA9AE" FontSize="12" />
         </StackPanel>
         <AutoSuggestBox Grid.Column="1" x:Name="QuickSearch" Width="230" VerticalAlignment="Center" PlaceholderText="Procurar uma função…" TextMemberPath="Title" TextChanged="SearchChanged" QuerySubmitted="SearchSubmitted" AutomationProperties.Name="Pesquisar páginas e funções" />
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+        <StackPanel x:Name="HeaderQuickActions" Grid.Row="1" Orientation="Horizontal" Spacing="8">
           <Button Content="Desfazer alterações" Click="RestoreEverything" Padding="10,5" FontSize="12"/>
           <TextBlock x:Name="GlobalChangeStatus" Text="Nenhuma alteração por repor" FontSize="11" Foreground="#9DA9AE" VerticalAlignment="Center" MaxWidth="440" TextTrimming="CharacterEllipsis" />
         </StackPanel>
