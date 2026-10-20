@@ -67,8 +67,8 @@ public sealed partial class MainWindow
         var toggle = new ToggleSwitch { OnContent = "", OffContent = "", HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(toggle, item.Name);
         Grid.SetColumn(toggle, 1); heading.Children.Add(label); heading.Children.Add(toggle); content.Children.Add(heading);
-        content.Children.Add(new TextBlock { Text = item.Description, TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = Color("#C3CBE0") });
-        var status = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Color("#B5A4FF") }; content.Children.Add(status);
+        content.Children.Add(new TextBlock { Text = item.Description, TextWrapping = TextWrapping.Wrap, FontSize = 13, Foreground = Color("#C1CBCD") });
+        var status = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Color("#43DF79") }; content.Children.Add(status);
         var card = new AdjustmentCard(item, toggle, status); adjustmentCards.Add(card);
         toggle.Toggled += async (_, _) =>
         {
@@ -85,7 +85,7 @@ public sealed partial class MainWindow
             });
             RefreshAdjustmentCards(this, new());
         };
-        parent.Children.Add(new Border { Child = content, Background = Color("#171D2F"), BorderBrush = Color("#2A3350"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(18) });
+        parent.Children.Add(new Border { Child = content, Background = Color("#121819"), BorderBrush = Color("#283234"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(18) });
     }
     private static void LayoutAdjustmentCards(Grid grid)
     {

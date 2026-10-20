@@ -102,7 +102,7 @@ public sealed partial class MainWindow
             content.Children.Add(new TextBlock { Text = game.Launcher + " · " + game.InstallationState + "\nRecomendado: " + game.RecommendedProfile, TextWrapping = TextWrapping.Wrap });
             var profile = new ComboBox { ItemsSource = profiles, SelectedItem = profiles.FirstOrDefault(p => p.Name == preference.ProfileName) ?? profiles[0], HorizontalAlignment = HorizontalAlignment.Stretch };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(profile, "Perfil de " + game.Name);
-            var summary = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Color("#C3CBE0") };
+            var summary = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Color("#C1CBCD") };
             var automatic = new CheckBox { Content = "Usar este perfil no Game Boost automático", IsChecked = preference.Automatic, IsEnabled = game.CanTrack };
             void Save()
             {
@@ -137,8 +137,8 @@ public sealed partial class MainWindow
             var restore = new Button { Content = "Repor sessão", IsEnabled = sessions.Active is not null && sessions.Active.Name == game.Name };
             restore.Click += (_, _) => EndSession(this, new());
             content.Children.Add(restore);
-            content.Children.Add(new TextBlock { Text = game.Directory, FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Color("#95A1BF") });
-            InstalledGameCards.Children.Add(new Border { Child = content, Padding = new Thickness(20), CornerRadius = new CornerRadius(14), Background = Color("#171D2F"), BorderBrush = Color("#2A3350"), BorderThickness = new Thickness(1) });
+            content.Children.Add(new TextBlock { Text = game.Directory, FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Color("#9DA9AE") });
+            InstalledGameCards.Children.Add(new Border { Child = content, Padding = new Thickness(20), CornerRadius = new CornerRadius(14), Background = Color("#121819"), BorderBrush = Color("#283234"), BorderThickness = new Thickness(1) });
         }
     }
     private async void TogglePerGameAutomation(object sender, RoutedEventArgs e) => await Run(async () =>

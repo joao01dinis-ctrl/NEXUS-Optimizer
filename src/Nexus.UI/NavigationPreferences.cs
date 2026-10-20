@@ -33,7 +33,7 @@ public sealed partial class MainWindow
         {
             XamlRoot = Root.XamlRoot, Title = "Primeiros passos", CloseButtonText = "Fechar",
             Content = new TextBlock { TextWrapping = TextWrapping.Wrap, Text =
-                "1. Em Início, escolhe Otimizar o meu PC. A análise não aplica alterações.\n\n" +
+                "1. No Dashboard, escolhe Otimização rápida ou Analisar sistema. A análise não aplica alterações.\n\n" +
                 "2. Revê as propostas e confirma apenas as que queres. Os valores anteriores ficam no Histórico.\n\n" +
                 "3. Em Os meus jogos, atualiza a procura automática e guarda um perfil por jogo. Abre o jogo pelo launcher habitual.\n\n" +
                 "4. Otimizar este jogo cria uma sessão temporária. Mantém a NEXUS aberta; ao terminar, as preferências são repostas.\n\n" +

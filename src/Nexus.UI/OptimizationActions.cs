@@ -81,7 +81,7 @@ public sealed partial class MainWindow
         TweaksPanel.Visibility = page == "tweaks" ? Visibility.Visible : Visibility.Collapsed;
         AutoCleanupPanel.Visibility = page == "autoclean" ? Visibility.Visible : Visibility.Collapsed;
         TunerPanel.Visibility = page == "tuner" ? Visibility.Visible : Visibility.Collapsed;
-        HelpPanel.Visibility = page == "help" ? Visibility.Visible : Visibility.Collapsed;
+        HelpPanel.Visibility = page is "help" or "fivem" ? Visibility.Visible : Visibility.Collapsed;
         PrecisionPanel.Visibility = page == "precision" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPanel.Visibility = page == "settings" ? Visibility.Visible : Visibility.Collapsed;
         InstalledGamesPanel.Visibility = page == "library" ? Visibility.Visible : Visibility.Collapsed;
@@ -92,7 +92,8 @@ public sealed partial class MainWindow
         if (page == "precision") { PageTitle.Text = "Rato e precisão"; RefreshMousePrecision(this, new()); }
         if (page == "mouselab") PageTitle.Text = "Mouse Lab";
         if (page == "settings") PageTitle.Text = "Preferências e IA";
-        if (page == "overview") PageTitle.Text = "O meu PC";
+        if (page == "overview") { PageTitle.Text = "Dashboard"; RefreshDashboardGames(); RefreshDashboardState(); }
+        if (page == "fivem") PageTitle.Text = "FiveM & Mods · guia de compatibilidade";
         if (page == "optimize") PageTitle.Text = "Otimizar";
         if (page == "library") { PageTitle.Text = "Os meus jogos"; RenderInstalledGames(); }
         if (page == "gaming") PageTitle.Text = "Game Boost";
@@ -100,7 +101,7 @@ public sealed partial class MainWindow
         if (page == "hardware") { PageTitle.Text = "Hardware e GPU"; RefreshExtendedHardware(this, new()); }
         if (page == "protection") { PageTitle.Text = "Proteção do PC"; RefreshProtection(this, new()); }
         foreach (var button in NavigationButtons.Children.OfType<Button>().Concat(AdvancedNavigationButtons.Children.OfType<Button>()))
-            button.Background = Color((string)button.Tag == page ? "#302C50" : "#111525");
+            button.Background = Color((string)button.Tag == page ? "#20372A" : "#0D1213");
         if (page is "optimize" or "history") RefreshSystem();
         if (page == "gaming") RefreshGames(this, new());
         if (page == "memory") RefreshMemory(this, new());

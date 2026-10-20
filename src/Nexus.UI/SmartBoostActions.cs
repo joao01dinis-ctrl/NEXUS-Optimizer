@@ -74,8 +74,8 @@ public sealed partial class MainWindow
                 var choice = new CheckBox { Content = item.Name, IsEnabled = eligible, IsChecked = eligible && rule.Decision == BoostDecision.Apply };
                 boostSelection.Add((choice, item, state));
                 var line = new StackPanel { Spacing = 6 }; line.Children.Add(choice);
-                line.Children.Add(new TextBlock { Text = SmartBoost.DecisionName(rule.Decision) + " · " + rule.Reason, TextWrapping = TextWrapping.Wrap, Foreground = Color("#C3CBE0") });
-                BoostChoices.Children.Add(new Border { Child = line, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = Color("#171D2F"), BorderBrush = Color("#2A3350"), BorderThickness = new Thickness(1) });
+                line.Children.Add(new TextBlock { Text = SmartBoost.DecisionName(rule.Decision) + " · " + rule.Reason, TextWrapping = TextWrapping.Wrap, Foreground = Color("#C1CBCD") });
+                BoostChoices.Children.Add(new Border { Child = line, Padding = new Thickness(18), CornerRadius = new CornerRadius(12), Background = Color("#121819"), BorderBrush = Color("#283234"), BorderThickness = new Thickness(1) });
             }
             foreach (var rule in boostReport.Rules.Where(r => r.SettingKey is null))
             {

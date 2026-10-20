@@ -186,8 +186,9 @@ public sealed partial class MainWindow
     }
     private static readonly Dictionary<string, string> LightPalette = new()
     {
-        ["#0C0F1A"] = "#F4F5FA", ["#111525"] = "#EAEDF6", ["#171D2F"] = "#FFFFFF", ["#2A3350"] = "#D5DCEA",
-        ["#302C50"] = "#E6DFFF", ["#95A1BF"] = "#53617F", ["#8390AE"] = "#53617F", ["#C3CBE0"] = "#43516D", ["#B5A4FF"] = "#6851AF"
+        ["#090D0E"] = "#F4F5FA", ["#0D1213"] = "#EAEDF6", ["#121819"] = "#FFFFFF", ["#283234"] = "#D5DCEA",
+        ["#20372A"] = "#DCF2E3", ["#9DA9AE"] = "#53617F", ["#8D9A9E"] = "#53617F", ["#C1CBCD"] = "#43516D", ["#43DF79"] = "#137138",
+        ["#F0F5F2"] = "#15221B", ["#F4F7F5"] = "#15221B"
     };
     private readonly ConditionalWeakTable<DependencyObject, Dictionary<DependencyProperty, object>> originalAppearance = new();
     private void ApplyAppearance()

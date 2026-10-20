@@ -14,9 +14,14 @@ public sealed partial class MainWindow : Window
         InitializeAssistant(root);
         InitializeVpn();
         InitializeMouseLab(root);
+        InitializeDashboard();
         Root.DataContext = model;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Nearest).WorkArea;
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1180, Math.Max(1, area.Width - 40)), Math.Min(900, Math.Max(1, area.Height - 40))));
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(Math.Min(1560, Math.Max(1, area.Width - 40)), Math.Min(980, Math.Max(1, area.Height - 40))));
+        AppWindow.TitleBar.BackgroundColor = Windows.UI.Color.FromArgb(255, 9, 13, 14);
+        AppWindow.TitleBar.ForegroundColor = Windows.UI.Color.FromArgb(255, 240, 245, 242);
+        AppWindow.TitleBar.ButtonBackgroundColor = Windows.UI.Color.FromArgb(255, 9, 13, 14);
+        AppWindow.TitleBar.ButtonForegroundColor = Windows.UI.Color.FromArgb(255, 240, 245, 242);
         timer.Interval = TimeSpan.FromSeconds(2);
         timer.Tick += Tick;
         Root.Loaded += Loaded;
@@ -32,6 +37,7 @@ public sealed partial class MainWindow : Window
         if (!closed)
             timer.Start();
         await ScanInstalledGamesAsync();
+        if (!closed) { RefreshDashboardGames(); RefreshDashboardState(); }
         if (closed) return;
         if (Environment.GetCommandLineArgs().Contains("--smoke-test"))
         {
@@ -44,7 +50,8 @@ public sealed partial class MainWindow : Window
                 if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
                 {
                     // Resize after activation; Windows constrains an initial window to the runner's desktop.
-                    AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(1400, 850));
+                    var compact = Environment.GetEnvironmentVariable("NEXUS_DASHBOARD_COMPACT") == "1";
+                    AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(compact ? 980 : 1400, compact ? 740 : 850));
                     await Task.Delay(500);
                 }
                 await model.TickAsync();
@@ -52,6 +59,7 @@ public sealed partial class MainWindow : Window
                 if (Environment.GetEnvironmentVariable("NEXUS_SMOKE_GAME_FIXTURES") == "1")
                     SeedGameCatalogSmokeFixtures(output);
                 if (!string.IsNullOrEmpty(page)) { ShowPage(page); await Task.Delay(300); }
+                if (string.IsNullOrEmpty(page) || page == "overview") ValidateDashboard(output);
                 if (page == "mouselab")
                 {
                     await mouseLab!.ActivateAsync();
@@ -124,6 +132,8 @@ public sealed partial class MainWindow : Window
                 }
                 if (SessionPriorityChoice.IsChecked == true || SessionAnimationsChoice.IsChecked == true || SessionPowerChoice.IsChecked == true)
                     throw new InvalidOperationException("Balanced defaults must not preselect session adjustments.");
+                if (page == "overview" && Environment.GetEnvironmentVariable("NEXUS_DASHBOARD_BOTTOM") == "1")
+                { PageScroll.ChangeView(null, PageScroll.ScrollableHeight, null, disableAnimation: true); await Task.Delay(250); }
                 var bitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
                 if (Environment.GetEnvironmentVariable("NEXUS_STORE_SCREENSHOT") == "1")
                 {
@@ -220,6 +230,7 @@ public sealed partial class MainWindow : Window
         {
             await model.TickAsync();
             UpdateGraphs();
+            if (currentPage == "overview") RefreshDashboardState();
             PollSession();
             RefreshCatalogSessionState();
             await PollDiscoveryAsync();
