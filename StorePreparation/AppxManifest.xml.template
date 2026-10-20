@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This template has deliberately invalid identity tokens. It cannot be submitted as a package. -->
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+         xmlns:virtualization="http://schemas.microsoft.com/appx/manifest/virtualization/windows10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap uap10 rescap virtualization">
+  <Identity Name="@@IDENTITY_FROM_PARTNER_CENTER@@" Publisher="@@PUBLISHER_FROM_PARTNER_CENTER@@"
+            Version="@@VERSION@@" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>@@RESERVED_DISPLAY_NAME@@</DisplayName>
+    <PublisherDisplayName>@@PUBLISHER_DISPLAY_NAME_FROM_PARTNER_CENTER@@</PublisherDisplayName>
+    <Description>Monitorização do PC, ajustes opcionais e histórico com reversão.</Description>
+    <Logo>Assets\StoreLogo50.png</Logo>
+    <!-- Keep only the undo/history directory after uninstall. Do not disable virtualization globally. -->
+    <virtualization:FileSystemWriteVirtualization>
+      <virtualization:ExcludedDirectories>
+        <virtualization:ExcludedDirectory>$(KnownFolder:LocalAppData)\NexusOptimizer</virtualization:ExcludedDirectory>
+      </virtualization:ExcludedDirectories>
+    </virtualization:FileSystemWriteVirtualization>
+    <!-- These two documented, optional user policy locations must be visible to Windows/Edge. -->
+    <virtualization:RegistryWriteVirtualization>
+      <virtualization:ExcludedKeys>
+        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent</virtualization:ExcludedKey>
+        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge</virtualization:ExcludedKey>
+      </virtualization:ExcludedKeys>
+    </virtualization:RegistryWriteVirtualization>
+  </Properties>
+  <Resources><Resource Language="pt-PT" /></Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22000.0" MaxVersionTested="10.0.26200.0" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+  </Capabilities>
+  <Applications>
+    <Application Id="NexusOptimizer" Executable="Nexus.UI.exe"
+                 uap10:RuntimeBehavior="packagedClassicApp" uap10:TrustLevel="mediumIL">
+      <uap:VisualElements DisplayName="@@RESERVED_DISPLAY_NAME@@"
+                          Description="Monitorização do PC, ajustes opcionais e histórico com reversão."
+                          Square150x150Logo="Assets\Nexus150.png"
+                          Square44x44Logo="Assets\Nexus44.png" BackgroundColor="#0B1321" />
+    </Application>
+  </Applications>
+</Package>

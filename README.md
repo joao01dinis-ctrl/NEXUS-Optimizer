@@ -1,78 +1,74 @@
 # NEXUS Optimizer
 
-Projeto open source experimental, sob [licença MIT](LICENSE).
-Consulte a [política de privacidade](PRIVACY.md), a [Code signing policy](CODE_SIGNING.md)
-e o [guia de contribuição](CONTRIBUTING.md). A candidatura à SignPath está em preparação;
-o projeto ainda não tem patrocínio ou assinatura aprovada.
+**Estado atual — 20/10/2026:** NEXOS 1.0.1 com painel preto/verde e Mouse Lab. Distribuição portátil para testes; por instrução do utilizador não será submetida ou publicada na Microsoft Store. As notas das versões abaixo são históricas. Dados e funcionalidades existentes preservados. [Novo painel, recuperação e limites de assinatura](DASHBOARD-101.md).
 
-O workflow **Windows build and tests** compila, testa e disponibiliza um artefacto
-portátil sem assinatura. Tags `v*` publicam uma versão experimental após os testes.
+**1.0 de pré-visualização — em validação:** acrescenta o [NEXOS Mouse Lab](MOUSE-LAB.md), com deteção HID em leitura, definições Windows reversíveis, testes Raw Input por dispositivo, cinco exercícios de mira, perfis locais e cálculos de sensibilidade. Mantém o otimizador, Defender e WARP opcional. Build local concluída sem erros/avisos; 34 testes específicos passaram. O arranque local deste novo binário foi bloqueado pelo App Control em `Nexus.Network.dll`; isto não é uma versão assinada ou pronta neste PC. A certificação 0.10 permanece ativa até a substituição estar validada. Os testes de dispositivos reais, consumo durante FiveM e controlos de fabricante têm limites distintos descritos no plano.
 
-Primeira versão Windows x64 em C# 14, .NET 10 e WinUI 3 / Windows App SDK. Interface em português, sem privilégios de administrador.
+**Revisão 0.10:** mantém o otimizador, a integração Microsoft Defender e acrescenta **Nexos VPN com Cloudflare WARP**: deteção do cliente oficial instalado, instalação assistida, consultas locais e pedidos de ligação/desligar confirmados, verificação de tráfego e acompanhamento limitado a um minuto. Não redistribui WARP ou aceita termos pelo utilizador. A VPN própria WireGuard permanece indisponível e sem custos contratados. [Plano, condições e limites](VPN-IMPLEMENTATION.md). A CI da revisão WARP passou 272 testes, quatro testes nativos e quinze renderizações. A validação instalada do conteúdo do MSIX passou nove arranques, alteração/Undo e reinstalação com retenção de dados, numa identidade de teste. O novo executável WARP continua bloqueado neste portátil pelo App Control; assinatura Store e arranque local ainda são etapas distintas. A publicação de base 0.10 com Defender, sem a nova integração WARP, abriu normalmente em 16/10/2026 com Smart App Control ativo e fica disponível pelo iniciador. As ligações para as execuções e os limites estão no plano. [Proteção com Defender](PROTECTION.md). **Store:** a 0.7 foi substituída pela 0.10 em 16/10/2026; o portal confirma Em certificação, ainda sem assinatura/arranque Store validados. [Pacote, testes e estado da submissão](STORE-010-VALIDATION.md).
 
-**Estado da validação neste PC:** build Release aprovado sem avisos e 11 testes aprovados. A publicação inclui os runtimes e recursos XAML. O teste de arranque ficou bloqueado por uma política de Controlo de Aplicações do Windows ao carregar `Nexus.Core.dll` (`0x800711C7`); a utilização completa da interface ainda não foi validada. Nenhuma proteção foi alterada. Ver [VALIDATION.md](VALIDATION.md).
+**Revisão 0.9 experimental:** descoberta de instalações de jogos, perfis guardados por jogo, Game Boost com autorização fixa e restauro, revisão antes de otimizar, velocidade do ponteiro reversível, favoritos e guia opcional. Build local sem erros, 201 testes aprovados e 5 ignorados; arranque e cinco páginas confirmados neste portátil com a proteção do Windows ativa, sem aplicar ajustes. [Auditoria e limites](AUDIT-09.md), [utilização e validação](VALIDATION-09.md). Nexos VPN tem estudo e página de indisponibilidade: por decisão do utilizador não são contratados serviços nesta fase. [Proposta técnica](NEXOS-VPN-STUDY.md). Esta revisão não altera a submissão Store 0.7.
 
-## Funcionalidades
+**Revisão anterior 0.8:** temas e modo leve, análise local e integração opcional OpenAI. Não são incluídas credenciais em código ou executáveis. A configuração local de desenvolvimento é independente da distribuição pública; uma consulta de autenticação não valida uma análise dentro da app. [Âmbito PrecisionFix](DESIGN-08.md), [validação histórica 0.8](VALIDATION-08.md).
 
-- Dashboard com utilização global de CPU e RAM, atualizado periodicamente.
-- Identificação CPU/GPU via WMI, memória física e volumes fixos com espaço disponível.
-- MVVM com CommunityToolkit.Mvvm; logs Serilog com retenção de sete ficheiros diários.
-- Perfis Normal (2 s), Gaming (5 s) e Trabalho (3 s): controlam apenas o intervalo de monitorização desta aplicação. Não prometem ganhos de FPS.
-- SQLite guarda perfil ativo e histórico; undo persistente e transacional, do mais recente para o mais antigo. Aplicar o mesmo perfil não cria entradas duplicadas.
-- Nenhuma alteração ao registo, serviços, Defender, firewall, rede, energia ou ficheiros pessoais.
+Aplicação Windows x64 gratuita, em C# / .NET 10 / WinUI 3 / Windows App SDK. Sem conta NEXUS, subscrição ou telemetria própria. Código e apresentação próprios, licença MIT.
 
-## Compilar e executar
+**0.7 experimental:** Smart Boost com observações repetidas, regras condicionadas, perfis conservadores e comparação de capturas de jogo repetidas. Arranque local e três páginas confirmados em 13/10/2026; 150 testes aprovados. Melhorias e pendências em [STUDY-IMPLEMENTATION.md](STUDY-IMPLEMENTATION.md), evidência em [VALIDATION.md](VALIDATION.md) e utilização em [USAGE.md](USAGE.md). Continua sem assinatura de distribuição, validação FiveM ou paridade integral TL.
 
-Requisitos: Windows 10 2004+ / Windows 11 x64 e SDK .NET 10.0.401 (ou patch posterior da mesma banda). Visual Studio com ferramentas WinUI é opcional para editar; o build usa os pacotes NuGet. Internet necessária no primeiro restore.
+## Funções implementadas no código
+
+- Dashboard: identificação CPU/GPU/RAM/discos, utilização CPU/RAM, gráficos até 60 amostras e tempo desde o arranque. GPU identificada não significa utilização GPU medida.
+- Análise local de pressão de CPU/RAM/espaço livre. Verificação dos últimos ajustes do NEXUS que diferem do valor guardado, com reaplicação confirmada; não assume que a mudança externa era um erro.
+- Energia: seleção de planos existentes, captura anterior e undo. Não cria um plano que desativa core parking ou energia de USB/PCIe.
+- Interface/teclado: animações de conteúdo e treze preferências por APIs Windows, com undo. Repetição de teclas não é redução da latência do primeiro toque.
+- PC Boost: objetivos Normal/Gaming/Trabalho, análise de valores atuais, seleção de diferenças e aplicação em conjunto após revisão. Confere se o estado mudou e tenta repor as alterações desta aplicação se ocorrer falha, incluindo escritas interrompidas.
+- Tweaks/Windows: cartões com estado atual e ligar/desligar. Desligar repõe o valor capturado; uma preferência já configurada sem histórico NEXUS não recebe um padrão inventado. Teclas de Aderência usa a API Windows e preserva os outros flags.
+- Jogos e aplicações: biblioteca SQLite de executáveis locais escolhidos, deteção por caminho completo e identidade PID + arranque, aviso opcional de abertura. Não inicia executáveis. Automático opcional aplica apenas a lista/perfil autorizados nesta abertura; mudar biblioteca/configuração exige pausar e reativar. Sem repetição automática depois de falha ou de terminar manualmente a mesma instância.
+- Perfis de sessão Balanceado/Competitivo/Streaming/Personalizado, com prioridade original por defeito. AboveNormal e animações são opcionais; energia por sessão exige corrente e poupança desligada. Uma sessão Balanceado pode acompanhar sem alterar Windows. Extremo foi retirado por duplicar Competitivo sem benefício demonstrado. Reposição das alterações da sessão ao terminar o processo, enquanto a app está aberta; reposição da sessão ativa ao fechar normalmente a NEXUS e recuperação manual após reiniciar.
+- App Tuner: prioridade AboveNormal de um programa aberto elegível, com valores anteriores no histórico. Exclui Windows, proteção, anti-cheat e launchers conhecidos; não altera ficheiros ou configurações internas do programa.
+- Memória: processos acessíveis e memória residente/privada; redução opcional do working set de uma aplicação escolhida em segundo plano. Exclui componentes Windows, primeiro plano, o NEXUS, apps da biblioteca abertas e sessões ativas. Pode provocar mais leituras de disco e lentidão; não liberta memória privada nem tem undo. Não purga standby ou páginas modificadas do sistema.
+- Rede: adaptadores, IPs, gateway, DNS e DHCP; comparação de quatro fornecedores por três consultas UDP/IPv4 de example.com, com respostas validadas, mediana, timeout e cancelamento. Não mede ping de jogos.
+- Nexos VPN: cliente oficial Cloudflare WARP, assinatura do editor validada, modo DNS/proxy separado de túnel, nenhuma inscrição automática e nenhuma ligação pela IA ou Game Boost. Medições HTTPS/ICMP autorizadas, com cancelamento, prazo e indicação de dados por confirmar. WARP não permite escolher país nem promete anonimato ou ganhos de desempenho. Ver [VPN-IMPLEMENTATION.md](VPN-IMPLEMENTATION.md).
+- Configuração DNS: interface física Ethernet/Wi-Fi elegível, DNS IPv4 estático ou automático via WMI, captura da configuração anterior e undo. Requer iniciar como administrador. Não gere VPNs/DoH/NRPT; pode interferir com redes internas. Renovação DHCP e limpeza da cache DNS são ações separadas, confirmadas, sem undo.
+- Latência de rede: cinco pedidos ICMP ao IP introduzido, média, mínimo/máximo, perda e variação entre respostas. Não mede latência de entrada/FPS; ICMP bloqueado não prova falha da ligação.
+- Benchmark: SHA-256 e cópia de memória numa tarefa, curto, cancelável, SQLite e comparação por método/ambiente. Não atribui a variação a ajustes nem mede o desempenho de jogos.
+- Capturas de FPS: importa CSV por fotograma do PresentMon com MsBetweenPresents. Separa aplicação/PID/fluxo, mantém pausas, calcula FPS de apresentação/1% low/0,1% low/frametime médio/mediana/P99 e compara três ou mais capturas independentes por condição; guarda origem/hash/condições e recusa comparações incompatíveis ou insuficientes. Não captura jogos, executa PresentMon, injeta overlay ou mede FPS efetivo no ecrã/latência de entrada. [Método e limites](FPS-VALIDATION.md).
+- CPU por aplicação: duas amostras durante cerca de dois segundos, normalizadas pelo tempo e CPUs lógicas, com identificação PID/arranque. Mostra processos acessíveis da sessão; não altera prioridades ou termina Discord/navegador/gravação.
+- FiveM: guia de diagnóstico com comandos oficiais para consultar métricas, atalhos para comparar capturas e consultar CPU. Não executa comandos no jogo nem apresenta um resultado de otimização sem medições. [Como validar no FiveM](FIVEM-VALIDATION.md).
+- Limpeza manual: TEMP, cache DirectX, cache web Epic e atalhos Recent quando as pastas existem. Só ficheiros sem escrita/acesso há 7 dias, com seleção/revalidação, limites e envio forçado à Lixeira. Não segue ligações nem remove diretórios. Limpar shaders pode causar recompilação/pausas e cache web pode exigir novo login.
+- Auto limpeza opcional: só a pasta local Temp do utilizador, desligada em cada arranque, intervalos 15/30/60 minutos, idade 30 dias, máximo 100 ficheiros/10 MiB por ficheiro/256 MiB por execução. Suspende durante sessões/apps da biblioteca detetadas. Envia à Lixeira, não a esvazia; pode afetar jogos não identificados. Não é um serviço permanente.
+- Windows/privacidade: sete políticas documentadas do utilizador para experiências personalizadas, sugestões/Spotlight e personalização Edge. Compatibilidade por edição; recusa política do computador e tipos inesperados. Guarda ausência ou DWORD anterior, com undo. Gravar a política não comprova o efeito no Windows/conta. Não desliga todo o diagnóstico do Edge.
+- Aplicações nativas: lista de 28 pacotes opcionais conhecidos, consulta, remoção individual confirmada para o utilizador atual, revalidação da identidade antes da ação. Exclui Store/segurança/shell/frameworks; o Windows pode recusar pacotes não removíveis. Desinstalação pode eliminar dados e não tem undo. Reinstalação abre pesquisa na Store e depende da disponibilidade/conta; não é restauração automática dos dados.
+- Histórico: alterações reversíveis, sessões, benchmarks/capturas FPS e eventos de memória/rede/limpeza/remoção em SQLite; exportação consistente sem substituir ficheiros existentes. Pesquisa de páginas e catálogo pesquisável com 138 entradas da referência e duas ferramentas próprias de verificação.
+
+As funções implementadas são gratuitas. Ganhos dependem do hardware/carga; não existem números de FPS fabricados. SmartScreen, Defender, firewall, atualizações, recuperação, serviços essenciais, drivers e paginação são preservados.
+
+Smart Boost recolhe cinco amostras de CPU/RAM espaçadas, identifica o hardware/driver e explica decisões Recomendado/Ignorar/Testar manualmente. Só preferências de interface diferentes são propostas para revisão quando há pressão sustentada. Energia, prioridade, arranque, espaço e driver ficam como revisão manual. A análise não escreve configurações e pode ser cancelada. O relatório JSON é exportado apenas para a pasta escolhida, sem envio automático. A seleção expira após cinco minutos ou ao mudar o objetivo.
+
+## Executar e desenvolver
+
+Usar a publicação completa, não apenas o EXE. `Start-Nexus.cmd` chama a revisão 0.10: prefere uma instalação oficial Store 0.10 ou superior e, na sua ausência, procura a publicação completa em `artifacts/app-v0.10`. A pasta local atual contém a base 0.10 com Defender, sem a nova integração WARP, identificada em BUILD-INFO.json. Não inicia silenciosamente uma versão 0.9. A configuração privada de desenvolvimento é independente e não é distribuída. Um novo build com `build.ps1 -Publish` grava em `artifacts/app`, onde se pode abrir `Nexus.UI.exe` diretamente. A publicação portátil permanece sem assinatura de distribuição ou certificação Store; a validação de uma versão não garante aceitação de outra por políticas Windows.
 
 ```powershell
 ./build.ps1
 ./build.ps1 -Publish
-./artifacts/app/Nexus.UI.exe
 ```
 
-Se o SDK não estiver no PATH, indique `-DotnetPath 'C:\caminho\dotnet.exe'`. O pacote publicado inclui .NET e Windows App SDK. Distribua a pasta completa, não apenas o executável.
+SDK .NET 10.0.401 ou patch compatível; Windows 10 2004+ / Windows 11 x64. `-DotnetPath` permite indicar outro SDK. NuGet/Windows App SDK são incluídos no publish. Microsoft.Data.Sqlite 10.0.12 e SQLite nativo 3.50.3; licenças em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-```powershell
-dotnet build NexusOptimizer.sln -c Release
-dotnet test src/Nexus.Tests/Nexus.Tests.csproj -c Release
-dotnet publish src/Nexus.UI/Nexus.UI.csproj -c Release -r win-x64 --self-contained true -o artifacts/app
-```
+A app abre sem elevação. Ações que exigem administrador recusam operar sem esse direito; não se eleva nem altera políticas de segurança automaticamente. Políticas bloqueadas, adaptadores incompatíveis e jogos protegidos mostram erro.
 
-## Módulos
+## Dados e restauro
 
-| Projeto | Responsabilidade / estado |
-|---|---|
-| UI | WinUI, dashboard, view model, comandos e ciclo de atualização |
-| Core | Modelos e contratos independentes da interface |
-| Hardware | WMI e APIs Win32, leituras sem alterações ao sistema |
-| Optimization | Validação e aplicação dos perfis conservadores |
-| Gaming | Ponto de extensão; FPS/PresentMon ainda não implementado |
-| Diagnostics | Configuração e escrita de logs Serilog |
-| Benchmark | Ponto de extensão; testes de desempenho ainda não implementados |
-| Network | Ponto de extensão; diagnóstico de rede ainda não implementado |
-| Storage | SQLite, esquema inicial, perfis, histórico e transações |
-| Restore | Comando de undo; reverte apenas preferências da app |
-| Service | Serviço de monitorização dentro do processo; não instala serviço Windows |
-| Tests | Testes de persistência, validação, undo e amostra real de memória |
+`%LOCALAPPDATA%/NexusOptimizer/nexus.db` guarda perfis, biblioteca, alterações, sessões, medições e eventos; `logs` contém os logs. Não apagar a base de dados/desinstalar enquanto existirem ajustes por repor. A exportação inclui todas as tabelas, não logs, e ainda não tem importação automática.
 
-## Dados e limitações
+Antes de cada alteração reversível, o journal grava a intenção e o valor anterior. Verifica escrita/reposição e recusa substituir mudanças externas. Undo é por ordem inversa e não substitui um ponto de restauro do Windows. Sessões só repõem alterações que lhes pertencem. O fecho normal tenta repor a sessão ativa e recusa fechar enquanto a recuperação falha. Alterações permanentes de energia/animações/DNS/políticas permanecem até usar Restaurar alterações ou Histórico. O restauro global preserva conflitos externos e tenta recuperar outras definições independentes. Limpeza usa a Lixeira; cache DNS, concessão IP, working sets e desinstalação não têm undo.
 
-Dados locais em `%LOCALAPPDATA%\NexusOptimizer`: `nexus.db` e `logs\nexus-*.log`. Não existe telemetria nem envio de dados. Os logs podem incluir nomes de hardware e mensagens do Windows. Para repor as preferências, feche a app e remova a base de dados e os seus ficheiros WAL/SHM dessa pasta.
+`NEXUS_DATA_DIR` isola dados de testes. `--smoke-test` tenta abrir, capturar imagem/métricas e fechar, sem aplicar ajustes. Em falha de arranque guarda `startup-error.txt` e sai com erro. `NEXUS_SCREENSHOT_PAGE` aceita overview, optimize, gaming, memory, network, benchmark, tools, history, preferences, apps, latency, tweaks, tuner, autoclean, help ou catalog. Não importar certificados nem desligar proteções para executar a revisão.
 
-A primeira leitura CPU necessita de uma segunda amostra para calcular a percentagem. GPU é apenas identificação, sem carga/temperatura/FPS. Discos são volumes lógicos fixos, não inventário físico SMART. WMI pode estar indisponível: a interface mostra “Indisponível” e regista o erro. O dashboard apresenta as últimas 100 alterações, mantendo todas na base de dados. Fechar a janela termina a monitorização.
+## Cobertura da referência
 
-O esquema SQLite está na versão 1. Alterações futuras exigem migrações versionadas. Para futuras otimizações do Windows, capturar o estado anterior antes de cada ação, validar a reversibilidade e implementar recuperação de falhas; o undo atual não restaura o sistema operativo.
+[FEATURES.md](FEATURES.md) e [TL-PARITY.md](TL-PARITY.md) distinguem código implementado, atalhos, pendências e exclusões. O catálogo completo é embebido em Core e consumido pela UI, para manter uma fonte de estado para trabalho futuro. Cada pendência necessita especificação, compatibilidade, efeito, reversão, executor e validação; uma entrada não é uma função executável.
 
-O executável desta versão de desenvolvimento não tem assinatura de distribuição. Ambientes que exigem aplicações confiáveis podem bloquear os ficheiros gerados. A distribuição nesses ambientes requer uma assinatura confiável ou o processo de aprovação definido pelo administrador; este projeto não desativa nem contorna essa política.
+Continuam ausentes captura automática/overlay de FPS, benchmark integrado de jogos, latência de entrada, aprendizagem adaptativa e regras validadas por modelo de hardware, App Tuner específico por produto, políticas de Office/Firefox/Chrome/NVIDIA/Visual Studio, gestão de serviços e parte das preferências Windows. A descoberta de bibliotecas de launchers foi acrescentada na 0.9 com os limites documentados em [AUDIT-09.md](AUDIT-09.md). Os ajustes Premium desfocados, onze opções avançadas de Game Mode, três opções Toque e parte inferior da grelha precisam de identificação. [A revisão das descrições TikTok](TIKTOK-REVIEW.md) regista também os erros de reprodução, sem fingir que todos os vídeos foram vistos. Opções agressivas/conflituantes não são implementadas como otimização. Não foi obtido código ou acesso pago ao TL.
 
-Para testes isolados, a variável `NEXUS_DATA_DIR` permite escolher outra pasta de dados. O argumento `--smoke-test`, usado com essa variável, tenta abrir a janela, ler métricas e gravar `dashboard.png` e `smoke-test.json` antes de fechar. Não executa alterações aos perfis nem ao Windows.
-
-## Verificação manual
-
-1. Abrir o executável e confirmar CPU/GPU/RAM/volumes e amostras atualizadas.
-2. Aplicar Gaming e confirmar perfil e histórico; fechar e reabrir para verificar persistência.
-3. Aplicar Trabalho, desfazer duas vezes e confirmar Normal.
-4. Confirmar logs e ausência de pedidos de elevação.
-
-Referências: [WinUI unpackaged](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/unpackage-winui-app), [Windows App SDK self-contained](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/self-contained-deploy/deploy-self-contained-apps).
+Módulos: UI, Core, Hardware, Optimization, Gaming, Diagnostics, Benchmark, Network, Storage, Restore, Service e Tests. A monitorização é interna; não instala serviço Windows. Assinatura/distribuição: [CODE_SIGNING.md](CODE_SIGNING.md). Privacidade: [PRIVACY.md](PRIVACY.md).

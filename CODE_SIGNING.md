@@ -3,7 +3,8 @@
 ## Current status
 
 NEXUS Optimizer is an experimental, unsigned open-source application.
-SignPath Foundation sponsorship has **not** been granted. No certificate or
+SignPath Foundation rejected the application on 7 October 2026 because the project
+has not yet demonstrated established public trust/adoption. No certificate or
 successful signing is claimed. Unsigned binaries may be blocked by Windows
 application-control policies. Making the source public does not remove that block.
 
@@ -15,12 +16,17 @@ application-control policies. Making the source public does not remove that bloc
 - Maintainers must enable multi-factor authentication before onboarding to signing.
   The repository does not claim that account-level configuration has been verified.
 
-## Planned signing process
+## Distribution process
 
 1. Build and test from an identified commit using the Windows CI workflow.
 2. Preserve the build provenance and review the release contents.
-3. If accepted by SignPath Foundation, configure origin verification and signing
-   for NEXUS-owned executables/libraries using their approved integration.
+3. Microsoft Store is the current distribution route. On 16 October 2026 the
+   maintainer authorized replacing the pending 0.7 with the tested 0.10.0.0 WARP/
+   Defender candidate. The portal confirmed submission 1152921505702079774 is in
+   certification, preprocessing in progress, with automatic publication after
+   approval. No production package is certified or Store-signed yet. Store
+   signing applies to the certified MSIX, not automatically to portable EXE/ZIP files.
+   SignPath sponsorship may be reconsidered after verifiable public adoption.
 4. Keep third-party components under their own licences and signatures.
 5. Publish only after the maintainer approves the release and verifies signatures.
 
@@ -29,3 +35,8 @@ added only once it is actually granted. The current CI publishes **unsigned**
 development artifacts and does not attempt to bypass Windows security.
 
 See [privacy policy](PRIVACY.md) and [SignPath requirements](https://signpath.org/terms.html).
+
+Exact candidate hash, hosted installed-payload tests and separate target-PC launch
+limitations are recorded in [Store 0.10 validation](STORE-010-VALIDATION.md). The
+working local base 0.10 does not include the new WARP integration. Do not weaken
+Windows security to run the rejected new portable candidate.

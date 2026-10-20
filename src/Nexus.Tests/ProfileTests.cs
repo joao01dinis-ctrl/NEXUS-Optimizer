@@ -83,7 +83,7 @@ public sealed class ProfileTests : IDisposable
     }
     public void Dispose()
     {
-        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        TestSqliteCleanup.ReleasePools(directory);
         if (Directory.Exists(directory))
             Directory.Delete(directory, true);
     }

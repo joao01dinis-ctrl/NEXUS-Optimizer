@@ -1,22 +1,123 @@
 # Privacy policy
 
-NEXUS Optimizer 0.1.0 is a local Windows application. It does not include
-analytics, advertising, telemetry, automatic updates or cloud synchronisation.
-It does not transfer information to other networked systems.
+NEXUS Optimizer 0.10.0 is a Windows application with local analysis and optional OpenAI advice. It has no own analytics,
+advertising, cloud sync or automatic update client. No hardware inventory,
+process list, file paths or diagnostic logs are uploaded.
 
-The application reads CPU and GPU names, physical memory statistics, CPU usage
-and fixed-volume capacity/free space. It displays these locally. It stores
-application profiles and their change history in SQLite under
-`%LOCALAPPDATA%\NexusOptimizer`. Local logs can contain hardware names,
-profile changes, file paths and Windows error messages. Seven daily log files
-are retained. Profile history is retained until the user removes the data.
+Optional OpenAI advice is off by default and requires a separately configured API
+key and explicit activation in Preferences before a manually initiated analysis.
+It sends CPU/RAM percentages, total RAM, battery/power state, the count of low-space
+volumes and permitted visual-setting identifiers to https://api.openai.com/v1/responses.
+It does not send CPU/GPU names, process names, drive names, paths, IP addresses,
+logs, CSV captures or the SQLite database. The request uses store:false; this does
+not exclude provider abuse-monitoring retention. OpenAI's policy and API charges
+apply. The model cannot authorize additional Windows settings or execute commands.
+No developer key is included in builds. Unavailable advice does not prevent local
+analysis. Periodic analysis never calls OpenAI.
 
-`NEXUS_DATA_DIR` can override the data folder for isolated testing.
-Closing the application stops monitoring. To remove the portable application,
-close it and delete its extracted folder. To remove preferences and logs too,
-delete the NEXUS Optimizer data folder. No Windows service is installed.
+The optional periodic optimizer is disabled on each launch. While enabled and the
+app is open, it can reduce five visual effects under sustained CPU/RAM pressure,
+using the local undo journal. It skips active game automation/sessions and does not
+reapply undone or externally changed settings. Mouse acceleration is a separate,
+manual preference, with captured thresholds retained for undo. appearance.json
+retains light/dark appearance and low-resource mode without credentials or consent
+for future cloud requests.
 
-GitHub and SignPath are separate services used for development/distribution;
-their websites have their own privacy policies. NEXUS does not contact them
-when it runs. Before sharing diagnostic logs in public issues, remove personal
-paths and any other information you do not want to publish.
+Optional DNS measurement sends three example.com A queries to each of Cloudflare,
+Google, Quad9 and AdGuard over IPv4/UDP port 53 after the user presses Measure.
+These providers see the queried domain and public source IP. Optional ICMP testing
+sends five small echo requests to the IP explicitly entered; the destination sees
+the requests. Changing the system DNS provider affects subsequent Windows/app DNS
+traffic, not just the NEXUS benchmark. The chosen provider may receive those queries.
+DNS changes, DHCP renewal and cache flushing require explicit confirmation and
+administrator rights. NEXUS does not configure encrypted DNS or send browsing history.
+
+Local inspection reads CPU/GPU names, memory and CPU usage, disk capacity/free space,
+network adapters, IPs, gateways, DNS, DHCP, accessible process names/PIDs/start times,
+working sets/private memory, optional package identities and selected Windows values.
+The app library stores executable paths selected by the user; detection compares
+these with accessible running processes. It does not launch registered executables. Optional automatic gaming mode uses a
+frozen, explicitly reviewed library/profile for the current opening only, changes
+only the authorised session settings and attempts to restore them when the game
+ends or the application closes normally. It does not stop/freeze background apps.
+
+SQLite under %LOCALAPPDATA%/NexusOptimizer stores profiles, app-library paths, settings
+before/after, sessions, benchmark environment/timings and action events, including
+latency destination IPs and app names. Graph samples remain in memory. Local logs may
+contain file paths, hardware names and Windows errors; seven daily files are retained.
+History is retained until the data is removed. NEXUS_DATA_DIR isolates testing data.
+Backup export copies all SQLite tables, not logs; keep exported backups private.
+
+The proposed Microsoft Store MSIX targets Windows 11. Its manifest requests
+runFullTrust for normal desktop APIs and narrowly scoped unvirtualizedResources:
+the NexusOptimizer data directory and the user policy keys CloudContent and Edge.
+The data directory is designed to persist after uninstall so reinstalling can recover
+the undo journal for settings changed outside the package. Uninstall does not restore
+those changes automatically. Use History/Restore before uninstalling; after restoring,
+you may delete %LOCALAPPDATA%/NexusOptimizer to remove the retained database and logs.
+These declarations do not grant administrator rights, disable Windows protections,
+or disable file/registry virtualization globally. Store approval and packaged tests
+are separate from portable application tests.
+
+Optional PresentMon CSV import reads only the file chosen by the user. It stores
+the chosen process/stream's aggregate presentation timings, process identity,
+filename without its full path, SHA-256 and user-declared test conditions locally.
+It does not upload the CSV or launch/install PresentMon. The hash identifies bytes,
+not authenticity or the capture PC. Optional per-app CPU measurement reads two
+local cumulative processor-time samples about two seconds apart, for accessible
+processes in the current session. These samples are shown, without changing apps
+or sending them anywhere. Opening official documentation uses the default browser
+and that website's own privacy policy.
+
+Manual cleanup reads file names/sizes/timestamps in the reviewed category. Selected
+old regular files are revalidated and sent to the Windows Recycle Bin. Optional
+automatic cleanup is disabled on each launch and requires confirmation of the local
+Temp folder, interval and bounds: at least 30 days since access/write, at most 100
+files, 10 MiB per file and 256 MiB per run. It pauses for detected library apps/game
+sessions. It never empties the bin, permanently deletes files or follows reparse points.
+Shader/web cache removal can trigger regeneration or another sign-in.
+
+Optional working-set reduction affects only a reviewed eligible background app;
+Windows reloads needed pages, without freeing its private allocations. Optional app
+removal is limited to a known optional package for the current user and may remove
+local app data. It has no NEXUS undo. Reinstall opens a Microsoft Store search, which
+uses the Store's own account/privacy policy and availability. No mass removal occurs.
+
+User privacy policies preserve the old value/absence for undo. Writing a policy does
+not prove effectiveness for every Windows edition/account. Windows security, update,
+restore, driver and essential-service settings are not disabled. The app does not
+install a service or elevate itself. Closing stops monitoring/automatic cleanup;
+restore active adjustments and sessions before deleting the database or uninstalling.
+
+GitHub/SignPath/Store websites have their own policies. NEXUS does not contact GitHub
+or SignPath at runtime. Review logs, backups and executable paths before sharing them.
+
+Smart Boost also reads installed graphics driver version and power/battery-saver status. Repeated CPU/RAM observations and rule decisions are processed locally. Diagnostic export writes a JSON report, including hardware/driver and accessible application names, only to the folder the user selects. No report is uploaded. Rule decisions and repeated FPS comparison summaries are stored in the local activity history. FPS captures may be labelled Reference/Optimized; labels are user declarations, not verified game conditions.
+# Biblioteca local e VPN na revisão 0.9
+
+A descoberta lê metadados de launchers e instalações acessíveis à conta atual. Nomes, raízes de instalação e preferências por jogo ficam na base de dados local até remoção dos dados da aplicação. Não são enviados para a OpenAI nem para servidores NEXUS. Perfis exportados incluem apenas nome e preferências visuais permitidas, sem caminhos de instalação ou credenciais.
+
+A VPN própria Nexos/WireGuard não tem servidores ou ligação. Não há alegação de proteção ou política no logs para um serviço próprio. Um futuro serviço depende de autorização e de uma política própria publicada antes de tratar tráfego.
+
+## Cloudflare WARP integration in revision 0.10
+
+Nexos VPN optionally detects the official Cloudflare WARP client in its documented Windows installation folders and validates its Authenticode signer before execution. Local `status`, `settings` and command-help queries are used to display state and compatibility; their raw output, account information and configuration are not logged or retained. These queries do not issue external NEXUS connectivity probes. WARP itself runs independently according to its own configuration and privacy policy.
+
+Installing WARP is assisted through the official Cloudflare Windows setup page. The user downloads, installs and accepts Cloudflare's terms personally. NEXUS does not redistribute WARP, create a Cloudflare registration, extract credentials, accept terms automatically or purchase WARP+. Confirmed connect/disconnect requests use the installed official CLI and its existing configuration. NEXUS never enables WARP from AI analysis or Game Boost and does not disconnect it automatically on exit.
+
+External verification requires separate confirmation and sends HTTPS requests to `https://www.cloudflare.com/cdn-cgi/trace` and ICMP probes to `1.1.1.1`. Cloudflare receives the source IP and ordinary request metadata. NEXUS keeps only the parsed WARP on/off/unknown indication, response availability, ICMP timings and timestamps in memory (at most twelve samples). The public IP and remaining trace payload are discarded, not written to logs/SQLite, exported or sent to OpenAI. Monitoring is limited to one minute, stops when leaving the page and can be cancelled. A test response does not establish complete traffic coverage or absence of DNS/IPv6 leaks.
+
+Cloudflare is an independent provider. Review its [application terms](https://www.cloudflare.com/application/terms/) and [application privacy policy](https://www.cloudflare.com/application/privacypolicy/) before use.
+
+## Windows protection in revision 0.10
+
+The protection page reads the Windows antivirus health and selected Microsoft Defender status fields locally. It does not read malware samples, threat file paths or send security information to OpenAI or NEXUS servers. Explicitly confirmed scans and signature updates are delegated to the active Microsoft Defender under the Windows policies and the current process rights. Defender may quarantine threats and contact its configured Microsoft services according to the Windows settings. These are not NEXUS undo operations. The local activity journal records only the requested action and command outcome; quarantine and detailed detection history remain in Windows Security. NEXUS does not change exclusions, security providers or protection settings. No scan or update starts just by opening this page.
+# Mouse Lab 1.0
+
+Mouse Lab detects local mouse HID identity and optional manufacturer/product strings using Windows APIs. It does not install drivers or write HID feature reports. Current DPI, sensor, battery and firmware remain unknown without a validated manufacturer integration; profile values are declared preferences.
+
+A user-started foreground test records mouse event delivery times, relative movement, button flags and wheel events for at most 15 seconds / 120,000 samples for the selected device. Capture stops on navigation, focus loss, cancellation, device removal or application closure. Only summary statistics and a reduced interval graph persist in the local SQLite database. Raw Input delivery times are not physical latency measurements. No keyboard events are collected. There is no capture in external games.
+
+Aim training runs locally inside NEXUS. Exercise results, difficulty, declared DPI/sensitivity, completion status and date stay local. Profile backup/import and report export occur only on request. Import does not apply Windows or hardware settings. Full device paths are displayed only locally in advanced diagnostics; default reports contain the product name and summaries, not the HID path. Local history retains up to 2,000 Mouse Lab events.
+
+Mouse game-profile monitoring is opt-in for the current opening only. It compares registered library paths and process identities every five seconds. Only reviewed Windows pointer settings can change; target DPI/polling and sensor notes do not configure hardware. Captured values are stored before writes and restored at process exit or normal app closure; interrupted/conflicting changes require explicit recovery. These local recommendations do not use an external AI service.

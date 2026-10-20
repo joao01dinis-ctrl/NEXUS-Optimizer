@@ -3,5 +3,5 @@ namespace Nexus.Network;
 
 public static class NetworkModule
 {
-    public static ModuleStatus Status => new("Network", "Diagnóstico de rede planeado; sem alterações DNS/TCP.", false);
+    public static ModuleStatus Status => new("Network", "Comparação de resposta DNS; sem alterações DNS/TCP.", true);
 }

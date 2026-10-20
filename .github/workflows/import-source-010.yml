@@ -1,0 +1,45 @@
+name: Import reviewed NEXUS 0.10 source
+on:
+  push:
+    branches: [nexus-v0.10-defender]
+    paths: ['nexus-warp-source-010.zip', '.github/workflows/import-source-010.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.ref == 'refs/heads/nexus-v0.10-defender' && github.actor == 'joao01dinis-ctrl'
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and import the reviewed source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-warp-source-010.zip'
+          if (!(Test-Path -LiteralPath $archive)) { Write-Host 'Source already imported.'; exit 0 }
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'E15535624EFE3B5159B66B6AFFA84A4AB1AC328D8A60541335852144975F2373') { throw 'Source hash mismatch.' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($archive)
+          $paths = [Collections.Generic.List[string]]::new()
+          try {
+            if ($zip.Entries.Count -ne 24) { throw 'Unexpected source inventory.' }
+            foreach ($entry in $zip.Entries) {
+              $parts = $entry.FullName.Replace('\','/').Split('/')
+              if ($parts -contains '..' -or $parts -contains '.git' -or $parts -contains '.github' -or $parts -contains 'artifacts' -or $parts -contains 'bin' -or $parts -contains 'obj') { throw 'Unsafe source path.' }
+              if ($entry.FullName -match '(^[\/]|:|(?i)\.(pfx|p12|pem|key|dll|exe|db|sqlite|zip)$)' -or $entry.FullName -match '(?i)(^|/)\.env' -or $entry.Length -gt 2097152) { throw 'Unexpected source content.' }
+              $target = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE $entry.FullName))
+              if (!$target.StartsWith($env:GITHUB_WORKSPACE + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Source escapes checkout.' }
+              [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
+              [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
+              $paths.Add($entry.FullName)
+            }
+          } finally { $zip.Dispose() }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- $paths
+          git rm -- nexus-warp-source-010.zip
+          git commit -m 'NEXUS 0.10: add the consent-based official Cloudflare WARP integration'
+          if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
+          git push origin HEAD:refs/heads/nexus-v0.10-defender
+          if ($LASTEXITCODE -ne 0) { throw 'Review branch changed; refusing to overwrite it.' }
