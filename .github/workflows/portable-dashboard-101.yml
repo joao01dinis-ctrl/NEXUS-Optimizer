@@ -21,7 +21,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $archive = Join-Path $env:GITHUB_WORKSPACE 'nexus-dashboard-101.zip'
           if (Test-Path -LiteralPath $archive) {
-            if ((Get-FileHash $archive).Hash -ne '676E7706305A73821FF1E51E50BD106EAE908564ED07AD66F1BCE7EED3438B52') { throw 'Source archive integrity mismatch.' }
+            if ((Get-FileHash $archive).Hash -ne '9F3268D84C0481EB3F78AFE3B1B52A6C4C4C322E364BC80CE7C8F70F6629DAAA') { throw 'Source archive integrity mismatch.' }
             Add-Type -AssemblyName System.IO.Compression.FileSystem
             $zip = [IO.Compression.ZipFile]::OpenRead($archive)
             try {
